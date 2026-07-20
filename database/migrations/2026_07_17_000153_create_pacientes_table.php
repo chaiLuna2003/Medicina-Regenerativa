@@ -11,16 +11,18 @@ return new class extends Migration
      */
     public function up(): void
 {
-    Schema::create('pacientes', function (Blueprint $table) {
-        $table->id();
-        $table->string('nombre');
-        $table->string('apellido');
-        $table->date('fecha_nacimiento');
-        $table->string('telefono')->nullable();
-        $table->string('email')->nullable();
-        $table->text('notas')->nullable();
-        $table->timestamps();
-    });
+  Schema::create('pacientes', function (Blueprint $table) {
+    $table->id();
+    $table->string('nombre');
+    $table->string('apellido');
+    $table->date('fecha_nacimiento');
+    $table->string('telefono')->nullable();
+    $table->string('email')->nullable();
+    $table->text('notas')->nullable();
+    $table->unsignedTinyInteger('edad')->nullable();
+    $table->string('foto')->nullable();
+    $table->timestamps();
+});
 }
 
     /**

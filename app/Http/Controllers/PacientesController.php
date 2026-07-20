@@ -4,12 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Models\Pacientes;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PacientesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pacientes = Pacientes::latest()->paginate(10);
+        $pacientes = Pacientes::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                      ->orWhere('apellido', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
         return view('pacientes.index', compact('pacientes'));
     }
 
@@ -24,10 +36,16 @@ class PacientesController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
+            'edad' => 'nullable|integer|min:0|max:120',
             'telefono' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'notas' => 'nullable|string',
+            'foto' => 'nullable|image|max:4096',
         ]);
+
+        if ($request->hasFile('foto')) {
+            $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+        }
 
         Pacientes::create($validated);
 
@@ -51,10 +69,19 @@ class PacientesController extends Controller
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
             'fecha_nacimiento' => 'required|date',
+            'edad' => 'nullable|integer|min:0|max:120',
             'telefono' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'notas' => 'nullable|string',
+            'foto' => 'nullable|image|max:4096',
         ]);
+
+        if ($request->hasFile('foto')) {
+            if ($pacientes->foto) {
+                Storage::disk('public')->delete($pacientes->foto);
+            }
+            $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+        }
 
         $pacientes->update($validated);
 
@@ -64,6 +91,10 @@ class PacientesController extends Controller
 
     public function destroy(Pacientes $pacientes)
     {
+        if ($pacientes->foto) {
+            Storage::disk('public')->delete($pacientes->foto);
+        }
+
         $pacientes->delete();
 
         return redirect()->route('pacientes.index')

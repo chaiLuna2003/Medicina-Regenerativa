@@ -5,7 +5,7 @@
 
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
-            <form action="{{ route('pacientes.update', $pacientes) }}" method="POST"
+            <form action="{{ route('pacientes.update', $pacientes) }}" method="POST" enctype="multipart/form-data"
                   class="bg-white p-6 rounded-lg shadow">
                 @csrf
                 @method('PUT')
