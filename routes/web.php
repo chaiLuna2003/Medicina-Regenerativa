@@ -4,6 +4,8 @@ use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\PreventBackHistory;
+use App\Models\Medicos;
+use App\Models\Pacientes;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -11,7 +13,25 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $totalPacientes = Pacientes::count();
+    $pacientesNuevos = Pacientes::where('created_at', '>=', now()->subDays(7))->count();
+    $totalMedicos = Medicos::count();
+    $medicosActivos = Medicos::where('status', true)->count();
+    $ultimosPacientes = Pacientes::latest()->take(5)->get();
+    $especialidades = Medicos::where('status', true)
+        ->select('especialidad')
+        ->get()
+        ->groupBy('especialidad')
+        ->map->count();
+
+    return view('dashboard', compact(
+        'totalPacientes',
+        'pacientesNuevos',
+        'totalMedicos',
+        'medicosActivos',
+        'ultimosPacientes',
+        'especialidades'
+    ));
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware(['auth', PreventBackHistory::class])->group(function () {
