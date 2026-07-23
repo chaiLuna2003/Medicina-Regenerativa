@@ -21,4 +21,9 @@ class Medicos extends Model
     protected $casts = [
         'status' => 'boolean',
     ];
+
+     public function citas()
+    {
+    return $this->hasMany(Citas::class);
+    }
 }

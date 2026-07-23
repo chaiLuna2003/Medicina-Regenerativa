@@ -27,4 +27,9 @@ class Pacientes extends Model
             ? asset('storage/' . $this->foto)
             : asset('images/avatar-default.png');
     }
+
+    public function citas()
+    {
+    return $this->hasMany(Citas::class);
+    }
 }

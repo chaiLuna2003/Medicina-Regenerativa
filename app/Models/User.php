@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -66,6 +67,11 @@ public function isEnfermero(): bool
 public function isRecepcionista(): bool
 {
     return $this->role === 'recepcionista';
+}
+
+public function createdAppointments(): HasMany
+{
+    return $this->hasMany(Citas::class, 'created_by');
 }
 
 }

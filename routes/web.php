@@ -1,59 +1,129 @@
 <?php
 
+use App\Http\Controllers\CitasController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\PreventBackHistory;
-use App\Models\Medicos;
-use App\Models\Pacientes;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Página pública
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    $totalPacientes = Pacientes::count();
-    $pacientesNuevos = Pacientes::where('created_at', '>=', now()->subDays(7))->count();
-    $totalMedicos = Medicos::count();
-    $medicosActivos = Medicos::where('status', true)->count();
-    $ultimosPacientes = Pacientes::latest()->take(5)->get();
-    $especialidades = Medicos::where('status', true)
-        ->select('especialidad')
-        ->get()
-        ->groupBy('especialidad')
-        ->map->count();
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
 
-    return view('dashboard', compact(
-        'totalPacientes',
-        'pacientesNuevos',
-        'totalMedicos',
-        'medicosActivos',
-        'ultimosPacientes',
-        'especialidades'
-    ));
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware([
+        'auth',
+        'verified',
+        PreventBackHistory::class,
+    ])
+    ->name('dashboard');
 
-Route::middleware(['auth', PreventBackHistory::class])->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Rutas protegidas
+|--------------------------------------------------------------------------
+*/
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware([
+    'auth',
+    'verified',
+    PreventBackHistory::class,
+])->group(function () {
 
-    // Ver, buscar, crear y editar pacientes: admin, medico, enfermero, recepcionista
-    Route::middleware('role:admin,medico,enfermero,recepcionista')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Perfil
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pacientes
+    |--------------------------------------------------------------------------
+    |
+    | Administrador, médico, enfermero y recepcionista pueden:
+    | - Consultar pacientes
+    | - Buscar pacientes
+    | - Registrar pacientes
+    | - Editar pacientes
+    |
+    */
+
+    Route::middleware(
+        'role:admin,medico,enfermero,recepcionista'
+    )->group(function () {
+
         Route::resource('pacientes', PacientesController::class)
             ->except(['destroy'])
-            ->parameters(['pacientes' => 'pacientes']);
+            ->parameters([
+                'pacientes' => 'pacientes',
+            ]);
     });
 
-    // Solo admin: eliminar pacientes y gestionar médicos
+    /*
+    |--------------------------------------------------------------------------
+    | Citas
+    |--------------------------------------------------------------------------
+    |
+    | Administrador, médico y recepcionista pueden gestionar las citas.
+    |
+    */
+
+    Route::middleware(
+        'role:admin,medico,recepcionista'
+    )->group(function () {
+
+        Route::resource('citas', CitasController::class)
+            ->parameters([
+                'citas' => 'cita',
+            ]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Administración
+    |--------------------------------------------------------------------------
+    |
+    | Solo el administrador puede:
+    | - Eliminar pacientes
+    | - Gestionar médicos
+    |
+    */
+
     Route::middleware('role:admin')->group(function () {
-        Route::delete('pacientes/{pacientes}', [PacientesController::class, 'destroy'])
-            ->name('pacientes.destroy');
+
+        Route::delete(
+            'pacientes/{pacientes}',
+            [PacientesController::class, 'destroy']
+        )->name('pacientes.destroy');
 
         Route::resource('medicos', MedicosController::class)
-            ->parameters(['medicos' => 'medicos']);
+            ->parameters([
+                'medicos' => 'medicos',
+            ]);
     });
 });
 
