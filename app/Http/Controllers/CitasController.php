@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Citas;
 use App\Models\Pacientes;
 use App\Models\User;
+use App\Models\Medicos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -28,16 +29,17 @@ class CitasController extends Controller
     /**
      * Mostrar el formulario para crear una cita.
      */
- public function create(): View
+public function create(): View
 {
     $pacientes = Pacientes::query()
         ->orderBy('nombre')
         ->orderBy('apellido')
         ->get();
 
-    $medicos = User::query()
-        ->where('role', 'medico')
-        ->orderBy('name')
+    $medicos = Medicos::query()
+        ->where('status', true)
+        ->orderBy('nombre')
+        ->orderBy('apellido_paterno')
         ->get();
 
     return view('citas.create', compact('pacientes', 'medicos'));
@@ -55,10 +57,10 @@ class CitasController extends Controller
                 'exists:pacientes,id',
             ],
             'medico_id' => [
-                'required',
-                'integer',
-                'exists:users,id',
-            ],
+    'required',
+    'integer',
+    'exists:medicos,id',
+],
             'fecha' => [
                 'required',
                 'date',
@@ -84,10 +86,11 @@ class CitasController extends Controller
             ],
         ]);
 
-        $medicoValido = User::query()
+        $medicoValido = Medicos::query()
     ->whereKey($datos['medico_id'])
-    ->where('role', 'medico')
+    ->where('status', true)
     ->exists();
+
 
         if (! $medicoValido) {
             return back()
@@ -132,18 +135,22 @@ class CitasController extends Controller
     }
 
     /**
-     * Mostrar el formulario para editar una cita.
-     */
-    public function edit(Citas $cita): View
+ * Mostrar el formulario para editar una cita.
+ */
+public function edit(Citas $cita): View
 {
     $pacientes = Pacientes::query()
         ->orderBy('nombre')
-        ->orderBy('apellido_paterno')
+        ->orderBy('apellido')
         ->get();
 
-    $medicos = User::query()
-        ->where('role', 'medico')
-        ->orderBy('name')
+    $medicos = Medicos::query()
+        ->where(function ($query) use ($cita) {
+            $query->where('status', true)
+                ->orWhere('id', $cita->medico_id);
+        })
+        ->orderBy('nombre')
+        ->orderBy('apellido_paterno')
         ->get();
 
     return view('citas.edit', compact(
@@ -153,68 +160,85 @@ class CitasController extends Controller
     ));
 }
 
+
     /**
-     * Actualizar una cita.
-     */
-    public function update(Request $request, Citas $cita): RedirectResponse
-    {
-        $datos = $request->validate([
-            'paciente_id' => [
-                'required',
-                'integer',
-                'exists:pacientes,id',
-            ],
-            'medico_id' => [
-                'required',
-                'integer',
-                'exists:users,id',
-            ],
-            'fecha' => [
-                'required',
-                'date',
-            ],
-            'hora' => [
-                'required',
-                'date_format:H:i',
-            ],
-            'motivo' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-            'notas' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-            'estado' => [
-                'required',
-                'in:programada,confirmada,en_espera,en_consulta,finalizada,cancelada',
-            ],
-        ]);
+ * Actualizar una cita.
+ */
+public function update(Request $request, Citas $cita): RedirectResponse
+{
+    $datos = $request->validate([
+        'paciente_id' => [
+            'required',
+            'integer',
+            'exists:pacientes,id',
+        ],
+        'medico_id' => [
+            'required',
+            'integer',
+            'exists:medicos,id',
+        ],
+        'fecha' => [
+            'required',
+            'date',
+        ],
+        'hora' => [
+            'required',
+            'date_format:H:i',
+        ],
+        'motivo' => [
+            'required',
+            'string',
+            'max:255',
+        ],
+        'notas' => [
+            'nullable',
+            'string',
+            'max:2000',
+        ],
+        'estado' => [
+            'required',
+            'in:programada,confirmada,en_espera,en_consulta,finalizada,cancelada',
+        ],
+    ]);
 
-        $horarioOcupado = Citas::query()
-            ->where('medico_id', $datos['medico_id'])
-            ->whereDate('fecha', $datos['fecha'])
-            ->whereTime('hora', $datos['hora'])
-            ->whereKeyNot($cita->id)
-            ->whereNotIn('estado', ['cancelada'])
-            ->exists();
+    $medicoValido = Medicos::query()
+        ->whereKey($datos['medico_id'])
+        ->where('status', true)
+        ->exists();
 
-        if ($horarioOcupado) {
-            return back()
-                ->withErrors([
-                    'hora' => 'El médico ya tiene una cita registrada en esa fecha y hora.',
-                ])
-                ->withInput();
-        }
-
-        $cita->update($datos);
-
-        return redirect()
-            ->route('citas.show', $cita)
-            ->with('success', 'La cita se actualizó correctamente.');
+    if (! $medicoValido) {
+        return back()
+            ->withErrors([
+                'medico_id' => 'El médico seleccionado no está activo.',
+            ])
+            ->withInput();
     }
+
+    $horarioOcupado = Citas::query()
+        ->where('medico_id', $datos['medico_id'])
+        ->whereDate('fecha', $datos['fecha'])
+        ->whereTime('hora', $datos['hora'])
+        ->whereKeyNot($cita->id)
+        ->where('estado', '!=', 'cancelada')
+        ->exists();
+
+    if (
+        $horarioOcupado &&
+        $datos['estado'] !== 'cancelada'
+    ) {
+        return back()
+            ->withErrors([
+                'hora' => 'El médico ya tiene otra cita registrada en esa fecha y hora.',
+            ])
+            ->withInput();
+    }
+
+    $cita->update($datos);
+
+    return redirect()
+        ->route('citas.index')
+        ->with('success', 'La cita se actualizó correctamente.');
+}
 
     /**
      * Eliminar una cita.

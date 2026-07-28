@@ -71,13 +71,7 @@
                                     value="{{ $paciente->id }}"
                                     @selected(old('paciente_id') == $paciente->id)
                                 >
-                                    {{
-                                        trim(
-                                            $paciente->nombre . ' ' .
-                                            $paciente->apellido_paterno . ' ' .
-                                            $paciente->apellido_materno
-                                        )
-                                    }}
+                                    {{ trim($paciente->nombre . ' ' . $paciente->apellido) }}
                                 </option>
                             @endforeach
                         </select>
