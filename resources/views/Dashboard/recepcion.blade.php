@@ -54,7 +54,7 @@
                                 </p>
 
                                 <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                    18
+                                    {{ $totalCitasHoy }}
                                 </p>
                             </div>
 
@@ -89,7 +89,7 @@
                                 </p>
 
                                 <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                    4
+                                    {{ $citasEnEspera }}
                                 </p>
                             </div>
 
@@ -124,7 +124,7 @@
                                 </p>
 
                                 <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                    12
+                                    {{ $citasConfirmadas }}
                                 </p>
                             </div>
 
@@ -159,7 +159,7 @@
                                 </p>
 
                                 <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                    2
+                                    {{ $citasCanceladas }}
                                 </p>
                             </div>
 
@@ -205,7 +205,7 @@
                         </div>
 
                         <a
-                            href="#"
+                            href="{{ route('citas.index') }}"
                             class="text-sm font-semibold text-emerald-600 transition hover:text-emerald-700"
                         >
                             Ver todas
@@ -213,155 +213,66 @@
                     </div>
 
                     <div class="divide-y divide-gray-100">
+                        @forelse ($citasHoy as $cita)
+                            @php
+                                [$estadoClases, $puntoClases, $estadoTexto] = match ($cita->estado) {
+                                    'confirmada' => ['bg-emerald-50 text-emerald-700', 'bg-emerald-500', 'Confirmada'],
+                                    'en_espera' => ['bg-amber-50 text-amber-700', 'bg-amber-500', 'En espera'],
+                                    'en_consulta' => ['bg-blue-50 text-blue-700', 'bg-blue-500', 'En consulta'],
+                                    'finalizada' => ['bg-gray-100 text-gray-600', 'bg-gray-500', 'Finalizada'],
+                                    'cancelada' => ['bg-red-50 text-red-700', 'bg-red-500', 'Cancelada'],
+                                    default => ['bg-violet-50 text-violet-700', 'bg-violet-500', 'Programada'],
+                                };
+                            @endphp
 
-                        {{-- Cita 1 --}}
-                        <article class="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50 sm:flex-row sm:items-center">
-                            <div class="w-20 shrink-0">
-                                <p class="text-base font-bold text-gray-900">
-                                    09:00
-                                </p>
-
-                                <p class="mt-1 text-xs text-gray-400">
-                                    45 min
-                                </p>
-                            </div>
-
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h4 class="font-semibold text-gray-900">
-                                        Juan Pérez Martínez
-                                    </h4>
-
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                                        Confirmada
-                                    </span>
+                            <article class="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50 sm:flex-row sm:items-center">
+                                <div class="w-20 shrink-0">
+                                    <p class="text-base font-bold text-gray-900">
+                                        {{ \Carbon\Carbon::parse($cita->hora)->format('H:i') }}
+                                    </p>
                                 </div>
 
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Consulta inicial · Dr. Carlos Martínez
-                                </p>
-                            </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h4 class="font-semibold text-gray-900">
+                                            {{ trim(
+                                                ($cita->paciente?->nombre ?? '') . ' ' .
+                                                ($cita->paciente?->apellido ?? '')
+                                            ) ?: 'Paciente no disponible' }}
+                                        </h4>
 
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-white hover:text-gray-900"
-                            >
-                                Ver detalles
-                            </button>
-                        </article>
+                                        <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $estadoClases }}">
+                                            <span class="h-1.5 w-1.5 rounded-full {{ $puntoClases }}"></span>
+                                            {{ $estadoTexto }}
+                                        </span>
+                                    </div>
 
-                        {{-- Cita 2 --}}
-                        <article class="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50 sm:flex-row sm:items-center">
-                            <div class="w-20 shrink-0">
-                                <p class="text-base font-bold text-gray-900">
-                                    10:00
-                                </p>
-
-                                <p class="mt-1 text-xs text-gray-400">
-                                    30 min
-                                </p>
-                            </div>
-
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h4 class="font-semibold text-gray-900">
-                                        María López Hernández
-                                    </h4>
-
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                                        En espera
-                                    </span>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        {{ $cita->motivo }}
+                                        · Dr. {{ trim(
+                                            ($cita->medico?->nombre ?? '') . ' ' .
+                                            ($cita->medico?->apellido_paterno ?? '')
+                                        ) ?: 'No asignado' }}
+                                    </p>
                                 </div>
 
+                                <a
+                                    href="{{ route('citas.edit', $cita) }}"
+                                    class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-white hover:text-gray-900"
+                                >
+                                    Ver detalles
+                                </a>
+                            </article>
+                        @empty
+                            <div class="px-6 py-14 text-center">
+                                <p class="font-semibold text-gray-900">
+                                    No hay citas programadas para hoy
+                                </p>
                                 <p class="mt-1 text-sm text-gray-500">
-                                    Seguimiento · Dra. Ana García
+                                    Las citas que registres para hoy aparecerán aquí.
                                 </p>
                             </div>
-
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-white hover:text-gray-900"
-                            >
-                                Ver detalles
-                            </button>
-                        </article>
-
-                        {{-- Cita 3 --}}
-                        <article class="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50 sm:flex-row sm:items-center">
-                            <div class="w-20 shrink-0">
-                                <p class="text-base font-bold text-gray-900">
-                                    11:30
-                                </p>
-
-                                <p class="mt-1 text-xs text-gray-400">
-                                    60 min
-                                </p>
-                            </div>
-
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h4 class="font-semibold text-gray-900">
-                                        Carlos Ruiz Sánchez
-                                    </h4>
-
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-blue-500"></span>
-                                        En consulta
-                                    </span>
-                                </div>
-
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Primera valoración · Dr. Luis Ramírez
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-white hover:text-gray-900"
-                            >
-                                Ver detalles
-                            </button>
-                        </article>
-
-                        {{-- Cita 4 --}}
-                        <article class="group flex flex-col gap-4 px-6 py-5 transition hover:bg-gray-50 sm:flex-row sm:items-center">
-                            <div class="w-20 shrink-0">
-                                <p class="text-base font-bold text-gray-900">
-                                    13:00
-                                </p>
-
-                                <p class="mt-1 text-xs text-gray-400">
-                                    30 min
-                                </p>
-                            </div>
-
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h4 class="font-semibold text-gray-900">
-                                        Fernanda Torres Díaz
-                                    </h4>
-
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-gray-500"></span>
-                                        Finalizada
-                                    </span>
-                                </div>
-
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Aplicación de tratamiento · Dra. Ana García
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-lg border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-gray-300 hover:bg-white hover:text-gray-900"
-                            >
-                                Ver detalles
-                            </button>
-                        </article>
-
+                        @endforelse
                     </div>
                 </div>
 
@@ -374,7 +285,7 @@
                             </h3>
 
                             <p class="mt-1 text-sm text-gray-500">
-                                Julio 2026
+                                {{ now()->locale('es')->translatedFormat('F Y') }}
                             </p>
                         </div>
 
@@ -426,22 +337,27 @@
                             </div>
                         @endforeach
 
-                        @foreach ([29, 30] as $day)
-                            <button
-                                type="button"
-                                class="aspect-square rounded-lg text-sm text-gray-300"
-                            >
-                                {{ $day }}
-                            </button>
-                        @endforeach
+                        @php
+                            $inicioMes = now()->copy()->startOfMonth();
+                            $diasPrevios = $inicioMes->dayOfWeekIso - 1;
+                            $diasMesAnterior = $inicioMes->copy()->subMonth()->daysInMonth;
+                        @endphp
 
-                        @foreach (range(1, 31) as $day)
+                        @if ($diasPrevios > 0)
+                            @foreach (range($diasMesAnterior - $diasPrevios + 1, $diasMesAnterior) as $day)
+                                <span class="flex aspect-square items-center justify-center rounded-lg text-sm text-gray-300">
+                                    {{ $day }}
+                                </span>
+                            @endforeach
+                        @endif
+
+                        @foreach (range(1, now()->daysInMonth) as $day)
                             <button
                                 type="button"
                                 @class([
                                     'aspect-square rounded-lg text-sm font-medium transition',
-                                    'bg-gray-900 text-white shadow-sm' => $day === 23,
-                                    'text-gray-700 hover:bg-gray-100' => $day !== 23,
+                                    'bg-gray-900 text-white shadow-sm' => $day === now()->day,
+                                    'text-gray-700 hover:bg-gray-100' => $day !== now()->day,
                                 ])
                             >
                                 {{ $day }}
@@ -450,21 +366,39 @@
                     </div>
 
                     <div class="mt-6 border-t border-gray-100 pt-5">
-                        <div class="flex items-center justify-between">
+                        @if ($proximaCita)
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        Próxima cita
+                                    </p>
+
+                                    <p class="mt-1 truncate text-sm text-gray-500">
+                                        {{ \Carbon\Carbon::parse($proximaCita->hora)->format('H:i') }}
+                                        · {{ trim(
+                                            ($proximaCita->paciente?->nombre ?? '') . ' ' .
+                                            ($proximaCita->paciente?->apellido ?? '')
+                                        ) ?: 'Paciente no disponible' }}
+                                    </p>
+                                </div>
+
+                                <a
+                                    href="{{ route('citas.edit', $proximaCita) }}"
+                                    class="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"
+                                >
+                                    Ver cita
+                                </a>
+                            </div>
+                        @else
                             <div>
                                 <p class="text-sm font-semibold text-gray-900">
-                                    Próxima cita
+                                    Sin citas próximas
                                 </p>
-
                                 <p class="mt-1 text-sm text-gray-500">
-                                    09:00 · Juan Pérez
+                                    No hay más citas pendientes para hoy.
                                 </p>
                             </div>
-
-                            <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-                                Confirmada
-                            </span>
-                        </div>
+                        @endif
                     </div>
                 </aside>
 
@@ -543,7 +477,7 @@
                                 Agendar una nueva consulta
                             </p>
                         </div>
-                    </button>
+</a>
 
                     <a
                         href="{{ route('pacientes.index') }}"
