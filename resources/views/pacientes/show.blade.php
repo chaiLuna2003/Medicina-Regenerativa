@@ -43,7 +43,9 @@
                     </div>
                     <div>
                         <dt class="text-gray-400">Edad</dt>
-                        <dd class="text-gray-800 font-medium">{{ $pacientes->edad ?? '—' }}</dd>
+                        <dd class="text-gray-800 font-medium"><p class="text-sm text-slate-600">
+    {{ $pacientes->edad ?? 'Edad no disponible' }}
+</p></dd>
                     </div>
                     <div>
                         <dt class="text-gray-400">Teléfono</dt>
