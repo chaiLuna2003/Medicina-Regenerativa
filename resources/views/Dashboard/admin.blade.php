@@ -301,25 +301,47 @@
                             </span>
                         </a>
 
-                        <div class="flex items-center gap-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
-                            <div class="rounded-xl bg-slate-200 p-3 text-slate-500">
-                                <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M15.75 6a3.75 3.75 0 11-7.5
-                                          0 3.75 3.75 0 017.5 0z"/>
-                                </svg>
-                            </div>
+                        <a href="{{ route('usuarios.index') }}"
+   class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5
+          transition duration-200 hover:-translate-y-0.5 hover:border-blue-300
+          hover:shadow-lg hover:shadow-blue-900/5">
 
-                            <div>
-                                <h3 class="font-semibold text-slate-700">
-                                    Usuarios y roles
-                                </h3>
-                                <p class="mt-1 text-sm text-slate-500">
-                                    Próximamente construiremos este módulo.
-                                </p>
-                            </div>
-                        </div>
+    <div class="rounded-xl bg-blue-50 p-3 text-blue-700 transition
+                group-hover:bg-blue-700 group-hover:text-white">
+        <svg class="h-6 w-6"
+             fill="none"
+             stroke="currentColor"
+             viewBox="0 0 24 24"
+             stroke-width="1.8">
+            <path stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 6a3.75 3.75 0 11-7.5 0
+                     3.75 3.75 0 017.5 0z
+                     M4.5 20.25a8.25 8.25 0 0115 0"/>
+        </svg>
+    </div>
+
+    <div class="min-w-0 flex-1">
+        <h3 class="font-semibold text-slate-800">
+            Usuarios y roles
+        </h3>
+
+        <p class="mt-1 text-sm text-slate-500">
+            Administra usuarios, roles y accesos al sistema.
+        </p>
+    </div>
+
+    <svg class="h-5 w-5 text-slate-400 transition
+                group-hover:translate-x-1 group-hover:text-blue-700"
+         fill="none"
+         stroke="currentColor"
+         viewBox="0 0 24 24"
+         stroke-width="1.8">
+        <path stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+    </svg>
+</a>
                     </div>
                 </div>
 

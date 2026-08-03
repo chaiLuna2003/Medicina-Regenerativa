@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -13,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 class LoginRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
+     * Determinar si la solicitud está autorizada.
      */
     public function authorize(): bool
     {
@@ -21,7 +23,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the validation rules that apply to the request.
+     * Reglas de validación.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
      */
@@ -34,7 +36,7 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Attempt to authenticate the request's credentials.
+     * Intentar autenticar al usuario.
      *
      * @throws ValidationException
      */
@@ -42,7 +44,20 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $usuario = User::query()
+            ->where('email', $this->string('email')->toString())
+            ->first();
+
+        /*
+         * Correo inexistente o contraseña incorrecta.
+         */
+        if (
+            ! $usuario ||
+            ! Hash::check(
+                $this->string('password')->toString(),
+                $usuario->password
+            )
+        ) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
@@ -50,11 +65,30 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        /*
+         * Credenciales correctas, pero cuenta deshabilitada.
+         */
+        if (! $usuario->status) {
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Tu cuenta está deshabilitada. Contacta al administrador.',
+            ]);
+        }
+
+        /*
+         * Iniciar sesión solamente si la cuenta está activa.
+         */
+        Auth::login(
+            $usuario,
+            $this->boolean('remember')
+        );
+
         RateLimiter::clear($this->throttleKey());
     }
 
     /**
-     * Ensure the login request is not rate limited.
+     * Verificar el límite de intentos.
      *
      * @throws ValidationException
      */
@@ -77,10 +111,12 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Get the rate limiting throttle key for the request.
+     * Obtener la clave utilizada para limitar los intentos.
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(
+            Str::lower($this->string('email')).'|'.$this->ip()
+        );
     }
 }

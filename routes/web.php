@@ -6,6 +6,7 @@ use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Middleware\PreventBackHistory;
+use App\Http\Controllers\UsuarioController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -27,6 +28,7 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware([
         'auth',
+        'active',
         'verified',
         PreventBackHistory::class,
     ])
@@ -40,6 +42,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 Route::middleware([
     'auth',
+    'active',
     'verified',
     PreventBackHistory::class,
 ])->group(function () {
@@ -124,6 +127,9 @@ Route::middleware([
             ->parameters([
                 'medicos' => 'medicos',
             ]);
+
+        Route::resource('usuarios', UsuarioController::class)
+    ->except(['show', 'destroy']);
     });
 });
 

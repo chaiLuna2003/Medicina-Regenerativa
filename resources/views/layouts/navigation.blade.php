@@ -24,10 +24,20 @@
                     @endif
 
                     @if (auth()->user()->isAdmin())
-                        <x-nav-link :href="route('medicos.index')" :active="request()->routeIs('medicos.*')">
-                            {{ __('Médicos') }}
-                        </x-nav-link>
-                    @endif
+    <x-nav-link
+        :href="route('medicos.index')"
+        :active="request()->routeIs('medicos.*')"
+    >
+        {{ __('Médicos') }}
+    </x-nav-link>
+
+    <x-nav-link
+        :href="route('usuarios.index')"
+        :active="request()->routeIs('usuarios.*')"
+    >
+        {{ __('Usuarios') }}
+    </x-nav-link>
+@endif
 
                 </div>
             </div>
@@ -92,10 +102,20 @@
             @endif
 
             @if (auth()->user()->isAdmin())
-                <x-responsive-nav-link :href="route('medicos.index')" :active="request()->routeIs('medicos.*')">
-                    {{ __('Médicos') }}
-                </x-responsive-nav-link>
-            @endif
+    <x-nav-link
+        :href="route('medicos.index')"
+        :active="request()->routeIs('medicos.*')"
+    >
+        {{ __('Médicos') }}
+    </x-nav-link>
+
+    <x-nav-link
+        :href="route('usuarios.index')"
+        :active="request()->routeIs('usuarios.*')"
+    >
+        {{ __('Usuarios') }}
+    </x-nav-link>
+@endif
 
         </div>
 

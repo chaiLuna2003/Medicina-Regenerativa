@@ -1,3 +1,9 @@
+@php
+    $edicionLimitadaRecepcion = isset($pacientes)
+        && auth()->user()->isRecepcionista();
+@endphp
+
+@unless ($edicionLimitadaRecepcion)
 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 pb-6 border-b border-gray-100">
     <img id="preview-foto"
          src="{{ isset($pacientes) ? $pacientes->fotoUrl() : asset('images/avatar-default.png') }}"
@@ -13,8 +19,36 @@
         @error('foto') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
     </div>
 </div>
+@endunless
 
 <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Datos personales</h3>
+@if ($edicionLimitadaRecepcion)
+<div class="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
+    <div class="flex items-center gap-4">
+        <img src="{{ $pacientes->fotoUrl() }}"
+             alt="Foto de {{ $pacientes->nombre }}"
+             class="h-16 w-16 shrink-0 rounded-full border border-slate-200 object-cover">
+
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Paciente
+            </p>
+            <p class="mt-1 text-lg font-semibold text-slate-800">
+                {{ $pacientes->nombre }} {{ $pacientes->apellido }}
+            </p>
+            <p class="mt-1 text-sm text-slate-600">
+                Nacimiento: {{ $pacientes->fecha_nacimiento?->format('d/m/Y') ?? 'No registrada' }}
+                <span class="mx-1 text-slate-300">•</span>
+                Edad: {{ $pacientes->edad ?? 'No disponible' }}
+            </p>
+        </div>
+    </div>
+
+    <p class="mt-4 text-sm text-slate-500">
+        Los datos personales solo pueden ser modificados por personal autorizado.
+    </p>
+</div>
+@else
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
@@ -69,9 +103,8 @@
         </p>
     @enderror
 </div>
-
-    
 </div>
+@endif
 
 <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Contacto</h3>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
@@ -90,13 +123,16 @@
     </div>
 </div>
 
+@unless ($edicionLimitadaRecepcion)
 <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Notas clínicas</h3>
 <div class="mb-6">
     <textarea name="notas" rows="4" placeholder="Observaciones, antecedentes, etc."
               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">{{ old('notas', $pacientes->notas ?? '') }}</textarea>
     @error('notas') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
 </div>
+@endunless
 
+@unless ($edicionLimitadaRecepcion)
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const fechaInput = document.getElementById('fecha_nacimiento');
@@ -200,3 +236,4 @@
         calcularEdad();
     });
 </script>
+@endunless

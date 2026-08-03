@@ -65,6 +65,18 @@ class PacientesController extends Controller
 
     public function update(Request $request, Pacientes $pacientes)
     {
+        if ($request->user()->isRecepcionista()) {
+            $validated = $request->validate([
+                'telefono' => ['nullable', 'string', 'max:20'],
+                'email' => ['nullable', 'email', 'max:255'],
+            ]);
+
+            $pacientes->update($validated);
+
+            return redirect()->route('pacientes.index')
+                ->with('success', 'Datos de contacto actualizados correctamente.');
+        }
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
