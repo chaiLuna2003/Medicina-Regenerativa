@@ -6,7 +6,7 @@
 @unless ($edicionLimitadaRecepcion)
 <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6 pb-6 border-b border-gray-100">
     <img id="preview-foto"
-         src="{{ isset($pacientes) ? $pacientes->fotoUrl() : asset('images/avatar-default.png') }}"
+         src="{{ isset($pacientes) ? $pacientes->fotoUrl() : asset('images/default.webp') }}"
          class="w-20 h-20 rounded-full object-cover border border-gray-200 shrink-0">
 
     <div class="w-full">

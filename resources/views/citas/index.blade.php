@@ -144,7 +144,17 @@
                                 </td>
 
                                 <td class="whitespace-nowrap px-6 py-4 text-right">
-                                    <a
+                                    <div>
+                                <a
+    href="{{ route('citas.show', $cita) }}"
+    title="Ver detalles"
+    class="inline-flex items-center justify-center rounded-lg border
+           border-gray-300 bg-white px-3 py-2 text-sm font-semibold
+           text-gray-700 transition hover:bg-gray-100"
+>
+    Ver
+</a>   
+                                <a
                                         href="{{ route('citas.edit', $cita) }}"
                                         title="Editar cita"
                                         class="inline-flex items-center gap-2 rounded-lg border border-[#0D3B7F]
@@ -171,6 +181,7 @@
 
                                         Editar
                                     </a>
+                                    </div>
                                 </td>
 
 

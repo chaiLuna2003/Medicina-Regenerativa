@@ -1,56 +1,65 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <p class="text-sm font-medium text-emerald-600">
-                    Panel de recepción
-                </p>
+    <div>
+        <p class="text-sm font-medium text-emerald-600">
+            Panel de recepción
+        </p>
 
-                <h2 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
-                    Buenos días, {{ auth()->user()->name }}
-                </h2>
+        <h2 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
+            Buenos días, {{ auth()->user()->name }}
+        </h2>
 
-                <p class="mt-1 text-sm text-gray-500">
-                    {{ now()->locale('es')->translatedFormat('l, d \d\e F \d\e Y') }}
-                </p>
-            </div>
+        <p class="mt-1 text-sm text-gray-500">
+            {{ now()->locale('es')->translatedFormat('l, d \d\e F \d\e Y') }}
+        </p>
+    </div>
 
-            <a
-                href="{{ route('citas.create') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2">
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4" />
-                </svg>
+    {{-- Acciones rápidas --}}
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a
+            href="{{ route('citas.create') }}"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+        >
+            <svg
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                />
+            </svg>
 
-                Nueva cita
-            </a>
+            Nueva cita
+        </a>
 
-            <a
-                href="{{ route('pacientes.create') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2">
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 4v16m8-8H4" />
-                </svg>
+        <a
+            href="{{ route('pacientes.create') }}"
+            class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
+        >
+            <svg
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 4v16m8-8H4"
+                />
+            </svg>
 
-                Nuevo paciente
-            </a>
-        </div>
+            Nuevo paciente
+        </a>
+    </div>
+</div>
     </x-slot>
 
     <div class="py-8">

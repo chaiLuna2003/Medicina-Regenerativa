@@ -1,5 +1,47 @@
 <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Datos personales</h3>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+
+<div>
+    <label
+        for="user_id"
+        class="mb-2 block text-sm font-semibold text-gray-700"
+    >
+        Cuenta de acceso
+    </label>
+
+    <select
+        id="user_id"
+        name="user_id"
+        required
+        class="block w-full rounded-xl border-gray-300 shadow-sm
+               focus:border-[#0D3B7F] focus:ring-[#0D3B7F]"
+    >
+        <option value="">Selecciona una cuenta con rol médico</option>
+
+        @foreach ($usuariosMedicos as $usuario)
+            <option
+                value="{{ $usuario->id }}"
+                @selected(old('user_id') == $usuario->id)
+            >
+                {{ $usuario->name }} — {{ $usuario->email }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('user_id')
+        <p class="mt-2 text-sm text-red-600">
+            {{ $message }}
+        </p>
+    @enderror
+
+    @if ($usuariosMedicos->isEmpty())
+        <p class="mt-2 text-sm text-amber-600">
+            No hay cuentas médicas disponibles. Primero crea un usuario
+            con rol médico desde Usuarios y roles.
+        </p>
+    @endif
+</div>
+
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
         <input type="text" name="nombre" value="{{ old('nombre', $medicos->nombre ?? '') }}"

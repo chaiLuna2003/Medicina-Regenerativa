@@ -47,41 +47,111 @@
                 <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
 
                     {{-- Paciente --}}
-                    <div class="md:col-span-2">
-                        <label
-                            for="paciente_id"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Paciente
-                            <span class="text-red-500">*</span>
-                        </label>
+                    {{-- Buscador de paciente --}}
+<div class="relative md:col-span-2">
+    <label
+        for="buscar_paciente"
+        class="mb-2 block text-sm font-semibold text-gray-700"
+    >
+        Paciente
+        <span class="text-red-500">*</span>
+    </label>
 
-                        <select
-                            id="paciente_id"
-                            name="paciente_id"
-                            required
-                            class="block w-full rounded-xl border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        >
-                            <option value="">
-                                Selecciona un paciente
-                            </option>
+    {{-- Este es el dato que Laravel guardará --}}
+    <input
+        type="hidden"
+        id="paciente_id"
+        name="paciente_id"
+        value="{{ old('paciente_id') }}"
+    >
 
-                            @foreach ($pacientes as $paciente)
-                                <option
-                                    value="{{ $paciente->id }}"
-                                    @selected(old('paciente_id') == $paciente->id)
-                                >
-                                    {{ trim($paciente->nombre . ' ' . $paciente->apellido) }}
-                                </option>
-                            @endforeach
-                        </select>
+    <div class="relative">
+        <input
+            type="search"
+            id="buscar_paciente"
+            placeholder="Escribe el nombre o apellido del paciente..."
+            autocomplete="off"
+            class="block w-full rounded-xl border-gray-300 bg-white
+                   pr-11 text-gray-900 shadow-sm
+                   focus:border-blue-500 focus:ring-blue-500"
+        >
 
-                        @error('paciente_id')
-                            <p class="mt-2 text-sm text-red-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+        <div
+            id="indicador_busqueda"
+            class="pointer-events-none absolute inset-y-0 right-4
+                   hidden items-center"
+        >
+            <svg
+                class="h-5 w-5 animate-spin text-blue-600"
+                viewBox="0 0 24 24"
+                fill="none"
+            >
+                <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                ></circle>
+
+                <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+            </svg>
+        </div>
+    </div>
+
+    {{-- Resultados --}}
+    <div
+        id="resultados_pacientes"
+        class="absolute z-30 mt-2 hidden max-h-72 w-full
+               overflow-y-auto rounded-xl border border-gray-200
+               bg-white shadow-xl"
+    ></div>
+
+    {{-- Paciente seleccionado --}}
+    <div
+        id="paciente_seleccionado"
+        class="mt-3 hidden items-center justify-between gap-4
+               rounded-xl border border-blue-200 bg-blue-50 px-4 py-3"
+    >
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                Paciente seleccionado
+            </p>
+
+            <p
+                id="nombre_paciente_seleccionado"
+                class="mt-1 font-semibold text-gray-900"
+            ></p>
+        </div>
+
+        <button
+            type="button"
+            id="quitar_paciente"
+            class="shrink-0 text-sm font-semibold text-red-600
+                   hover:text-red-700 hover:underline"
+        >
+            Cambiar
+        </button>
+    </div>
+
+    <p
+        id="mensaje_busqueda"
+        class="mt-2 text-sm text-gray-500"
+    >
+        Escribe al menos 2 caracteres para buscar.
+    </p>
+
+    @error('paciente_id')
+        <p class="mt-2 text-sm text-red-600">
+            {{ $message }}
+        </p>
+    @enderror
+</div>
 
                     {{-- Médico --}}
                     <div class="md:col-span-2">
@@ -295,3 +365,174 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const buscador = document.getElementById('buscar_paciente');
+    const pacienteId = document.getElementById('paciente_id');
+    const resultados = document.getElementById('resultados_pacientes');
+    const indicador = document.getElementById('indicador_busqueda');
+    const mensaje = document.getElementById('mensaje_busqueda');
+    const seleccionado = document.getElementById('paciente_seleccionado');
+    const nombreSeleccionado = document.getElementById(
+        'nombre_paciente_seleccionado'
+    );
+    const quitarPaciente = document.getElementById('quitar_paciente');
+
+    let temporizador;
+    let solicitudActual;
+
+    function mostrarMensaje(texto) {
+        resultados.innerHTML = '';
+
+        const elemento = document.createElement('p');
+        elemento.className = 'px-4 py-4 text-sm text-gray-500';
+        elemento.textContent = texto;
+
+        resultados.appendChild(elemento);
+        resultados.classList.remove('hidden');
+    }
+
+    function seleccionarPaciente(paciente) {
+        pacienteId.value = paciente.id;
+        nombreSeleccionado.textContent = paciente.nombre_completo;
+
+        seleccionado.classList.remove('hidden');
+        seleccionado.classList.add('flex');
+
+        buscador.value = '';
+        buscador.disabled = true;
+        resultados.classList.add('hidden');
+
+        mensaje.textContent = 'El paciente quedó asignado a la cita.';
+    }
+
+    async function buscarPacientes(termino) {
+        solicitudActual?.abort();
+        solicitudActual = new AbortController();
+
+        indicador.classList.remove('hidden');
+        indicador.classList.add('flex');
+
+        try {
+  const url = new URL(
+    "{{ route('pacientes.buscar', [], false) }}",
+    window.location.origin
+);
+
+            url.searchParams.set('q', termino);
+
+            const respuesta = await fetch(url.toString(), {
+    method: 'GET',
+    credentials: 'same-origin',
+    headers: {
+        Accept: 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+    },
+    signal: solicitudActual.signal,
+});
+
+            if (!respuesta.ok) {
+                throw new Error('No se pudo realizar la búsqueda.');
+            }
+
+            const pacientes = await respuesta.json();
+
+            resultados.innerHTML = '';
+
+            if (pacientes.length === 0) {
+                mostrarMensaje('No se encontraron pacientes.');
+                return;
+            }
+
+            pacientes.forEach((paciente) => {
+                const boton = document.createElement('button');
+                boton.type = 'button';
+                boton.className =
+                    'block w-full border-b border-gray-100 px-4 py-3 ' +
+                    'text-left transition last:border-b-0 hover:bg-blue-50';
+
+                const nombre = document.createElement('span');
+                nombre.className = 'block font-semibold text-gray-900';
+                nombre.textContent = paciente.nombre_completo;
+
+                boton.appendChild(nombre);
+
+                if (paciente.telefono) {
+                    const telefono = document.createElement('span');
+                    telefono.className = 'mt-1 block text-sm text-gray-500';
+                    telefono.textContent = paciente.telefono;
+                    boton.appendChild(telefono);
+                }
+
+                boton.addEventListener('click', () => {
+                    seleccionarPaciente(paciente);
+                });
+
+                resultados.appendChild(boton);
+            });
+
+            resultados.classList.remove('hidden');
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                mostrarMensaje(
+                    'Ocurrió un error al buscar. Intenta nuevamente.'
+                );
+            }
+        } finally {
+            indicador.classList.add('hidden');
+            indicador.classList.remove('flex');
+        }
+    }
+
+    buscador.addEventListener('input', () => {
+        clearTimeout(temporizador);
+
+        const termino = buscador.value.trim();
+
+        pacienteId.value = '';
+
+        if (termino.length < 2) {
+            resultados.classList.add('hidden');
+            mensaje.textContent =
+                'Escribe al menos 2 caracteres para buscar.';
+            return;
+        }
+
+        mensaje.textContent = 'Buscando coincidencias...';
+
+        temporizador = setTimeout(() => {
+            buscarPacientes(termino);
+        }, 350);
+    });
+
+    quitarPaciente.addEventListener('click', () => {
+        pacienteId.value = '';
+        nombreSeleccionado.textContent = '';
+
+        seleccionado.classList.add('hidden');
+        seleccionado.classList.remove('flex');
+
+        buscador.disabled = false;
+        mensaje.textContent =
+            'Escribe al menos 2 caracteres para buscar.';
+
+        buscador.focus();
+    });
+
+    document.addEventListener('click', (event) => {
+        if (
+            !resultados.contains(event.target) &&
+            event.target !== buscador
+        ) {
+            resultados.classList.add('hidden');
+        }
+    });
+
+    buscador.addEventListener('focus', () => {
+        if (resultados.children.length > 0 && !pacienteId.value) {
+            resultados.classList.remove('hidden');
+        }
+    });
+});
+</script>

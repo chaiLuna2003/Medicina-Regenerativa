@@ -105,6 +105,11 @@ Route::middleware([
             ]);
     });
 
+    Route::get(
+    '/buscar-pacientes',
+    [CitasController::class, 'buscarPacientes']
+)->name('pacientes.buscar');
+
     /*
     |--------------------------------------------------------------------------
     | Administración

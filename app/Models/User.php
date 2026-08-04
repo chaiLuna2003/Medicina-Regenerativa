@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Medicos;
 
 class User extends Authenticatable
 {
@@ -80,4 +82,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Citas::class, 'created_by');
     }
+
+    public function medico(): HasOne
+{
+    return $this->hasOne(Medicos::class, 'user_id');
+}
 }
