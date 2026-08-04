@@ -5,8 +5,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Middleware\PreventBackHistory;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -55,7 +55,7 @@ Route::middleware([
 
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
-    
+
     Route::patch('/profile', [ProfileController::class, 'update'])
         ->name('profile.update');
 
@@ -67,11 +67,8 @@ Route::middleware([
     | Pacientes
     |--------------------------------------------------------------------------
     |
-    | Administrador, médico, enfermero y recepcionista pueden:
-    | - Consultar pacientes
-    | - Buscar pacientes
-    | - Registrar pacientes
-    | - Editar pacientes
+    | Administrador, médico, enfermero y recepcionista pueden consultar,
+    | buscar, registrar y editar pacientes.
     |
     */
 
@@ -99,25 +96,36 @@ Route::middleware([
         'role:admin,medico,recepcionista'
     )->group(function () {
 
+        /*
+         * Debe declararse antes del resource para evitar que Laravel
+         * interprete "horarios-disponibles" como el parámetro {cita}.
+         */
+        Route::get(
+            '/citas/horarios-disponibles',
+            [CitasController::class, 'horariosDisponibles']
+        )->name('citas.horarios-disponibles');
+
+        Route::get(
+            '/buscar-pacientes',
+            [CitasController::class, 'buscarPacientes']
+        )->name('pacientes.buscar');
+
+        /*
+         * El resource de citas se declara una sola vez.
+         */
         Route::resource('citas', CitasController::class)
             ->parameters([
                 'citas' => 'cita',
             ]);
     });
 
-    Route::get(
-    '/buscar-pacientes',
-    [CitasController::class, 'buscarPacientes']
-)->name('pacientes.buscar');
-
     /*
     |--------------------------------------------------------------------------
     | Administración
     |--------------------------------------------------------------------------
     |
-    | Solo el administrador puede:
-    | - Eliminar pacientes
-    | - Gestionar médicos
+    | Solo el administrador puede eliminar pacientes y gestionar médicos
+    | y usuarios.
     |
     */
 
@@ -134,7 +142,7 @@ Route::middleware([
             ]);
 
         Route::resource('usuarios', UsuarioController::class)
-    ->except(['show', 'destroy']);
+            ->except(['show', 'destroy']);
     });
 });
 

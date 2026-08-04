@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Citas;
 use App\Models\Pacientes;
-use App\Models\User;
 use App\Models\Medicos;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class CitasController extends Controller
 {
+
+private const HORA_APERTURA = '09:00';
+private const HORA_CIERRE = '21:00';
+private const DURACION_CITA = 15;
     /**
      * Mostrar el listado de citas.
      */
@@ -97,20 +102,11 @@ class CitasController extends Controller
                 ->withInput();
         }
 
-        $horarioOcupado = Citas::query()
-            ->where('medico_id', $datos['medico_id'])
-            ->whereDate('fecha', $datos['fecha'])
-            ->whereTime('hora', $datos['hora'])
-            ->whereNotIn('estado', ['cancelada'])
-            ->exists();
-
-        if ($horarioOcupado) {
-            return back()
-                ->withErrors([
-                    'hora' => 'El médico ya tiene una cita registrada en esa fecha y hora.',
-                ])
-                ->withInput();
-        }
+        $this->validarHorarioDisponible(
+    $datos['medico_id'],
+    $datos['fecha'],
+    $datos['hora']
+);
 
         $datos['created_by'] = auth()->id();
 
@@ -119,6 +115,8 @@ class CitasController extends Controller
         return redirect()
             ->route('citas.index')
             ->with('success', 'La cita se registró correctamente.');
+
+        
     }
 
     /**
@@ -211,24 +209,32 @@ class CitasController extends Controller
                 ->withInput();
         }
 
-        $horarioOcupado = Citas::query()
-            ->where('medico_id', $datos['medico_id'])
-            ->whereDate('fecha', $datos['fecha'])
-            ->whereTime('hora', $datos['hora'])
-            ->whereKeyNot($cita->id)
-            ->where('estado', '!=', 'cancelada')
-            ->exists();
+       $horarioFueModificado =
+    (int) $cita->medico_id !== (int) $datos['medico_id']
+    || $cita->fecha->format('Y-m-d') !== $datos['fecha']
+    || Carbon::parse($cita->hora)->format('H:i') !== $datos['hora'];
 
-        if (
-            $horarioOcupado &&
-            $datos['estado'] !== 'cancelada'
-        ) {
-            return back()
-                ->withErrors([
-                    'hora' => 'El médico ya tiene otra cita registrada en esa fecha y hora.',
-                ])
-                ->withInput();
-        }
+$seEstaReactivando =
+    $cita->estado === 'cancelada'
+    && $datos['estado'] !== 'cancelada';
+
+if (
+    $datos['estado'] !== 'cancelada'
+    && ($horarioFueModificado || $seEstaReactivando)
+) {
+    $this->validarHorarioDisponible(
+        (int) $datos['medico_id'],
+        $datos['fecha'],
+        $datos['hora'],
+        $cita->id
+    );
+}
+
+$cita->update($datos);
+
+return redirect()
+    ->route('citas.index')
+    ->with('success', 'La cita se actualizó correctamente.');
 
         $cita->update($datos);
 
@@ -289,4 +295,118 @@ class CitasController extends Controller
 
     return response()->json($pacientes);
 }
+public function horariosDisponibles(Request $request): JsonResponse
+{
+    $datos = $request->validate([
+        'medico_id' => ['required', 'integer', 'exists:medicos,id'],
+        'fecha' => ['required', 'date'],
+        'ignorar_cita' => ['nullable', 'integer', 'exists:citas,id'],
+    ]);
+
+    $fecha = Carbon::parse($datos['fecha'])->startOfDay();
+    $ahora = now();
+
+    $citasOcupadas = Citas::query()
+        ->where('medico_id', $datos['medico_id'])
+        ->whereDate('fecha', $fecha->format('Y-m-d'))
+        ->where('estado', '!=', 'cancelada')
+        ->when(
+            ! empty($datos['ignorar_cita']),
+            fn ($query) => $query->whereKeyNot($datos['ignorar_cita'])
+        )
+        ->pluck('hora')
+        ->map(fn ($hora) => Carbon::parse($hora)->format('H:i'))
+        ->all();
+
+    $inicio = Carbon::parse(
+        $fecha->format('Y-m-d') . ' ' . self::HORA_APERTURA
+    );
+
+    $cierre = Carbon::parse(
+        $fecha->format('Y-m-d') . ' ' . self::HORA_CIERRE
+    );
+
+    $horarios = [];
+
+    while ($inicio->copy()->addMinutes(self::DURACION_CITA)->lte($cierre)) {
+        $hora = $inicio->format('H:i');
+        $ocupado = in_array($hora, $citasOcupadas, true);
+        $yaPaso = $fecha->isToday() && $inicio->lte($ahora);
+        $fechaPasada = $fecha->isBefore($ahora->copy()->startOfDay());
+
+        $horarios[] = [
+            'hora' => $hora,
+            'texto' => $inicio->format('h:i A'),
+            'disponible' => ! $ocupado && ! $yaPaso && ! $fechaPasada,
+            'ocupado' => $ocupado,
+        ];
+
+        $inicio->addMinutes(self::DURACION_CITA);
+    }
+
+    return response()->json([
+        'horarios' => $horarios,
+        'primer_disponible' => collect($horarios)
+            ->firstWhere('disponible', true)['hora'] ?? null,
+    ]);
+}
+
+private function validarHorarioDisponible(
+    int $medicoId,
+    string $fecha,
+    string $hora,
+    ?int $ignorarCitaId = null
+): void {
+    $inicio = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $fecha . ' ' . $hora
+    );
+
+    $apertura = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $fecha . ' ' . self::HORA_APERTURA
+    );
+
+    $cierre = Carbon::createFromFormat(
+        'Y-m-d H:i',
+        $fecha . ' ' . self::HORA_CIERRE
+    );
+
+    $minutosDesdeApertura = (int) $apertura->diffInMinutes($inicio, false);
+
+    $esBloqueValido =
+        $inicio->gte($apertura)
+        && $inicio->copy()->addMinutes(self::DURACION_CITA)->lte($cierre)
+        && $minutosDesdeApertura % self::DURACION_CITA === 0;
+
+    if (! $esBloqueValido) {
+        throw ValidationException::withMessages([
+            'hora' => 'Selecciona un horario válido de 15 minutos entre las 09:00 AM y las 08:45 PM.',
+        ]);
+    }
+
+    if ($inicio->lte(now())) {
+        throw ValidationException::withMessages([
+            'hora' => 'No puedes registrar una cita en un horario que ya pasó.',
+        ]);
+    }
+
+    $horarioOcupado = Citas::query()
+        ->where('medico_id', $medicoId)
+        ->whereDate('fecha', $fecha)
+        ->whereTime('hora', $hora)
+        ->where('estado', '!=', 'cancelada')
+        ->when(
+            $ignorarCitaId,
+            fn ($query) => $query->whereKeyNot($ignorarCitaId)
+        )
+        ->exists();
+
+    if ($horarioOcupado) {
+        throw ValidationException::withMessages([
+            'hora' => 'Ese horario acaba de ser ocupado. Selecciona otro espacio disponible.',
+        ]);
+    }
+}
+
 }

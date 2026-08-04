@@ -227,29 +227,40 @@
 
                     {{-- Hora --}}
                     <div>
-                        <label
-                            for="hora"
-                            class="mb-2 block text-sm font-semibold text-gray-700"
-                        >
-                            Hora
-                            <span class="text-red-500">*</span>
-                        </label>
+    <label
+        for="hora"
+        class="mb-2 block text-sm font-semibold text-gray-700"
+    >
+        Hora
+        <span class="text-red-500">*</span>
+    </label>
 
-                        <input
-                            id="hora"
-                            name="hora"
-                            type="time"
-                            value="{{ old('hora') }}"
-                            required
-                            class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        >
+    <select
+        id="hora"
+        name="hora"
+        required
+        disabled
+        data-valor-anterior="{{ old('hora') }}"
+        class="block w-full rounded-xl border-gray-300 bg-white
+               text-gray-900 shadow-sm
+               focus:border-blue-500 focus:ring-blue-500
+               disabled:cursor-not-allowed disabled:bg-gray-100"
+    >
+        <option value="">
+            Selecciona primero médico y fecha
+        </option>
+    </select>
 
-                        @error('hora')
-                            <p class="mt-2 text-sm text-red-600">
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+    <p id="mensaje_horarios" class="mt-2 text-sm text-gray-500">
+        El sistema mostrará los bloques disponibles de 15 minutos.
+    </p>
+
+    @error('hora')
+        <p class="mt-2 text-sm text-red-600">
+            {{ $message }}
+        </p>
+    @enderror
+</div>
 
                     {{-- Motivo --}}
                     <div class="md:col-span-2">
@@ -378,6 +389,12 @@ document.addEventListener('DOMContentLoaded', () => {
         'nombre_paciente_seleccionado'
     );
     const quitarPaciente = document.getElementById('quitar_paciente');
+    const medico = document.getElementById('medico_id');
+const fecha = document.getElementById('fecha');
+const hora = document.getElementById('hora');
+const mensajeHorarios = document.getElementById('mensaje_horarios');
+
+let solicitudHorarios;
 
     let temporizador;
     let solicitudActual;
@@ -534,5 +551,130 @@ document.addEventListener('DOMContentLoaded', () => {
             resultados.classList.remove('hidden');
         }
     });
+
+    async function cargarHorarios() {
+    if (!medico.value || !fecha.value) {
+        hora.disabled = true;
+        hora.innerHTML =
+            '<option value="">Selecciona primero médico y fecha</option>';
+
+        mensajeHorarios.textContent =
+            'El sistema mostrará los bloques disponibles de 15 minutos.';
+
+        return;
+    }
+
+    solicitudHorarios?.abort();
+    solicitudHorarios = new AbortController();
+
+    hora.disabled = true;
+    hora.innerHTML =
+        '<option value="">Consultando horarios...</option>';
+
+    mensajeHorarios.textContent =
+        'Consultando la agenda del médico...';
+
+    try {
+        const url = new URL(
+            "{{ route('citas.horarios-disponibles', [], false) }}",
+            window.location.origin
+        );
+
+        url.searchParams.set('medico_id', medico.value);
+        url.searchParams.set('fecha', fecha.value);
+
+        const respuesta = await fetch(url.toString(), {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            signal: solicitudHorarios.signal,
+        });
+
+        if (!respuesta.ok) {
+            throw new Error('No se pudieron consultar los horarios.');
+        }
+
+        const datos = await respuesta.json();
+
+        const horariosDisponibles = datos.horarios.filter(
+            (horarioDisponible) => horarioDisponible.disponible
+        );
+
+        hora.innerHTML = '';
+
+        if (horariosDisponibles.length === 0) {
+            hora.innerHTML =
+                '<option value="">No hay horarios disponibles</option>';
+
+            mensajeHorarios.textContent =
+                'La agenda del médico está llena para esta fecha.';
+
+            return;
+        }
+
+        const valorAnterior = hora.dataset.valorAnterior;
+
+        const opcionInicial = document.createElement('option');
+        opcionInicial.value = '';
+        opcionInicial.textContent = 'Selecciona un horario';
+        hora.appendChild(opcionInicial);
+
+        horariosDisponibles.forEach((horarioDisponible) => {
+            const opcion = document.createElement('option');
+
+            opcion.value = horarioDisponible.hora;
+            opcion.textContent = horarioDisponible.texto;
+
+            if (
+                valorAnterior === horarioDisponible.hora ||
+                (
+                    !valorAnterior &&
+                    datos.primer_disponible === horarioDisponible.hora
+                )
+            ) {
+                opcion.selected = true;
+            }
+
+            hora.appendChild(opcion);
+        });
+
+        hora.disabled = false;
+
+        const opcionSeleccionada =
+            hora.options[hora.selectedIndex]?.text;
+
+        mensajeHorarios.textContent = opcionSeleccionada
+            ? `Próximo espacio disponible: ${opcionSeleccionada}.`
+            : 'Selecciona uno de los horarios disponibles.';
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            return;
+        }
+
+        hora.innerHTML =
+            '<option value="">No se pudieron cargar los horarios</option>';
+
+        mensajeHorarios.textContent =
+            'Ocurrió un error al consultar la disponibilidad.';
+    }
+}
+
+medico.addEventListener('change', () => {
+    hora.dataset.valorAnterior = '';
+    cargarHorarios();
 });
+
+fecha.addEventListener('change', () => {
+    hora.dataset.valorAnterior = '';
+    cargarHorarios();
+});
+
+cargarHorarios();
+    
+});
+
+
 </script>

@@ -85,21 +85,24 @@
                         <tbody class="divide-y divide-gray-100 bg-white">
                             @foreach ($citas as $cita)
                             @php
-                            $estadoClases = match ($cita->estado) {
-                            'confirmada' => 'bg-green-100 text-green-700',
-                            'en_espera' => 'bg-amber-100 text-amber-700',
-                            'en_consulta' => 'bg-blue-100 text-blue-700',
-                            'finalizada' => 'bg-gray-100 text-gray-700',
-                            'cancelada' => 'bg-red-100 text-red-700',
-                            default => 'bg-indigo-100 text-indigo-700',
-                            };
+    $estadoActual = $cita->estado_actual;
 
-                            $estadoTexto = match ($cita->estado) {
-                            'en_espera' => 'En espera',
-                            'en_consulta' => 'En consulta',
-                            default => ucfirst($cita->estado),
-                            };
-                            @endphp
+    $estadoClases = match ($estadoActual) {
+        'programada' => 'bg-blue-100 text-blue-700',
+        'en_curso' => 'bg-amber-100 text-amber-700',
+        'finalizada' => 'bg-emerald-100 text-emerald-700',
+        'cancelada' => 'bg-red-100 text-red-700',
+        default => 'bg-gray-100 text-gray-700',
+    };
+
+    $estadoTexto = match ($estadoActual) {
+        'programada' => 'Programada',
+        'en_curso' => 'En curso',
+        'finalizada' => 'Finalizada',
+        'cancelada' => 'Cancelada',
+        default => 'Sin estado',
+    };
+@endphp
 
                             <tr class="transition hover:bg-gray-50">
                                 <td class="whitespace-nowrap px-6 py-4">
@@ -145,42 +148,41 @@
 
                                 <td class="whitespace-nowrap px-6 py-4 text-right">
                                     <div>
-                                <a
-    href="{{ route('citas.show', $cita) }}"
-    title="Ver detalles"
-    class="inline-flex items-center justify-center rounded-lg border
+                                        <a
+                                            href="{{ route('citas.show', $cita) }}"
+                                            title="Ver detalles"
+                                            class="inline-flex items-center justify-center rounded-lg border
            border-gray-300 bg-white px-3 py-2 text-sm font-semibold
-           text-gray-700 transition hover:bg-gray-100"
->
-    Ver
-</a>   
-                                <a
-                                        href="{{ route('citas.edit', $cita) }}"
-                                        title="Editar cita"
-                                        class="inline-flex items-center gap-2 rounded-lg border border-[#0D3B7F]
+           text-gray-700 transition hover:bg-gray-100">
+                                            Ver
+                                        </a>
+                                        <a
+                                            href="{{ route('citas.edit', $cita) }}"
+                                            title="Editar cita"
+                                            class="inline-flex items-center gap-2 rounded-lg border border-[#0D3B7F]
                px-3 py-2 text-sm font-semibold text-[#0D3B7F]
                transition hover:bg-[#0D3B7F] hover:text-white
                focus:outline-none focus:ring-2 focus:ring-[#0D3B7F]
                focus:ring-offset-2">
-                                        <svg
-                                            class="h-4 w-4"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke-width="1.8"
-                                            stroke="currentColor">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1
+                                            <svg
+                                                class="h-4 w-4"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke-width="1.8"
+                                                stroke="currentColor">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1
                    2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897
                    1.13L6 18l.8-2.685a4.5 4.5 0 0 1
                    1.13-1.897l8.932-8.931ZM16.862 4.487
                    19.5 7.125" />
-                                        </svg>
+                                            </svg>
 
-                                        Editar
-                                    </a>
+                                            Editar
+                                        </a>
                                     </div>
                                 </td>
 
