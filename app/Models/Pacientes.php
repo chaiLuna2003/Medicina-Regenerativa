@@ -19,7 +19,9 @@ class Pacientes extends Model
     'status',
 ];
 
-    
+    protected $casts = [
+        'fecha_nacimiento' => 'date',
+    ];
 
     public function fotoUrl(): string
     {
@@ -58,7 +60,7 @@ protected function edad(): Attribute
                 return null;
             }
 
-            $anios = $nacimiento->diffInYears($hoy);
+            $anios = (int) floor($nacimiento->diffInYears($hoy));
 
             if ($anios >= 1) {
                 return $anios === 1
@@ -66,7 +68,7 @@ protected function edad(): Attribute
                     : "{$anios} años";
             }
 
-            $meses = $nacimiento->diffInMonths($hoy);
+            $meses = (int) floor($nacimiento->diffInMonths($hoy));
 
             if ($meses >= 1) {
                 return $meses === 1
@@ -74,7 +76,7 @@ protected function edad(): Attribute
                     : "{$meses} meses";
             }
 
-            $dias = $nacimiento->diffInDays($hoy);
+            $dias = (int) floor($nacimiento->diffInDays($hoy));
 
             if ($dias >= 14) {
                 $semanas = intdiv($dias, 7);
