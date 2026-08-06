@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -71,4 +72,9 @@ class Citas extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+ public function signoVital(): HasOne
+{
+    return $this->hasOne(SignoVital::class, 'cita_id');
+}
 }

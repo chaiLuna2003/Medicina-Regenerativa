@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -19,9 +20,7 @@ class Pacientes extends Model
     'status',
 ];
 
-    protected $casts = [
-        'fecha_nacimiento' => 'date',
-    ];
+    
 
     public function fotoUrl(): string
     {
@@ -95,5 +94,10 @@ protected function edad(): Attribute
             return 'Recién nacido';
         }
     );
+}
+
+public function signosVitales(): HasMany
+{
+    return $this->hasMany(SignoVital::class, 'paciente_id');
 }
 }
