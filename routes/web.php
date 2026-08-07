@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
@@ -110,14 +111,64 @@ Route::middleware([
             [CitasController::class, 'buscarPacientes']
         )->name('pacientes.buscar');
 
-        /*
-         * El resource de citas se declara una sola vez.
-         */
         Route::resource('citas', CitasController::class)
             ->parameters([
                 'citas' => 'cita',
             ]);
     });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Consulta de signos vitales
+    |--------------------------------------------------------------------------
+    |
+    | Administrador, médico y enfermero pueden consultar el historial
+    | y los detalles de las valoraciones.
+    |
+    */
+
+    Route::middleware(
+        'role:admin,medico,enfermero'
+    )->group(function () {
+
+        Route::get(
+            '/signos-vitales',
+            [SignosVitalesController::class, 'index']
+        )->name('signos-vitales.index');
+
+        Route::get(
+            '/signos-vitales/{signoVital}',
+            [SignosVitalesController::class, 'show']
+        )->name('signos-vitales.show');
+    });
+
+    /*
+|--------------------------------------------------------------------------
+| Signos vitales
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('role:enfermero')->group(function () {
+    Route::get(
+        '/citas/{cita}/signos-vitales/crear',
+        [SignosVitalesController::class, 'create']
+    )->name('signos-vitales.create');
+
+    Route::post(
+        '/citas/{cita}/signos-vitales',
+        [SignosVitalesController::class, 'store']
+    )->name('signos-vitales.store');
+
+    Route::get(
+        '/signos-vitales',
+        [SignosVitalesController::class, 'index']
+    )->name('signos-vitales.index');
+
+    Route::get(
+        '/signos-vitales/{signoVital}',
+        [SignosVitalesController::class, 'show']
+    )->name('signos-vitales.show');
+});
 
     /*
     |--------------------------------------------------------------------------

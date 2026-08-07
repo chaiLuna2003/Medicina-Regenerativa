@@ -41,10 +41,7 @@ return new class extends Migration
 
             $table->decimal('peso', 6, 2);
 
-            /*
-             * La estatura se guardará en centímetros.
-             * Ejemplo: 175.50
-             */
+            // La estatura se almacena en centímetros. Ejemplo: 175.50
             $table->decimal('estatura', 5, 2);
 
             $table->decimal('temperatura', 4, 1)->nullable();

@@ -14,21 +14,21 @@ class SignosVitalesController extends Controller
      * Mostrar el historial de signos vitales registrados.
      */
     public function index(): View
-    {
-        $signosVitales = SignoVital::query()
-            ->with([
-                'paciente',
-                'cita.medico',
-                'enfermero',
-            ])
-            ->latest()
-            ->paginate(15);
+{
+    $signosVitales = SignoVital::query()
+        ->with([
+            'paciente',
+            'cita.medico',
+            'enfermero',
+        ])
+        ->latest()
+        ->paginate(15);
 
-        return view(
-            'signos-vitales.index',
-            compact('signosVitales')
-        );
-    }
+    return view(
+        'signos-vitales.index',
+        compact('signosVitales')
+    );
+}
 
     /**
      * Mostrar el formulario para registrar los signos vitales de una cita.

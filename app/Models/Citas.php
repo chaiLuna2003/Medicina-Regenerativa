@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Citas extends Model
 {
@@ -23,39 +23,39 @@ class Citas extends Model
         'created_by',
     ];
 
-    protected function estadoActual(): Attribute
-{
-    return Attribute::make(
-        get: function () {
-            if ($this->estado === 'cancelada') {
-                return 'cancelada';
-            }
-
-            $inicio = Carbon::parse(
-                $this->fecha->format('Y-m-d') . ' ' . $this->hora
-            );
-
-            $fin = $inicio->copy()->addMinutes(15);
-            $ahora = now();
-
-            if ($ahora->lt($inicio)) {
-                return 'programada';
-            }
-
-            if ($ahora->lt($fin)) {
-                return 'en_curso';
-            }
-
-            return 'finalizada';
-        }
-    );
-}
-
     protected function casts(): array
     {
         return [
             'fecha' => 'date',
         ];
+    }
+
+    protected function estadoActual(): Attribute
+    {
+        return Attribute::make(
+            get: function (): string {
+                if ($this->estado === 'cancelada') {
+                    return 'cancelada';
+                }
+
+                $inicio = Carbon::parse(
+                    $this->fecha->format('Y-m-d') . ' ' . $this->hora
+                );
+
+                $fin = $inicio->copy()->addMinutes(15);
+                $ahora = now();
+
+                if ($ahora->lt($inicio)) {
+                    return 'programada';
+                }
+
+                if ($ahora->lt($fin)) {
+                    return 'en_curso';
+                }
+
+                return 'finalizada';
+            }
+        );
     }
 
     public function paciente(): BelongsTo
@@ -73,8 +73,8 @@ class Citas extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
- public function signoVital(): HasOne
-{
-    return $this->hasOne(SignoVital::class, 'cita_id');
-}
+    public function signoVital(): HasOne
+    {
+        return $this->hasOne(SignoVital::class, 'cita_id');
+    }
 }

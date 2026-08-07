@@ -11,11 +11,11 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@medicinaregenerativa.com'],
+            ['email' => 'adminre@medicinaregenerativa.com'],
             [
-                'name' => 'Admin',
+                'name' => 'Recepcion',
                 'password' => Hash::make('12345'),
-                'role' => 'admin',
+                'role' => 'recepcionista',
             ]
         );
     }

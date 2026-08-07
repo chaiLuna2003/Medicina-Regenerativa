@@ -31,6 +31,11 @@ class SignoVital extends Model
             'peso' => 'decimal:2',
             'estatura' => 'decimal:2',
             'temperatura' => 'decimal:1',
+            'presion_sistolica' => 'integer',
+            'presion_diastolica' => 'integer',
+            'frecuencia_cardiaca' => 'integer',
+            'frecuencia_respiratoria' => 'integer',
+            'saturacion_oxigeno' => 'integer',
             'glucosa' => 'decimal:2',
         ];
     }

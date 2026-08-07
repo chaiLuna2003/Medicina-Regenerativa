@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Medicos;
 
 class User extends Authenticatable
 {
@@ -85,12 +82,12 @@ class User extends Authenticatable
     }
 
     public function medico(): HasOne
-{
-    return $this->hasOne(Medicos::class, 'user_id');
-}
+    {
+        return $this->hasOne(Medicos::class, 'user_id');
+    }
 
-public function signosVitalesRegistrados(): HasMany
-{
-    return $this->hasMany(SignoVital::class, 'enfermero_id');
-}
+    public function signosVitalesRegistrados(): HasMany
+    {
+        return $this->hasMany(SignoVital::class, 'enfermero_id');
+    }
 }

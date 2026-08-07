@@ -12,18 +12,18 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
     public function index()
-    {
-        /** @var User $user */
-        $user = Auth::user();
+{
+    /** @var User $user */
+    $user = Auth::user();
 
-        return match ($user->role) {
-            'admin' => $this->dashboardAdministrador(),
-            'recepcionista' => $this->dashboardRecepcion(),
-            'medico' => view('dashboard.medico'),
-            'enfermero' => view('dashboard.enfermeria'),
-            default => abort(403),
-        };
-    }
+    return match ($user->role) {
+        'admin' => $this->dashboardAdministrador(),
+        'recepcionista' => $this->dashboardRecepcion(),
+        'medico' => view('dashboard.medico'),
+        'enfermero' => $this->dashboardEnfermero(),
+        default => abort(403),
+    };
+}
 
     /**
      * Dashboard del administrador.
@@ -145,4 +145,76 @@ class DashboardController extends Controller
             'proximaCita',
         ));
     }
+
+    /**
+ * Dashboard del personal de enfermería.
+ */
+private function dashboardEnfermero()
+{
+    $hoy = Carbon::today();
+
+    /*
+     * Todas las citas de hoy, junto con paciente, médico
+     * y posibles signos vitales registrados.
+     */
+    $citasHoy = Citas::query()
+        ->with([
+            'paciente',
+            'medico',
+            'signoVital',
+        ])
+        ->whereDate('fecha', $hoy)
+        ->where('estado', '!=', 'cancelada')
+        ->orderBy('hora')
+        ->get();
+
+    /*
+     * Citas que todavía no tienen signos vitales.
+     */
+    $citasPendientes = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->where('estado', '!=', 'cancelada')
+        ->whereDoesntHave('signoVital')
+        ->count();
+
+    /*
+     * Citas que ya tienen signos vitales registrados.
+     */
+    $valoracionesRealizadas = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->whereHas('signoVital')
+        ->count();
+
+    /*
+     * Citas canceladas durante el día.
+     */
+    $citasCanceladas = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->where('estado', 'cancelada')
+        ->count();
+
+    /*
+     * Siguiente cita pendiente de valoración.
+     */
+    $proximaCita = Citas::query()
+        ->with([
+            'paciente',
+            'medico',
+            'signoVital',
+        ])
+        ->whereDate('fecha', $hoy)
+        ->where('estado', '!=', 'cancelada')
+        ->whereDoesntHave('signoVital')
+        ->whereTime('hora', '>=', now()->format('H:i:s'))
+        ->orderBy('hora')
+        ->first();
+
+    return view('dashboard.enfermeria', compact(
+        'citasHoy',
+        'citasPendientes',
+        'valoracionesRealizadas',
+        'citasCanceladas',
+        'proximaCita',
+    ));
+}
 }
