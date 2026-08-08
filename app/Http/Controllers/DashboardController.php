@@ -19,7 +19,7 @@ class DashboardController extends Controller
     return match ($user->role) {
         'admin' => $this->dashboardAdministrador(),
         'recepcionista' => $this->dashboardRecepcion(),
-        'medico' => view('dashboard.medico'),
+        'medico' => $this->dashboardMedico($user),
         'enfermero' => $this->dashboardEnfermero(),
         default => abort(403),
     };
@@ -146,6 +146,91 @@ class DashboardController extends Controller
         ));
     }
 
+    
+/**
+ * Dashboard del médico autenticado.
+ */
+private function dashboardMedico(User $user)
+{
+    $hoy = Carbon::today();
+
+    /*
+     * Médico vinculado con el usuario autenticado.
+     */
+    $medico = $user->medico;
+
+    /*
+     * Valores predeterminados por si el usuario
+     * todavía no tiene un perfil médico asociado.
+     */
+    $citas = collect();
+    $citasHoy = collect();
+    $totalCitasHoy = 0;
+    $conSignosVitales = 0;
+    $pendientesSignosVitales = 0;
+    $proximaCita = null;
+
+    if ($medico !== null) {
+        /*
+         * Cargamos todas las citas activas del médico.
+         *
+         * Esto permite que el calendario muestre citas de
+         * cualquier fecha y que JavaScript filtre el día
+         * seleccionado sin recargar la página.
+         */
+        $citas = Citas::query()
+            ->with([
+                'paciente' => function ($query) {
+                    $query->withCount('citas');
+                },
+                'signoVital.enfermero',
+            ])
+            ->where('medico_id', $medico->id)
+            ->where('estado', '!=', 'cancelada')
+            ->orderBy('fecha')
+            ->orderBy('hora')
+            ->get();
+
+        /*
+         * Citas correspondientes al día actual.
+         */
+        $citasHoy = $citas->filter(function (Citas $cita) use ($hoy) {
+            return $cita->fecha->isSameDay($hoy);
+        })->values();
+
+        $totalCitasHoy = $citasHoy->count();
+
+        $conSignosVitales = $citasHoy
+            ->filter(fn (Citas $cita) => $cita->signoVital !== null)
+            ->count();
+
+        $pendientesSignosVitales = $citasHoy
+            ->filter(fn (Citas $cita) => $cita->signoVital === null)
+            ->count();
+
+        /*
+         * Primera cita que todavía no ha comenzado.
+         */
+        $proximaCita = $citas->first(function (Citas $cita) {
+            $fechaHoraCita = Carbon::parse(
+                $cita->fecha->format('Y-m-d') . ' ' . $cita->hora
+            );
+
+            return $fechaHoraCita->greaterThanOrEqualTo(now());
+        });
+    }
+
+    return view('dashboard.medico', compact(
+        'medico',
+        'citas',
+        'citasHoy',
+        'totalCitasHoy',
+        'conSignosVitales',
+        'pendientesSignosVitales',
+        'proximaCita',
+    ));
+}
+
     /**
  * Dashboard del personal de enfermería.
  */
@@ -217,4 +302,5 @@ private function dashboardEnfermero()
         'proximaCita',
     ));
 }
+
 }
