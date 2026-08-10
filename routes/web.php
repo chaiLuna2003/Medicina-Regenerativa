@@ -24,6 +24,10 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | Dashboard
 |--------------------------------------------------------------------------
+|
+| Cualquier usuario autenticado, activo y verificado puede entrar.
+| DashboardController decide qué dashboard mostrar según su rol.
+|
 */
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -52,6 +56,9 @@ Route::middleware([
     |--------------------------------------------------------------------------
     | Perfil
     |--------------------------------------------------------------------------
+    |
+    | Todos los usuarios autenticados pueden administrar su propio perfil.
+    |
     */
 
     Route::get('/profile', [ProfileController::class, 'edit'])
@@ -68,133 +75,132 @@ Route::middleware([
     | Pacientes
     |--------------------------------------------------------------------------
     |
-    | Administrador, médico, enfermero y recepcionista pueden consultar,
-    | buscar, registrar y editar pacientes.
+    | Solamente administración y recepción tienen acceso al listado y CRUD.
+    | Médicos y enfermería deben acceder al paciente desde sus citas.
     |
     */
 
-    Route::middleware(
-        'role:admin,medico,enfermero,recepcionista'
-    )->group(function () {
-
-        Route::resource('pacientes', PacientesController::class)
-            ->except(['destroy'])
-            ->parameters([
-                'pacientes' => 'pacientes',
-            ]);
-    });
+    Route::middleware('role:admin,recepcionista')
+        ->group(function () {
+            Route::resource('pacientes', PacientesController::class)
+                ->except(['destroy'])
+                ->parameters([
+                    'pacientes' => 'pacientes',
+                ]);
+        });
 
     /*
     |--------------------------------------------------------------------------
     | Citas
     |--------------------------------------------------------------------------
     |
-    | Administrador, médico y recepcionista pueden gestionar las citas.
+    | Administración, médicos y recepción pueden consultar las citas.
     |
     */
 
-    Route::middleware(
-        'role:admin,medico,recepcionista'
-    )->group(function () {
+    Route::middleware('role:admin,medico,recepcionista')
+        ->group(function () {
 
-        /*
-         * Debe declararse antes del resource para evitar que Laravel
-         * interprete "horarios-disponibles" como el parámetro {cita}.
-         */
-        Route::get(
-            '/citas/horarios-disponibles',
-            [CitasController::class, 'horariosDisponibles']
-        )->name('citas.horarios-disponibles');
+            /*
+             * Debe estar antes del resource para que Laravel no interprete
+             * "horarios-disponibles" como el parámetro {cita}.
+             */
+            Route::get(
+                '/citas/horarios-disponibles',
+                [CitasController::class, 'horariosDisponibles']
+            )->name('citas.horarios-disponibles');
 
-        Route::get(
-            '/buscar-pacientes',
-            [CitasController::class, 'buscarPacientes']
-        )->name('pacientes.buscar');
+            Route::get(
+                '/buscar-pacientes',
+                [CitasController::class, 'buscarPacientes']
+            )->name('pacientes.buscar');
 
-        Route::resource('citas', CitasController::class)
-            ->parameters([
-                'citas' => 'cita',
-            ]);
-    });
+            Route::resource('citas', CitasController::class)
+                ->parameters([
+                    'citas' => 'cita',
+                ]);
+        });
 
     /*
     |--------------------------------------------------------------------------
     | Consulta de signos vitales
     |--------------------------------------------------------------------------
     |
-    | Administrador, médico y enfermero pueden consultar el historial
-    | y los detalles de las valoraciones.
+    | Administración, médicos y enfermería pueden consultar el historial
+    | y el detalle de los signos vitales.
     |
     */
 
-    Route::middleware(
-        'role:admin,medico,enfermero'
-    )->group(function () {
+    Route::middleware('role:admin,medico,enfermero')
+        ->group(function () {
+            Route::get(
+                '/signos-vitales',
+                [SignosVitalesController::class, 'index']
+            )->name('signos-vitales.index');
 
-        Route::get(
-            '/signos-vitales',
-            [SignosVitalesController::class, 'index']
-        )->name('signos-vitales.index');
-
-        Route::get(
-            '/signos-vitales/{signoVital}',
-            [SignosVitalesController::class, 'show']
-        )->name('signos-vitales.show');
-    });
+            Route::get(
+                '/signos-vitales/{signoVital}',
+                [SignosVitalesController::class, 'show']
+            )->name('signos-vitales.show');
+        });
 
     /*
-|--------------------------------------------------------------------------
-| Signos vitales
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Registro de signos vitales
+    |--------------------------------------------------------------------------
+    |
+    | Solamente enfermería puede abrir el formulario y registrar los signos.
+    |
+    */
 
-Route::middleware('role:enfermero')->group(function () {
-    Route::get(
-        '/citas/{cita}/signos-vitales/crear',
-        [SignosVitalesController::class, 'create']
-    )->name('signos-vitales.create');
+    Route::middleware('role:enfermero')
+        ->group(function () {
+            Route::get(
+                '/citas/{cita}/signos-vitales/crear',
+                [SignosVitalesController::class, 'create']
+            )->name('signos-vitales.create');
 
-    Route::post(
-        '/citas/{cita}/signos-vitales',
-        [SignosVitalesController::class, 'store']
-    )->name('signos-vitales.store');
-
-    Route::get(
-        '/signos-vitales',
-        [SignosVitalesController::class, 'index']
-    )->name('signos-vitales.index');
-
-    Route::get(
-        '/signos-vitales/{signoVital}',
-        [SignosVitalesController::class, 'show']
-    )->name('signos-vitales.show');
-});
+            Route::post(
+                '/citas/{cita}/signos-vitales',
+                [SignosVitalesController::class, 'store']
+            )->name('signos-vitales.store');
+        });
 
     /*
     |--------------------------------------------------------------------------
     | Administración
     |--------------------------------------------------------------------------
     |
-    | Solo el administrador puede eliminar pacientes y gestionar médicos
-    | y usuarios.
+    | Solamente administración puede eliminar pacientes y gestionar
+    | médicos y usuarios.
     |
     */
 
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin')
+        ->group(function () {
+            Route::delete(
+                '/pacientes/{pacientes}',
+                [PacientesController::class, 'destroy']
+            )->name('pacientes.destroy');
 
-        Route::delete(
-            'pacientes/{pacientes}',
-            [PacientesController::class, 'destroy']
-        )->name('pacientes.destroy');
+            Route::resource('medicos', MedicosController::class)
+                ->parameters([
+                    'medicos' => 'medicos',
+                ]);
 
-        Route::resource('medicos', MedicosController::class)
-            ->parameters([
-                'medicos' => 'medicos',
-            ]);
-
-        Route::resource('usuarios', UsuarioController::class)
-            ->except(['show', 'destroy']);
-    });
+            Route::resource('usuarios', UsuarioController::class)
+                ->except(['show', 'destroy']);
+        });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Autenticación
+|--------------------------------------------------------------------------
+|
+| Carga las rutas de inicio de sesión, recuperación de contraseña,
+| cierre de sesión y verificación de correo.
+|
+*/
 
 require __DIR__.'/auth.php';

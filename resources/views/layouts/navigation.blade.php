@@ -17,11 +17,15 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if (in_array(auth()->user()->role, ['admin', 'medico', 'enfermero']))
-                        <x-nav-link :href="route('pacientes.index')" :active="request()->routeIs('pacientes.*')">
-                            {{ __('Pacientes') }}
-                        </x-nav-link>
-                    @endif
+                    {{-- Pacientes: escritorio --}}
+@if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
+    <x-nav-link
+        :href="route('pacientes.index')"
+        :active="request()->routeIs('pacientes.*')"
+    >
+        {{ __('Pacientes') }}
+    </x-nav-link>
+@endif
 
                     @if (auth()->user()->isAdmin())
     <x-nav-link
@@ -95,11 +99,15 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if (in_array(auth()->user()->role, ['admin', 'medico', 'enfermero']))
-                <x-responsive-nav-link :href="route('pacientes.index')" :active="request()->routeIs('pacientes.*')">
-                    {{ __('Pacientes') }}
-                </x-responsive-nav-link>
-            @endif
+            {{-- Pacientes: móvil --}}
+@if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
+    <x-responsive-nav-link
+        :href="route('pacientes.index')"
+        :active="request()->routeIs('pacientes.*')"
+    >
+        {{ __('Pacientes') }}
+    </x-responsive-nav-link>
+@endif
 
             @if (auth()->user()->isAdmin())
     <x-nav-link
