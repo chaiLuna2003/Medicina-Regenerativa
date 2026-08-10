@@ -244,6 +244,33 @@ private const DURACION_CITA = 15;
                 ->withInput();
         }
 
+        /*
+ * Si la cita ya tiene receta, el paciente y el médico responsable
+ * no pueden cambiar porque eso alteraría el historial clínico.
+ */
+$cambiaResponsablesClinicos =
+    (int) $cita->paciente_id !== (int) $datos['paciente_id']
+    || (int) $cita->medico_id !== (int) $datos['medico_id'];
+
+/*
+ * Determina si la cita ya contiene información clínica.
+ */
+$tieneInformacionClinica =
+    $cita->receta()->exists()
+    || $cita->signoVital()->exists();
+
+/*
+ * Una cita con información clínica no puede asignarse
+ * a otro paciente ni a otro médico.
+ */
+if ($cambiaResponsablesClinicos && $tieneInformacionClinica) {
+    return back()
+        ->withErrors([
+            'cita' => 'No puedes cambiar el paciente ni el médico de una cita que ya contiene información clínica.',
+        ])
+        ->withInput();
+}
+
        $horarioFueModificado =
     (int) $cita->medico_id !== (int) $datos['medico_id']
     || $cita->fecha->format('Y-m-d') !== $datos['fecha']
@@ -272,19 +299,37 @@ return redirect()
     ->with('success', 'La cita se actualizó correctamente.');
     }
 
-    /**
-     * Eliminar una cita.
+/**
+ * Eliminar una cita que todavía no contiene información clínica.
+ */
+public function destroy(Citas $cita): RedirectResponse
+{
+    $this->autorizarAccesoMedico($cita);
+
+    /*
+     * Las citas con recetas o signos vitales forman parte
+     * del historial clínico y no pueden eliminarse.
      */
-    public function destroy(Citas $cita): RedirectResponse
-    {
-        $this->autorizarAccesoMedico($cita);
+    $tieneInformacionClinica =
+        $cita->receta()->exists()
+        || $cita->signoVital()->exists();
 
-        $cita->delete();
-
-        return redirect()
-            ->route('citas.index')
-            ->with('success', 'La cita se eliminó correctamente.');
+    if ($tieneInformacionClinica) {
+        return back()->with(
+            'error',
+            'Esta cita no puede eliminarse porque ya contiene información clínica.'
+        );
     }
+
+    $cita->delete();
+
+    return redirect()
+        ->route('citas.index')
+        ->with(
+            'success',
+            'La cita se eliminó correctamente.'
+        );
+}
 
     public function buscarPacientes(Request $request): JsonResponse
 {

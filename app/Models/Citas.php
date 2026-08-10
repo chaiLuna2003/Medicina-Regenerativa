@@ -77,4 +77,12 @@ class Citas extends Model
     {
         return $this->hasOne(SignoVital::class, 'cita_id');
     }
+
+    /**
+ * Receta médica asociada con la cita.
+ */
+public function receta(): HasOne
+{
+    return $this->hasOne(Receta::class, 'cita_id');
+}
 }

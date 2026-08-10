@@ -9,6 +9,7 @@ use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RecetasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -139,6 +140,73 @@ Route::middleware([
                 [CitasController::class, 'show']
             )->name('citas.show');
         });
+
+    /*
+|--------------------------------------------------------------------------
+| Recetas médicas
+|--------------------------------------------------------------------------
+|
+| El médico puede consultar el historial completo de un paciente cuando
+| tenga al menos una cita asignada con él.
+|
+| Solamente puede crear y modificar la receta de una cita propia.
+| El administrador únicamente tiene acceso de consulta.
+|
+*/
+
+Route::middleware('role:admin,medico')
+    ->group(function () {
+        /*
+         * Historial de recetas de un paciente.
+         */
+        Route::get(
+            '/pacientes/{paciente}/recetas',
+            [RecetasController::class, 'historial']
+        )->name('pacientes.recetas.index');
+
+        /*
+         * Detalle de una receta.
+         */
+        Route::get(
+            '/recetas/{receta}',
+            [RecetasController::class, 'show']
+        )->name('recetas.show');
+    });
+
+Route::middleware('role:medico')
+    ->group(function () {
+        /*
+         * Formulario para elaborar una receta.
+         */
+        Route::get(
+            '/citas/{cita}/receta/crear',
+            [RecetasController::class, 'create']
+        )->name('citas.receta.create');
+
+        /*
+         * Guardar la receta.
+         */
+        Route::post(
+            '/citas/{cita}/receta',
+            [RecetasController::class, 'store']
+        )->name('citas.receta.store');
+
+        /*
+         * Formulario para editar una receta.
+         */
+        Route::get(
+            '/recetas/{receta}/editar',
+            [RecetasController::class, 'edit']
+        )->name('recetas.edit');
+
+        /*
+         * Actualizar la receta.
+         */
+        Route::put(
+            '/recetas/{receta}',
+            [RecetasController::class, 'update']
+        )->name('recetas.update');
+    });
 
     /*
     |--------------------------------------------------------------------------

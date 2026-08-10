@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Pacientes extends Model
 {
@@ -105,4 +106,19 @@ class Pacientes extends Model
             }
         );
     }
+
+    /**
+ * Historial de recetas médicas del paciente a través de sus citas.
+ */
+public function recetas(): HasManyThrough
+{
+    return $this->hasManyThrough(
+        Receta::class,
+        Citas::class,
+        'paciente_id', // Llave foránea en la tabla citas
+        'cita_id',     // Llave foránea en la tabla recetas
+        'id',          // Llave primaria en pacientes
+        'id'           // Llave primaria en citas
+    );
+}
 }
