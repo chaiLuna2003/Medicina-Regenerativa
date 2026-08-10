@@ -60,11 +60,21 @@ class PacientesController extends Controller
 
     public function edit(Pacientes $pacientes)
     {
+        abort_unless(
+            request()->user()->isAdmin() || request()->user()->isRecepcionista(),
+            403
+        );
+
         return view('pacientes.edit', compact('pacientes'));
     }
 
     public function update(Request $request, Pacientes $pacientes)
     {
+        abort_unless(
+            $request->user()->isAdmin() || $request->user()->isRecepcionista(),
+            403
+        );
+
         if ($request->user()->isRecepcionista()) {
             $validated = $request->validate([
                 'telefono' => ['nullable', 'string', 'max:20'],

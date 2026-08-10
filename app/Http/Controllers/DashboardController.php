@@ -152,8 +152,6 @@ class DashboardController extends Controller
  */
 private function dashboardMedico(User $user)
 {
-    $hoy = Carbon::today();
-
     /*
      * Médico vinculado con el usuario autenticado.
      */
@@ -164,20 +162,15 @@ private function dashboardMedico(User $user)
      * todavía no tiene un perfil médico asociado.
      */
     $citas = collect();
-    $citasHoy = collect();
-    $totalCitasHoy = 0;
-    $conSignosVitales = 0;
-    $pendientesSignosVitales = 0;
-    $proximaCita = null;
 
     if ($medico !== null) {
         /*
-         * Cargamos todas las citas activas del médico.
-         *
-         * Esto permite que el calendario muestre citas de
-         * cualquier fecha y que JavaScript filtre el día
-         * seleccionado sin recargar la página.
+         * El calendario conserva contexto reciente y permite planear
+         * los siguientes meses sin descargar todo el historial clínico.
          */
+        $inicioCalendario = now()->subMonth()->startOfMonth();
+        $finCalendario = now()->addMonths(6)->endOfMonth();
+
         $citas = Citas::query()
             ->with([
                 'paciente' => function ($query) {
@@ -187,47 +180,18 @@ private function dashboardMedico(User $user)
             ])
             ->where('medico_id', $medico->id)
             ->where('estado', '!=', 'cancelada')
+            ->whereBetween('fecha', [
+                $inicioCalendario->toDateString(),
+                $finCalendario->toDateString(),
+            ])
             ->orderBy('fecha')
             ->orderBy('hora')
             ->get();
-
-        /*
-         * Citas correspondientes al día actual.
-         */
-        $citasHoy = $citas->filter(function (Citas $cita) use ($hoy) {
-            return $cita->fecha->isSameDay($hoy);
-        })->values();
-
-        $totalCitasHoy = $citasHoy->count();
-
-        $conSignosVitales = $citasHoy
-            ->filter(fn (Citas $cita) => $cita->signoVital !== null)
-            ->count();
-
-        $pendientesSignosVitales = $citasHoy
-            ->filter(fn (Citas $cita) => $cita->signoVital === null)
-            ->count();
-
-        /*
-         * Primera cita que todavía no ha comenzado.
-         */
-        $proximaCita = $citas->first(function (Citas $cita) {
-            $fechaHoraCita = Carbon::parse(
-                $cita->fecha->format('Y-m-d') . ' ' . $cita->hora
-            );
-
-            return $fechaHoraCita->greaterThanOrEqualTo(now());
-        });
     }
 
     return view('dashboard.medico', compact(
         'medico',
         'citas',
-        'citasHoy',
-        'totalCitasHoy',
-        'conSignosVitales',
-        'pendientesSignosVitales',
-        'proximaCita',
     ));
 }
 

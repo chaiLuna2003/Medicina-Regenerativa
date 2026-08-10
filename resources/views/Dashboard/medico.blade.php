@@ -15,17 +15,19 @@
                 </p>
             </div>
 
-            <button
-                id="activar-notificaciones"
-                type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-xl
-                       border border-blue-200 bg-blue-50 px-4 py-2.5
-                       text-sm font-semibold text-blue-700 transition
-                       hover:bg-blue-100"
-            >
-                <span>🔔</span>
-                Activar recordatorios
-            </button>
+            @if ($medico !== null)
+                <button
+                    id="activar-notificaciones"
+                    type="button"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl
+                           border border-blue-200 bg-blue-50 px-4 py-2.5
+                           text-sm font-semibold text-blue-700 transition
+                           hover:bg-blue-100"
+                >
+                    <span>🔔</span>
+                    Activar recordatorios
+                </button>
+            @endif
         </div>
     </x-slot>
 
@@ -666,7 +668,7 @@
                             (fechaCita.getTime() - ahora.getTime()) / 60000;
 
                         const clave =
-                            `recordatorio-medico-${cita.id}-${cita.fecha}`;
+                            `recordatorio-medico-${cita.id}-${cita.fecha}-${cita.hora}`;
 
                         if (
                             diferenciaMinutos > 4 &&

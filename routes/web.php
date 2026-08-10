@@ -24,10 +24,6 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | Dashboard
 |--------------------------------------------------------------------------
-|
-| Cualquier usuario autenticado, activo y verificado puede entrar.
-| DashboardController decide qué dashboard mostrar según su rol.
-|
 */
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -56,9 +52,6 @@ Route::middleware([
     |--------------------------------------------------------------------------
     | Perfil
     |--------------------------------------------------------------------------
-    |
-    | Todos los usuarios autenticados pueden administrar su propio perfil.
-    |
     */
 
     Route::get('/profile', [ProfileController::class, 'edit'])
@@ -75,8 +68,8 @@ Route::middleware([
     | Pacientes
     |--------------------------------------------------------------------------
     |
-    | Solamente administración y recepción tienen acceso al listado y CRUD.
-    | Médicos y enfermería deben acceder al paciente desde sus citas.
+    | Solamente administración y recepción pueden acceder al módulo.
+    | El médico no recibe ninguna ruta pacientes.*.
     |
     */
 
@@ -91,20 +84,18 @@ Route::middleware([
 
     /*
     |--------------------------------------------------------------------------
-    | Citas
+    | Gestión de citas
     |--------------------------------------------------------------------------
     |
-    | Administración, médicos y recepción pueden consultar las citas.
+    | Solamente administración y recepción pueden:
+    | crear, guardar, editar, actualizar o eliminar citas.
+    |
+    | Estas rutas especiales se declaran antes de /citas/{cita}.
     |
     */
 
-    Route::middleware('role:admin,medico,recepcionista')
+    Route::middleware('role:admin,recepcionista')
         ->group(function () {
-
-            /*
-             * Debe estar antes del resource para que Laravel no interprete
-             * "horarios-disponibles" como el parámetro {cita}.
-             */
             Route::get(
                 '/citas/horarios-disponibles',
                 [CitasController::class, 'horariosDisponibles']
@@ -116,6 +107,7 @@ Route::middleware([
             )->name('pacientes.buscar');
 
             Route::resource('citas', CitasController::class)
+                ->except(['index', 'show'])
                 ->parameters([
                     'citas' => 'cita',
                 ]);
@@ -123,15 +115,43 @@ Route::middleware([
 
     /*
     |--------------------------------------------------------------------------
-    | Consulta de signos vitales
+    | Consulta de citas
     |--------------------------------------------------------------------------
     |
-    | Administración, médicos y enfermería pueden consultar el historial
-    | y el detalle de los signos vitales.
+    | El médico solamente puede consultar:
+    | - Su propia agenda.
+    | - El detalle de una cita que tenga asignada.
+    |
+    | El filtro y la validación de pertenencia también deben permanecer
+    | dentro de CitasController.
     |
     */
 
-    Route::middleware('role:admin,medico,enfermero')
+    Route::middleware('role:admin,medico,recepcionista')
+        ->group(function () {
+            Route::get(
+                '/citas',
+                [CitasController::class, 'index']
+            )->name('citas.index');
+
+            Route::get(
+                '/citas/{cita}',
+                [CitasController::class, 'show']
+            )->name('citas.show');
+        });
+
+    /*
+    |--------------------------------------------------------------------------
+    | Historial general de signos vitales
+    |--------------------------------------------------------------------------
+    |
+    | El médico no puede abrir el historial general.
+    | Sus signos vitales se muestran únicamente dentro del detalle
+    | de la cita que tiene asignada.
+    |
+    */
+
+    Route::middleware('role:admin,enfermero')
         ->group(function () {
             Route::get(
                 '/signos-vitales',
@@ -149,7 +169,7 @@ Route::middleware([
     | Registro de signos vitales
     |--------------------------------------------------------------------------
     |
-    | Solamente enfermería puede abrir el formulario y registrar los signos.
+    | Solamente enfermería puede capturar signos vitales.
     |
     */
 
@@ -171,8 +191,10 @@ Route::middleware([
     | Administración
     |--------------------------------------------------------------------------
     |
-    | Solamente administración puede eliminar pacientes y gestionar
-    | médicos y usuarios.
+    | Solamente el administrador puede:
+    | - Eliminar pacientes.
+    | - Gestionar médicos.
+    | - Gestionar usuarios.
     |
     */
 
@@ -192,15 +214,5 @@ Route::middleware([
                 ->except(['show', 'destroy']);
         });
 });
-
-/*
-|--------------------------------------------------------------------------
-| Autenticación
-|--------------------------------------------------------------------------
-|
-| Carga las rutas de inicio de sesión, recuperación de contraseña,
-| cierre de sesión y verificación de correo.
-|
-*/
 
 require __DIR__.'/auth.php';

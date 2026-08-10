@@ -26,6 +26,13 @@ private const DURACION_CITA = 15;
     {
         $citas = Citas::query()
             ->with(['paciente', 'medico'])
+            ->when(
+                $this->medicoAutenticado(),
+                fn ($query, Medicos $medico) => $query->where(
+                    'medico_id',
+                    $medico->id
+                )
+            )
             ->orderByDesc('fecha')
             ->orderByDesc('hora')
             ->paginate(15);
@@ -38,8 +45,14 @@ private const DURACION_CITA = 15;
      */
     public function create(): View
     {
+        $medicoAutenticado = $this->medicoAutenticado();
+
         $medicos = Medicos::query()
             ->where('status', true)
+            ->when(
+                $medicoAutenticado,
+                fn ($query, Medicos $medico) => $query->whereKey($medico->id)
+            )
             ->orderBy('nombre')
             ->orderBy('apellido_paterno')
             ->get();
@@ -52,6 +65,8 @@ private const DURACION_CITA = 15;
      */
     public function store(Request $request): RedirectResponse
     {
+        $medicoAutenticado = $this->medicoAutenticado();
+
         $datos = $request->validate([
             'paciente_id' => [
     'required',
@@ -62,6 +77,9 @@ private const DURACION_CITA = 15;
                 'required',
                 'integer',
                 'exists:medicos,id',
+                ...($medicoAutenticado
+                    ? [Rule::in([$medicoAutenticado->id])]
+                    : []),
             ],
             'fecha' => [
                 'required',
@@ -124,6 +142,8 @@ private const DURACION_CITA = 15;
      */
     public function show(Citas $cita): View
     {
+        $this->autorizarAccesoMedico($cita);
+
         $cita->load(['paciente', 'medico', 'creadoPor']);
 
         return view('citas.show', compact('cita'));
@@ -134,6 +154,10 @@ private const DURACION_CITA = 15;
      */
     public function edit(Citas $cita): View
     {
+        $this->autorizarAccesoMedico($cita);
+
+        $medicoAutenticado = $this->medicoAutenticado();
+
         $pacientes = Pacientes::query()
             ->orderBy('nombre')
             ->orderBy('apellido')
@@ -144,6 +168,10 @@ private const DURACION_CITA = 15;
                 $query->where('status', true)
                     ->orWhere('id', $cita->medico_id);
             })
+            ->when(
+                $medicoAutenticado,
+                fn ($query, Medicos $medico) => $query->whereKey($medico->id)
+            )
             ->orderBy('nombre')
             ->orderBy('apellido_paterno')
             ->get();
@@ -161,6 +189,10 @@ private const DURACION_CITA = 15;
      */
     public function update(Request $request, Citas $cita): RedirectResponse
     {
+        $this->autorizarAccesoMedico($cita);
+
+        $medicoAutenticado = $this->medicoAutenticado();
+
         $datos = $request->validate([
             'paciente_id' => [
                 'required',
@@ -171,6 +203,9 @@ private const DURACION_CITA = 15;
                 'required',
                 'integer',
                 'exists:medicos,id',
+                ...($medicoAutenticado
+                    ? [Rule::in([$medicoAutenticado->id])]
+                    : []),
             ],
             'fecha' => [
                 'required',
@@ -235,12 +270,6 @@ $cita->update($datos);
 return redirect()
     ->route('citas.index')
     ->with('success', 'La cita se actualizó correctamente.');
-
-        $cita->update($datos);
-
-        return redirect()
-            ->route('citas.index')
-            ->with('success', 'La cita se actualizó correctamente.');
     }
 
     /**
@@ -248,6 +277,8 @@ return redirect()
      */
     public function destroy(Citas $cita): RedirectResponse
     {
+        $this->autorizarAccesoMedico($cita);
+
         $cita->delete();
 
         return redirect()
@@ -302,6 +333,20 @@ public function horariosDisponibles(Request $request): JsonResponse
         'fecha' => ['required', 'date'],
         'ignorar_cita' => ['nullable', 'integer', 'exists:citas,id'],
     ]);
+
+    $medicoAutenticado = $this->medicoAutenticado();
+
+    if (
+        $medicoAutenticado !== null
+        && (int) $datos['medico_id'] !== (int) $medicoAutenticado->id
+    ) {
+        abort(403, 'No puedes consultar la agenda de otro médico.');
+    }
+
+    if (! empty($datos['ignorar_cita'])) {
+        $citaIgnorada = Citas::query()->findOrFail($datos['ignorar_cita']);
+        $this->autorizarAccesoMedico($citaIgnorada);
+    }
 
     $fecha = Carbon::parse($datos['fecha'])->startOfDay();
     $ahora = now();
@@ -406,6 +451,37 @@ private function validarHorarioDisponible(
         throw ValidationException::withMessages([
             'hora' => 'Ese horario acaba de ser ocupado. Selecciona otro espacio disponible.',
         ]);
+    }
+}
+
+private function medicoAutenticado(): ?Medicos
+{
+    $user = request()->user();
+
+    if ($user === null || ! $user->isMedico()) {
+        return null;
+    }
+
+    $medico = $user->medico;
+
+    abort_if(
+        $medico === null,
+        403,
+        'Tu usuario no tiene un perfil médico vinculado.'
+    );
+
+    return $medico;
+}
+
+private function autorizarAccesoMedico(Citas $cita): void
+{
+    $medico = $this->medicoAutenticado();
+
+    if (
+        $medico !== null
+        && (int) $cita->medico_id !== (int) $medico->id
+    ) {
+        abort(403, 'No puedes acceder a una cita asignada a otro médico.');
     }
 }
 

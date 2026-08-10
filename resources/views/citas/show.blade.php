@@ -21,38 +21,38 @@
                     href="{{ route('citas.index') }}"
                     class="inline-flex items-center justify-center rounded-xl border
                            border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
-                           text-gray-700 transition hover:bg-gray-50"
-                >
+                           text-gray-700 transition hover:bg-gray-50">
                     Volver a la agenda
                 </a>
 
+                @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
                 <a
                     href="{{ route('citas.edit', $cita) }}"
                     class="inline-flex items-center justify-center rounded-xl
-                           bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
-                           text-white transition hover:bg-[#082a5d]"
-                >
+                               bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
+                               text-white transition hover:bg-[#082a5d]">
                     Editar cita
                 </a>
+                @endif
             </div>
         </div>
     </x-slot>
 
     @php
-        $estadoClases = match ($cita->estado) {
-            'confirmada' => 'bg-green-100 text-green-700',
-            'en_espera' => 'bg-amber-100 text-amber-700',
-            'en_consulta' => 'bg-blue-100 text-blue-700',
-            'finalizada' => 'bg-gray-100 text-gray-700',
-            'cancelada' => 'bg-red-100 text-red-700',
-            default => 'bg-indigo-100 text-indigo-700',
-        };
+    $estadoClases = match ($cita->estado) {
+    'confirmada' => 'bg-green-100 text-green-700',
+    'en_espera' => 'bg-amber-100 text-amber-700',
+    'en_consulta' => 'bg-blue-100 text-blue-700',
+    'finalizada' => 'bg-gray-100 text-gray-700',
+    'cancelada' => 'bg-red-100 text-red-700',
+    default => 'bg-indigo-100 text-indigo-700',
+    };
 
-        $estadoTexto = match ($cita->estado) {
-            'en_espera' => 'En espera',
-            'en_consulta' => 'En consulta',
-            default => ucfirst($cita->estado),
-        };
+    $estadoTexto = match ($cita->estado) {
+    'en_espera' => 'En espera',
+    'en_consulta' => 'En consulta',
+    default => ucfirst($cita->estado),
+    };
     @endphp
 
     <div class="py-8">
@@ -124,40 +124,147 @@
                             </p>
                         </div>
                     </div>
+
+                    <div class="border-t border-gray-200 px-6 py-6">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">
+                                Signos vitales
+                            </h3>
+
+                            <p class="mt-1 text-sm text-gray-500">
+                                Datos registrados por el personal de enfermería.
+                            </p>
+                        </div>
+
+                        @if ($cita->signoVital)
+                        @php
+                        $signoVital = $cita->signoVital;
+
+                        $pastillasSignosVitales = [
+                        ['Peso', number_format((float) $signoVital->peso, 2) . ' kg'],
+                        ['Estatura', number_format((float) $signoVital->estatura, 2) . ' cm'],
+                        ['IMC', $signoVital->imc !== null ? number_format($signoVital->imc, 2) : 'No disponible'],
+                        ['Temperatura', $signoVital->temperatura !== null ? number_format((float) $signoVital->temperatura, 1) . ' °C' : 'No disponible'],
+                        ['Presión arterial', $signoVital->presion_sistolica !== null && $signoVital->presion_diastolica !== null ? $signoVital->presion_sistolica . '/' . $signoVital->presion_diastolica . ' mmHg' : 'No disponible'],
+                        ['Frecuencia cardiaca', $signoVital->frecuencia_cardiaca !== null ? $signoVital->frecuencia_cardiaca . ' lpm' : 'No disponible'],
+                        ['Frecuencia respiratoria', $signoVital->frecuencia_respiratoria !== null ? $signoVital->frecuencia_respiratoria . ' rpm' : 'No disponible'],
+                        ['Saturación de oxígeno', $signoVital->saturacion_oxigeno !== null ? $signoVital->saturacion_oxigeno . '%' : 'No disponible'],
+                        ['Glucosa', $signoVital->glucosa !== null ? number_format((float) $signoVital->glucosa, 2) . ' mg/dL' : 'No disponible'],
+                        ];
+                        @endphp
+
+                        <div class="mt-5 flex flex-wrap gap-3">
+                            @foreach ($pastillasSignosVitales as [$etiqueta, $valor])
+                            <div class="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-900">
+                                <span class="font-medium text-blue-600">
+                                    {{ $etiqueta }}
+                                </span>
+
+                                <span class="font-bold">
+                                    {{ $valor }}
+                                </span>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        @if ($signoVital->observaciones)
+                        <div class="mt-5 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                                Observaciones de enfermería
+                            </p>
+
+                            <p class="mt-2 whitespace-pre-line text-sm text-blue-950">
+                                {{ $signoVital->observaciones }}
+                            </p>
+                        </div>
+                        @endif
+                        @else
+                        <div class="mt-5 rounded-xl border border-dashed border-blue-200 bg-blue-50 px-4 py-4 text-sm font-medium text-blue-700">
+                            Enfermería todavía no ha registrado signos vitales para esta cita.
+                        </div>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- Paciente y médico --}}
                 <div class="space-y-6">
-                    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                            Paciente
-                        </p>
-
-                        <h3 class="mt-2 text-lg font-bold text-gray-900">
-                            {{ $cita->paciente?->nombre }}
-                            {{ $cita->paciente?->apellido }}
-                        </h3>
-
-                        @if ($cita->paciente?->telefono)
-                            <p class="mt-3 text-sm text-gray-600">
-                                {{ $cita->paciente->telefono }}
-                            </p>
-                        @endif
-
-                        @if ($cita->paciente?->correo)
-                            <p class="mt-1 break-all text-sm text-gray-600">
-                                {{ $cita->paciente->correo }}
-                            </p>
-                        @endif
-
+                    <div>
                         @if ($cita->paciente)
-                            <a
-                                href="{{ route('pacientes.show', $cita->paciente) }}"
-                                class="mt-5 inline-flex text-sm font-semibold
-                                       text-[#0D3B7F] hover:underline"
-                            >
-                                Ver expediente del paciente
-                            </a>
+                        @if ($cita->paciente)
+    <div class="rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="flex items-center gap-4">
+            {{-- Foto: visible para médico y administrador --}}
+            <img
+                src="{{ $cita->paciente->fotoUrl() }}"
+                alt="Foto de {{ $cita->paciente->nombre }}"
+                class="h-16 w-16 shrink-0 rounded-full border-2 border-blue-100 object-cover shadow-sm"
+            >
+
+            <div class="min-w-0">
+                {{-- Nombre: visible para médico y administrador --}}
+                <h3 class="text-lg font-bold text-gray-900">
+                    {{ $cita->paciente->nombre }}
+                    {{ $cita->paciente->apellido }}
+                </h3>
+
+                {{-- Edad: visible para médico y administrador --}}
+                <p class="mt-1 text-sm text-gray-600">
+                    <span class="font-semibold">Edad:</span>
+                    {{ $cita->paciente->edad }}
+                </p>
+            </div>
+        </div>
+
+        {{-- Información completa: solamente administrador --}}
+        @if (auth()->user()->role === 'admin')
+            <div class="mt-5 grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        Teléfono
+                    </p>
+                    <p class="mt-1 text-sm font-medium text-gray-700">
+                        {{ $cita->paciente->telefono ?: 'No registrado' }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        Correo electrónico
+                    </p>
+                    <p class="mt-1 break-all text-sm font-medium text-gray-700">
+                        {{ $cita->paciente->email ?: 'No registrado' }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        Fecha de nacimiento
+                    </p>
+                    <p class="mt-1 text-sm font-medium text-gray-700">
+                        {{ $cita->paciente->fecha_nacimiento?->format('d/m/Y') ?? 'No registrada' }}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        Estado
+                    </p>
+                    <p class="mt-1 text-sm font-medium text-gray-700">
+                        {{ $cita->paciente->status ? 'Activo' : 'Inactivo' }}
+                    </p>
+                </div>
+            </div>
+        @endif
+    </div>
+@else
+    <div class="rounded-xl bg-gray-50 p-4">
+        <p class="text-sm text-gray-500">Paciente no disponible.</p>
+    </div>
+@endif
+                        @else
+                        <p class="text-sm text-gray-500">
+                            Paciente no disponible
+                        </p>
                         @endif
                     </div>
 

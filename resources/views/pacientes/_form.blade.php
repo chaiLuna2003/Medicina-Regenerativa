@@ -58,7 +58,7 @@
     </div>
 
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Apellido</label>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
         <input type="text" name="apellido" value="{{ old('apellido', $pacientes->apellido ?? '') }}"
                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
         @error('apellido') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
