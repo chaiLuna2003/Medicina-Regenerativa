@@ -17,22 +17,35 @@
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row">
+                {{-- Volver --}}
                 <a
                     href="{{ route('citas.index') }}"
                     class="inline-flex items-center justify-center rounded-xl border
-                           border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
-                           text-gray-700 transition hover:bg-gray-50">
+               border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
+               text-gray-700 transition hover:bg-gray-50">
                     Volver a la agenda
                 </a>
 
+                {{-- Acciones exclusivas de administración y recepción --}}
                 @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
+
                 <a
                     href="{{ route('citas.edit', $cita) }}"
                     class="inline-flex items-center justify-center rounded-xl
-                               bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
-                               text-white transition hover:bg-[#082a5d]">
+                   bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
+                   text-white transition hover:bg-[#082a5d]">
                     Editar cita
                 </a>
+
+                <button
+                    type="button"
+                    onclick="abrirModalEstudios()"
+                    class="inline-flex items-center justify-center rounded-xl
+                   bg-emerald-600 px-5 py-2.5 text-sm font-semibold
+                   text-white transition hover:bg-emerald-700">
+                    Agregar estudios
+                </button>
+
                 @endif
             </div>
         </div>
@@ -191,76 +204,75 @@
                     <div>
                         @if ($cita->paciente)
                         @if ($cita->paciente)
-    <div class="rounded-2xl border border-gray-200 bg-white p-5">
-        <div class="flex items-center gap-4">
-            {{-- Foto: visible para médico y administrador --}}
-            <img
-                src="{{ $cita->paciente->fotoUrl() }}"
-                alt="Foto de {{ $cita->paciente->nombre }}"
-                class="h-16 w-16 shrink-0 rounded-full border-2 border-blue-100 object-cover shadow-sm"
-            >
+                        <div class="rounded-2xl border border-gray-200 bg-white p-5">
+                            <div class="flex items-center gap-4">
+                                {{-- Foto: visible para médico y administrador --}}
+                                <img
+                                    src="{{ $cita->paciente->fotoUrl() }}"
+                                    alt="Foto de {{ $cita->paciente->nombre }}"
+                                    class="h-16 w-16 shrink-0 rounded-full border-2 border-blue-100 object-cover shadow-sm">
 
-            <div class="min-w-0">
-                {{-- Nombre: visible para médico y administrador --}}
-                <h3 class="text-lg font-bold text-gray-900">
-                    {{ $cita->paciente->nombre }}
-                    {{ $cita->paciente->apellido }}
-                </h3>
+                                <div class="min-w-0">
+                                    {{-- Nombre: visible para médico y administrador --}}
+                                    <h3 class="text-lg font-bold text-gray-900">
+                                        {{ $cita->paciente->nombre }}
+                                        {{ $cita->paciente->apellido }}
+                                    </h3>
 
-                {{-- Edad: visible para médico y administrador --}}
-                <p class="mt-1 text-sm text-gray-600">
-                    <span class="font-semibold">Edad:</span>
-                    {{ $cita->paciente->edad }}
-                </p>
-            </div>
-        </div>
+                                    {{-- Edad: visible para médico y administrador --}}
+                                    <p class="mt-1 text-sm text-gray-600">
+                                        <span class="font-semibold">Edad:</span>
+                                        {{ $cita->paciente->edad }}
+                                    </p>
+                                </div>
+                            </div>
 
-        {{-- Información completa: solamente administrador --}}
-        @if (auth()->user()->role === 'admin')
-            <div class="mt-5 grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Teléfono
-                    </p>
-                    <p class="mt-1 text-sm font-medium text-gray-700">
-                        {{ $cita->paciente->telefono ?: 'No registrado' }}
-                    </p>
-                </div>
+                            {{-- Información completa: solamente administrador --}}
+                            @if (auth()->user()->role === 'admin')
+                            <div class="mt-5 grid gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                        Teléfono
+                                    </p>
+                                    <p class="mt-1 text-sm font-medium text-gray-700">
+                                        {{ $cita->paciente->telefono ?: 'No registrado' }}
+                                    </p>
+                                </div>
 
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Correo electrónico
-                    </p>
-                    <p class="mt-1 break-all text-sm font-medium text-gray-700">
-                        {{ $cita->paciente->email ?: 'No registrado' }}
-                    </p>
-                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                        Correo electrónico
+                                    </p>
+                                    <p class="mt-1 break-all text-sm font-medium text-gray-700">
+                                        {{ $cita->paciente->email ?: 'No registrado' }}
+                                    </p>
+                                </div>
 
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Fecha de nacimiento
-                    </p>
-                    <p class="mt-1 text-sm font-medium text-gray-700">
-                        {{ $cita->paciente->fecha_nacimiento?->format('d/m/Y') ?? 'No registrada' }}
-                    </p>
-                </div>
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                        Fecha de nacimiento
+                                    </p>
+                                    <p class="mt-1 text-sm font-medium text-gray-700">
+                                        {{ $cita->paciente->fecha_nacimiento?->format('d/m/Y') ?? 'No registrada' }}
+                                    </p>
+                                </div>
 
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Estado
-                    </p>
-                    <p class="mt-1 text-sm font-medium text-gray-700">
-                        {{ $cita->paciente->status ? 'Activo' : 'Inactivo' }}
-                    </p>
-                </div>
-            </div>
-        @endif
-    </div>
-@else
-    <div class="rounded-xl bg-gray-50 p-4">
-        <p class="text-sm text-gray-500">Paciente no disponible.</p>
-    </div>
-@endif
+                                <div>
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                                        Estado
+                                    </p>
+                                    <p class="mt-1 text-sm font-medium text-gray-700">
+                                        {{ $cita->paciente->status ? 'Activo' : 'Inactivo' }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                        @else
+                        <div class="rounded-xl bg-gray-50 p-4">
+                            <p class="text-sm text-gray-500">Paciente no disponible.</p>
+                        </div>
+                        @endif
                         @else
                         <p class="text-sm text-gray-500">
                             Paciente no disponible
@@ -300,4 +312,378 @@
             </div>
         </div>
     </div>
+
+        @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
+<div
+    id="modal-estudios"
+    class="fixed inset-0 z-50 hidden"
+    role="dialog"
+    aria-modal="true"
+>
+    {{-- Fondo --}}
+    <div
+        class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+        onclick="cerrarModalEstudios()"
+    ></div>
+
+    {{-- Centrado --}}
+    <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4">
+
+        {{-- Modal --}}
+        <div
+            class="relative flex max-h-[90vh] w-full max-w-[600px]
+                   flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        >
+
+            {{-- Encabezado --}}
+            <div class="flex shrink-0 items-start justify-between border-b border-gray-200 px-5 py-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-[#0D3B7F]">
+                        Expediente clínico
+                    </p>
+
+                    <h2 class="mt-1 text-xl font-bold text-gray-900">
+                        Agregar estudios
+                    </h2>
+
+                    <p class="mt-1 text-sm text-gray-500">
+                        {{ $cita->paciente->nombre }}
+                        {{ $cita->paciente->apellido }}
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="cerrarModalEstudios()"
+                    class="rounded-lg p-2 text-gray-400 transition
+                           hover:bg-gray-100 hover:text-gray-700"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <form
+                action="{{ route('estudios.store', $cita) }}"
+                method="POST"
+                enctype="multipart/form-data"
+                class="flex min-h-0 flex-1 flex-col"
+            >
+                @csrf
+
+                {{-- Contenido con scroll --}}
+                <div class="min-h-0 flex-1 overflow-y-auto p-5">
+
+                    <div class="grid gap-5 md:grid-cols-[190px_1fr]">
+
+                        {{-- COLUMNA IZQUIERDA --}}
+                        <div class="space-y-4">
+
+                            <div>
+                                <h3 class="text-sm font-bold text-gray-900">
+                                    Información de la cita
+                                </h3>
+
+                                <p class="mt-1 text-xs text-gray-500">
+                                    Datos asociados al estudio.
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
+
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
+                                        Paciente
+                                    </p>
+
+                                    <p class="mt-1 text-sm font-bold text-blue-950">
+                                        {{ $cita->paciente->nombre }}
+                                        {{ $cita->paciente->apellido }}
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 border-t border-blue-100 pt-4">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
+                                        Cita
+                                    </p>
+
+                                    <p class="mt-1 text-sm font-bold text-blue-950">
+                                        {{ $cita->fecha->format('d/m/Y') }}
+                                    </p>
+
+                                    <p class="mt-1 text-sm text-blue-900">
+                                        {{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}
+                                    </p>
+                                </div>
+
+                                <div class="mt-4 border-t border-blue-100 pt-4">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
+                                        Médico
+                                    </p>
+
+                                    <p class="mt-1 text-sm font-semibold text-blue-950">
+                                        Dr.
+                                        {{ $cita->medico?->nombre }}
+                                        {{ $cita->medico?->apellido_paterno }}
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-blue-700">
+                                        {{ $cita->medico?->especialidad ?? 'Sin especialidad registrada' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="rounded-xl border border-amber-100 bg-amber-50 p-3">
+                                <p class="text-xs leading-relaxed text-amber-800">
+                                    Los documentos quedarán asociados a esta cita y al historial del paciente.
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- COLUMNA DERECHA --}}
+                        <div class="space-y-4">
+
+                            {{-- Nombre --}}
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700">
+                                    Nombre del estudio
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="nombre"
+                                    value="{{ old('nombre') }}"
+                                    required
+                                    maxlength="150"
+                                    placeholder="Ej. Resonancia magnética"
+                                    class="mt-1.5 block w-full rounded-xl
+                                           border-gray-300 px-3 py-2.5
+                                           text-sm shadow-sm
+                                           focus:border-[#0D3B7F]
+                                           focus:ring-[#0D3B7F]"
+                                >
+
+                                @error('nombre')
+                                    <p class="mt-1 text-xs text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+
+                            {{-- Fecha y descripción --}}
+                            <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">
+                                        Fecha del estudio
+                                    </label>
+
+                                    <input
+                                        type="date"
+                                        name="fecha_estudio"
+                                        value="{{ old('fecha_estudio', now()->format('Y-m-d')) }}"
+                                        max="{{ now()->format('Y-m-d') }}"
+                                        required
+                                        class="mt-1.5 block w-full rounded-xl
+                                               border-gray-300 px-3 py-2.5
+                                               text-sm shadow-sm
+                                               focus:border-[#0D3B7F]
+                                               focus:ring-[#0D3B7F]"
+                                    >
+
+                                    @error('fecha_estudio')
+                                        <p class="mt-1 text-xs text-red-600">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700">
+                                        Descripción
+                                        <span class="font-normal text-gray-400">
+                                            (opcional)
+                                        </span>
+                                    </label>
+
+                                    <textarea
+                                        name="descripcion"
+                                        rows="2"
+                                        maxlength="1000"
+                                        placeholder="Detalles del estudio..."
+                                        class="mt-1.5 block w-full resize-none rounded-xl
+                                               border-gray-300 px-3 py-2.5
+                                               text-sm shadow-sm
+                                               focus:border-[#0D3B7F]
+                                               focus:ring-[#0D3B7F]"
+                                    >{{ old('descripcion') }}</textarea>
+
+                                    @error('descripcion')
+                                        <p class="mt-1 text-xs text-red-600">
+                                            {{ $message }}
+                                        </p>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            {{-- Archivos --}}
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700">
+                                    Archivos PDF
+                                </label>
+
+                                <div
+                                    class="mt-1.5 rounded-xl border-2 border-dashed
+                                           border-gray-300 bg-gray-50 p-4 text-center"
+                                >
+                                    <input
+                                        id="archivos-estudios"
+                                        type="file"
+                                        name="archivos[]"
+                                        accept="application/pdf,.pdf"
+                                        multiple
+                                        required
+                                        onchange="mostrarArchivosSeleccionados(this)"
+                                        class="block w-full text-xs text-gray-600
+                                               file:mr-3 file:rounded-lg
+                                               file:border-0
+                                               file:bg-[#0D3B7F]
+                                               file:px-3 file:py-2
+                                               file:text-xs file:font-semibold
+                                               file:text-white"
+                                    >
+
+                                    <p class="mt-2 text-[11px] text-gray-500">
+                                        Hasta 10 PDFs · Máximo 15 MB por archivo
+                                    </p>
+                                </div>
+
+                                <div
+                                    id="lista-archivos-estudios"
+                                    class="mt-2 max-h-24 space-y-2 overflow-y-auto"
+                                ></div>
+
+                                @error('archivos')
+                                    <p class="mt-1 text-xs text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+
+                                @error('archivos.*')
+                                    <p class="mt-1 text-xs text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- Footer --}}
+                <div class="flex shrink-0 flex-col-reverse gap-2 border-t
+                            border-gray-200 bg-gray-50 px-5 py-3
+                            sm:flex-row sm:justify-end">
+
+                    <button
+                        type="button"
+                        onclick="cerrarModalEstudios()"
+                        class="rounded-xl border border-gray-300 bg-white
+                               px-4 py-2 text-sm font-semibold
+                               text-gray-700 hover:bg-gray-50"
+                    >
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-[#0D3B7F]
+                               px-4 py-2 text-sm font-semibold
+                               text-white transition hover:bg-[#082a5d]"
+                    >
+                        Guardar estudios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 </x-app-layout>
+
+<script>
+    const modalEstudios = document.getElementById('modal-estudios');
+
+    function abrirModalEstudios() {
+        if (!modalEstudios) return;
+
+        modalEstudios.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function cerrarModalEstudios() {
+        if (!modalEstudios) return;
+
+        modalEstudios.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function mostrarArchivosSeleccionados(input) {
+        const contenedor = document.getElementById(
+            'lista-archivos-estudios'
+        );
+
+        if (!contenedor) return;
+
+        contenedor.innerHTML = '';
+
+        Array.from(input.files).forEach((archivo) => {
+            const elemento = document.createElement('div');
+
+            const megabytes =
+                (archivo.size / 1024 / 1024).toFixed(2);
+
+            elemento.className =
+                'flex items-center justify-between ' +
+                'rounded-lg border border-gray-200 ' +
+                'bg-white px-3 py-2 text-sm';
+
+            const nombre = document.createElement('span');
+
+            nombre.className =
+                'truncate font-medium text-gray-700';
+
+            nombre.textContent = archivo.name;
+
+            const peso = document.createElement('span');
+
+            peso.className =
+                'ml-3 shrink-0 text-xs text-gray-400';
+
+            peso.textContent = megabytes + ' MB';
+
+            elemento.appendChild(nombre);
+            elemento.appendChild(peso);
+
+            contenedor.appendChild(elemento);
+        });
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            cerrarModalEstudios();
+        }
+    });
+</script>
+@if (
+    $errors->has('nombre')
+    || $errors->has('descripcion')
+    || $errors->has('fecha_estudio')
+    || $errors->has('archivos')
+    || $errors->has('archivos.*')
+)
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            abrirModalEstudios();
+        });
+    </script>
+@endif

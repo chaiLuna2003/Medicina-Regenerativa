@@ -121,4 +121,16 @@ public function recetas(): HasManyThrough
         'id'           // Llave primaria en citas
     );
 }
+
+public function estudios(): HasManyThrough
+{
+    return $this->hasManyThrough(
+        Estudio::class,
+        Citas::class,
+        'paciente_id',
+        'cita_id',
+        'id',
+        'id'
+    );
+}
 }

@@ -10,6 +10,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RecetasController;
+use App\Http\Controllers\EstudiosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -253,6 +254,55 @@ Route::middleware('role:medico')
                 [SignosVitalesController::class, 'store']
             )->name('signos-vitales.store');
         });
+
+    /*
+|--------------------------------------------------------------------------
+| Estudios clínicos
+|--------------------------------------------------------------------------
+|
+| Administración y recepción pueden cargar estudios asociados
+| directamente a una cita.
+|
+*/
+
+Route::middleware('role:admin,recepcionista')
+    ->group(function () {
+
+        Route::post(
+            '/citas/{cita}/estudios',
+            [EstudiosController::class, 'store']
+        )->name('estudios.store');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Consulta de estudios clínicos
+|--------------------------------------------------------------------------
+|
+| Administración, médicos y recepción pueden consultar documentos.
+| Después reforzaremos en el controlador que un médico solamente pueda
+| consultar pacientes con los que tenga relación clínica.
+|
+*/
+
+Route::middleware('role:admin,medico,recepcionista')
+    ->group(function () {
+
+        Route::get(
+            '/pacientes/{paciente}/estudios',
+            [EstudiosController::class, 'historial']
+        )->name('pacientes.estudios.index');
+
+        Route::get(
+            '/estudios/{estudio}/archivo',
+            [EstudiosController::class, 'archivo']
+        )->name('estudios.archivo');
+
+        Route::get(
+            '/estudios/{estudio}/descargar',
+            [EstudiosController::class, 'descargar']
+        )->name('estudios.descargar');
+    });
 
     /*
     |--------------------------------------------------------------------------
