@@ -180,78 +180,134 @@ class EstudiosController extends Controller
     }
 
     /**
- * Visualizar un estudio PDF.
- */
-public function archivo(
-    Request $request,
-    Estudio $estudio
-) {
-    $this->validarAccesoAlEstudio(
-        $request,
-        $estudio
-    );
+     * Visualizar un estudio PDF.
+     */
+    public function archivo(
+        Request $request,
+        Estudio $estudio
+    ) {
+        $this->validarAccesoAlEstudio(
+            $request,
+            $estudio
+        );
 
-    abort_unless(
-        Storage::disk('local')->exists(
-            $estudio->archivo_path
-        ),
-        404,
-        'El archivo del estudio no fue encontrado.'
-    );
+        abort_unless(
+            Storage::disk('local')->exists(
+                $estudio->archivo_path
+            ),
+            404,
+            'El archivo del estudio no fue encontrado.'
+        );
 
-    return Storage::disk('local')->response(
-        $estudio->archivo_path,
-        $estudio->archivo_original,
-        [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' =>
+        return Storage::disk('local')->response(
+            $estudio->archivo_path,
+            $estudio->archivo_original,
+            [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' =>
                 'inline; filename="' .
-                basename($estudio->archivo_original) .
-                '"',
-        ]
-    );
-}
+                    basename($estudio->archivo_original) .
+                    '"',
+            ]
+        );
+    }
 
 
-/**
- * Descargar un estudio PDF.
- */
-public function descargar(
+    /**
+     * Descargar un estudio PDF.
+     */
+    public function descargar(
+        Request $request,
+        Estudio $estudio
+    ): StreamedResponse {
+        $this->validarAccesoAlEstudio(
+            $request,
+            $estudio
+        );
+
+        abort_unless(
+            Storage::disk('local')->exists(
+                $estudio->archivo_path
+            ),
+            404,
+            'El archivo del estudio no fue encontrado.'
+        );
+
+        return Storage::disk('local')->download(
+            $estudio->archivo_path,
+            basename($estudio->archivo_original)
+        );
+    }
+
+    /**
+     * Validar que el usuario pueda consultar
+     * el estudio solicitado.
+     */
+    private function validarAccesoAlEstudio(
+        Request $request,
+        Estudio $estudio
+    ): void {
+        $usuario = $request->user();
+
+        /*
+     * Administrador y recepción tienen acceso.
+     */
+        if (in_array(
+            $usuario->role,
+            ['admin', 'recepcionista'],
+            true
+        )) {
+            return;
+        }
+
+        /*
+     * Cualquier otro rol distinto de médico
+     * queda rechazado.
+     */
+        abort_unless(
+            $usuario->role === 'medico',
+            403
+        );
+
+        $medico = $usuario->medico;
+
+        abort_unless($medico, 403);
+
+        /*
+     * Obtenemos al paciente propietario del estudio
+     * mediante la cita.
+     */
+        $estudio->loadMissing('cita');
+
+        abort_unless(
+            $estudio->cita,
+            404
+        );
+
+        $pacienteId = $estudio->cita->paciente_id;
+
+        /*
+     * El médico debe tener al menos una cita
+     * con este paciente.
+     */
+        $tieneRelacionClinica = Citas::query()
+            ->where('paciente_id', $pacienteId)
+            ->where('medico_id', $medico->id)
+            ->exists();
+
+        abort_unless(
+            $tieneRelacionClinica,
+            403
+        );
+    }
+
+    private function validarAccesoPaciente(
     Request $request,
-    Estudio $estudio
-): StreamedResponse {
-    $this->validarAccesoAlEstudio(
-        $request,
-        $estudio
-    );
-
-    abort_unless(
-        Storage::disk('local')->exists(
-            $estudio->archivo_path
-        ),
-        404,
-        'El archivo del estudio no fue encontrado.'
-    );
-
-    return Storage::disk('local')->download(
-        $estudio->archivo_path,
-        basename($estudio->archivo_original)
-    );
-}
-
-/**
- * Validar que el usuario pueda consultar
- * el estudio solicitado.
- */
-private function validarAccesoAlEstudio(
-    Request $request,
-    Estudio $estudio
+    Pacientes $paciente
 ): void {
     $usuario = $request->user();
 
-    /*
-     * Administrador y recepción tienen acceso.
-     */
+    // Admin y recepción pueden consultar.
     if (in_array(
         $usuario->role,
         ['admin', 'recepcionista'],
@@ -260,10 +316,7 @@ private function validarAccesoAlEstudio(
         return;
     }
 
-    /*
-     * Cualquier otro rol distinto de médico
-     * queda rechazado.
-     */
+    // Cualquier otro rol debe ser médico.
     abort_unless(
         $usuario->role === 'medico',
         403
@@ -273,25 +326,9 @@ private function validarAccesoAlEstudio(
 
     abort_unless($medico, 403);
 
-    /*
-     * Obtenemos al paciente propietario del estudio
-     * mediante la cita.
-     */
-    $estudio->loadMissing('cita');
-
-    abort_unless(
-        $estudio->cita,
-        404
-    );
-
-    $pacienteId = $estudio->cita->paciente_id;
-
-    /*
-     * El médico debe tener al menos una cita
-     * con este paciente.
-     */
-    $tieneRelacionClinica = Citas::query()
-        ->where('paciente_id', $pacienteId)
+    // El médico debe tener relación clínica con el paciente.
+    $tieneRelacionClinica = $paciente
+        ->citas()
         ->where('medico_id', $medico->id)
         ->exists();
 
