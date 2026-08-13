@@ -23,7 +23,7 @@
                     class="inline-flex items-center justify-center rounded-xl border
                border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
                text-gray-700 transition hover:bg-gray-50">
-                    Volver a la agenda
+                    Volver a la agendas
                 </a>
 
                 {{-- Acciones exclusivas de administración y recepción --}}
