@@ -7,7 +7,6 @@ use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\Receta;
 use App\Rules\MaxWords;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,90 +22,108 @@ class RecetasController extends Controller
     public function historial(
         Request $request,
         Pacientes $paciente
-    ): JsonResponse {
+    ): View {
         $this->autorizarHistorial($request, $paciente);
 
-        $recetas = $paciente->recetas()
-            ->with([
-                'cita.medico.user',
-            ])
-            ->orderByDesc('fecha_expedicion')
-            ->get();
-
-        return response()->json([
-            'paciente' => $paciente,
-            'recetas' => $recetas,
+        $paciente->load([
+            'recetas' => function ($query) {
+                $query
+                    ->with([
+                        'cita.medico.user',
+                    ])
+                    ->orderByDesc('fecha_expedicion');
+            },
         ]);
+
+        $recetas = $paciente->recetas;
+
+        return view(
+            'recetas.historial',
+            compact('paciente', 'recetas')
+        );
     }
 
     /**
-     * Muestra una receta específica.
+     * Muestra el detalle de una receta.
      */
     public function show(
         Request $request,
         Receta $receta
-    ): JsonResponse {
+    ): View {
         $receta->load([
             'cita.paciente',
             'cita.medico.user',
+            'cita.signoVital',
         ]);
+
+        abort_if(
+            $receta->cita === null || $receta->cita->paciente === null,
+            404,
+            'No se encontró la información clínica de esta receta.'
+        );
 
         $this->autorizarHistorial(
             $request,
             $receta->cita->paciente
         );
 
-        return response()->json($receta);
+        return view('recetas.show', compact('receta'));
     }
 
     /**
- * Muestra el formulario para elaborar una receta.
- */
-public function create(
-    Request $request,
-    Citas $cita
-): View {
-    $medico = $this->medicoAutenticado($request);
+     * Muestra el formulario para elaborar una receta.
+     */
+    public function create(
+        Request $request,
+        Citas $cita
+    ): View {
+        $medico = $this->medicoAutenticado($request);
 
-    $this->autorizarCitaPropia($cita, $medico);
+        $this->autorizarCitaPropia($cita, $medico);
 
-    abort_if(
-        $cita->receta()->exists(),
-        409,
-        'Esta cita ya tiene una receta médica.'
-    );
+        abort_if(
+            $cita->receta()->exists(),
+            409,
+            'Esta cita ya tiene una receta médica.'
+        );
 
-    $cita->load([
-        'paciente',
-        'medico.user',
-        'signoVital',
-    ]);
+        $cita->load([
+            'paciente',
+            'medico.user',
+            'signoVital',
+        ]);
 
-    return view('recetas.create', compact('cita'));
-}
+        return view('recetas.create', compact('cita'));
+    }
 
-/**
- * Muestra el formulario para editar una receta.
- */
-public function edit(
-    Request $request,
-    Receta $receta
-): View {
-    $receta->load([
-        'cita.paciente',
-        'cita.medico.user',
-        'cita.signoVital',
-    ]);
+    /**
+     * Muestra el formulario para editar una receta.
+     */
+    public function edit(
+        Request $request,
+        Receta $receta
+    ): View {
+        $receta->load([
+            'cita.paciente',
+            'cita.medico.user',
+            'cita.signoVital',
+        ]);
 
-    $medico = $this->medicoAutenticado($request);
+        abort_if(
+            $receta->cita === null,
+            404,
+            'No se encontró la cita relacionada con esta receta.'
+        );
 
-    $this->autorizarCitaPropia(
-        $receta->cita,
-        $medico
-    );
+        $medico = $this->medicoAutenticado($request);
 
-    return view('recetas.edit', compact('receta'));
-}
+        $this->autorizarCitaPropia(
+            $receta->cita,
+            $medico
+        );
+
+        return view('recetas.edit', compact('receta'));
+    }
 
     /**
      * Crea una receta para una cita.
@@ -129,13 +146,13 @@ public function edit(
 
         $datos = $this->validarContenido($request);
 
-        $cita->receta()->create([
+        $receta = $cita->receta()->create([
             'contenido' => $datos['contenido'],
             'fecha_expedicion' => now(),
         ]);
 
         return redirect()
-            ->route('citas.show', $cita)
+            ->route('recetas.show', $receta)
             ->with(
                 'success',
                 'La receta médica se creó correctamente.'
@@ -151,9 +168,15 @@ public function edit(
         Request $request,
         Receta $receta
     ): RedirectResponse {
-        $medico = $this->medicoAutenticado($request);
-
         $receta->loadMissing('cita');
+
+        abort_if(
+            $receta->cita === null,
+            404,
+            'No se encontró la cita relacionada con esta receta.'
+        );
+
+        $medico = $this->medicoAutenticado($request);
 
         $this->autorizarCitaPropia(
             $receta->cita,
@@ -186,6 +209,10 @@ public function edit(
                 'max:50000',
                 new MaxWords(2000),
             ],
+        ], [
+            'contenido.required' => 'Debes escribir el contenido de la receta.',
+            'contenido.string' => 'El contenido de la receta no es válido.',
+            'contenido.max' => 'El contenido de la receta es demasiado extenso.',
         ]);
     }
 
@@ -220,28 +247,26 @@ public function edit(
     }
 
     /**
-     * Autoriza el acceso al historial del paciente.
+     * Autoriza el acceso al historial clínico del paciente.
      */
     private function autorizarHistorial(
         Request $request,
         Pacientes $paciente
     ): void {
-        /*
-         * El administrador puede consultar cualquier historial.
-         */
-        if ($request->user()->isAdmin()) {
+        $usuario = $request->user();
+
+        abort_if(
+            $usuario === null,
+            401,
+            'Debes iniciar sesión para consultar esta información.'
+        );
+
+        if ($usuario->isAdmin()) {
             return;
         }
 
-        /*
-         * Los demás usuarios deben tener un perfil médico.
-         */
         $medico = $this->medicoAutenticado($request);
 
-        /*
-         * El médico debe tener al menos una cita asignada
-         * con este paciente.
-         */
         $tieneCitaConPaciente = Citas::query()
             ->where('paciente_id', $paciente->id)
             ->where('medico_id', $medico->id)
