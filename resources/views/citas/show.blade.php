@@ -47,7 +47,31 @@
                 </button>
 
                 @endif
+                @if (auth()->user()->role === 'medico')
+    @if ($cita->receta)
+        <a
+            href="{{ route('recetas.show', $cita->receta) }}"
+            class="inline-flex w-full items-center justify-center rounded-xl
+                   border border-[#0D3B7F] bg-white px-4 py-2.5
+                   text-sm font-semibold text-[#0D3B7F]
+                   transition hover:bg-[#0D3B7F] hover:text-white"
+        >
+            Ver receta
+        </a>
+    @else
+        <a
+            href="{{ route('citas.receta.create', $cita) }}"
+            class="inline-flex w-full items-center justify-center rounded-xl
+                   bg-[#0D3B7F] px-4 py-2.5
+                   text-sm font-semibold text-white
+                   transition hover:bg-[#082a5d]"
+        >
+            Crear receta
+        </a>
+    @endif
+@endif
             </div>
+            
         </div>
     </x-slot>
 
