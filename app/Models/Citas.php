@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Citas extends Model
 {
@@ -85,4 +86,10 @@ public function receta(): HasOne
 {
     return $this->hasOne(Receta::class, 'cita_id');
 }
+
+public function estudios():HasMany
+{
+    return $this->hasMany(Estudio::class, 'cita_id');
+}
+
 }

@@ -257,7 +257,8 @@ $cambiaResponsablesClinicos =
  */
 $tieneInformacionClinica =
     $cita->receta()->exists()
-    || $cita->signoVital()->exists();
+    || $cita->signoVital()->exists()
+    || $cita->estudios()->exists();
 
 /*
  * Una cita con información clínica no puede asignarse
@@ -311,8 +312,9 @@ public function destroy(Citas $cita): RedirectResponse
      * del historial clínico y no pueden eliminarse.
      */
     $tieneInformacionClinica =
-        $cita->receta()->exists()
-        || $cita->signoVital()->exists();
+    $cita->receta()->exists()
+    || $cita->signoVital()->exists()
+    || $cita->estudios()->exists();
 
     if ($tieneInformacionClinica) {
         return back()->with(
@@ -327,7 +329,7 @@ public function destroy(Citas $cita): RedirectResponse
         ->route('citas.index')
         ->with(
             'success',
-            'La cita se eliminó correctamente.'
+            'La cita se eliminó correctamente.' 
         );
 }
 
