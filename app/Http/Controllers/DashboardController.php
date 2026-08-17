@@ -13,18 +13,18 @@ use Illuminate\Http\Request;
 class DashboardController extends Controller
 {
     public function index(Request $request)
-{
-    /** @var User $user */
-    $user = Auth::user();
+    {
+        /** @var User $user */
+        $user = Auth::user();
 
-    return match ($user->role) {
-        'admin' => $this->dashboardAdministrador(),
-        'recepcionista' => $this->dashboardRecepcion($request),
-        'medico' => $this->dashboardMedico($user),
-        'enfermero' => $this->dashboardEnfermero(),
-        default => abort(403),
-    };
-}
+        return match ($user->role) {
+            'admin' => $this->dashboardAdministrador(),
+            'recepcionista' => $this->dashboardRecepcion($request),
+            'medico' => $this->dashboardMedico($user),
+            'enfermero' => $this->dashboardEnfermero(),
+            default => abort(403),
+        };
+    }
 
     /**
      * Dashboard del administrador.
@@ -98,333 +98,397 @@ class DashboardController extends Controller
     }
 
     /**
- * Dashboard de recepción.
- */
-private function dashboardRecepcion(Request $request)
-{
-    $request->validate([
-        'fecha' => ['nullable', 'date_format:Y-m-d'],
-        'mes' => ['nullable', 'date_format:Y-m'],
-    ]);
+     * Dashboard de recepción.
+     */
+    private function dashboardRecepcion(Request $request)
+    {
+        $request->validate([
+            'fecha' => ['nullable', 'date_format:Y-m-d'],
+            'mes' => ['nullable', 'date_format:Y-m'],
+            'medico_id' => [
+                'nullable',
+                'integer',
+                'exists:medicos,id',
+            ],
+        ]);
 
-    $hoy = Carbon::today();
+        $medicoSeleccionadoId = $request->filled('medico_id')
+            ? $request->integer('medico_id')
+            : null;
 
-    /*
+        $hoy = Carbon::today();
+
+        /*
      * Día seleccionado.
      * Si no se recibe una fecha, se utiliza el día actual.
      */
-    $fechaSeleccionada = $request->filled('fecha')
-        ? Carbon::createFromFormat(
-            'Y-m-d',
-            $request->input('fecha')
-        )->startOfDay()
-        : $hoy->copy();
+        $fechaSeleccionada = $request->filled('fecha')
+            ? Carbon::createFromFormat(
+                'Y-m-d',
+                $request->input('fecha')
+            )->startOfDay()
+            : $hoy->copy();
 
-    /*
+        /*
      * Mes mostrado en el calendario.
      */
-    if ($request->filled('mes')) {
-        $mesCalendario = Carbon::createFromFormat(
-            'Y-m-d',
-            $request->input('mes') . '-01'
-        )->startOfMonth();
-    } else {
-        $mesCalendario = $fechaSeleccionada
-            ->copy()
-            ->startOfMonth();
-    }
+        if ($request->filled('mes')) {
+            $mesCalendario = Carbon::createFromFormat(
+                'Y-m-d',
+                $request->input('mes') . '-01'
+            )->startOfMonth();
+        } else {
+            $mesCalendario = $fechaSeleccionada
+                ->copy()
+                ->startOfMonth();
+        }
 
-    /*
+        /*
      * Indicadores correspondientes al día actual.
      */
-    $totalCitasHoy = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->count();
+        $totalCitasHoy = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->count();
 
-    $citasEnEspera = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->where('estado', 'en_espera')
-        ->count();
+        $citasEnEspera = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->where('estado', 'en_espera')
+            ->count();
 
-    $citasConfirmadas = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->where('estado', 'confirmada')
-        ->count();
+        $citasConfirmadas = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->where('estado', 'confirmada')
+            ->count();
 
-    $citasCanceladas = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->where('estado', 'cancelada')
-        ->count();
+        $citasCanceladas = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->where('estado', 'cancelada')
+            ->count();
 
-    /*
+        /*
      * Citas correspondientes al día seleccionado.
      * Se ordenan por hora, no por fecha de creación.
      */
-    $citasSeleccionadas = Citas::query()
-        ->with([
-            'paciente',
-            'medico',
-        ])
-        ->whereDate(
-            'fecha',
-            $fechaSeleccionada->toDateString()
-        )
-        ->orderBy('hora', 'asc')
-        ->get();
+        $consultaCitasSeleccionadas = Citas::query()
+            ->with([
+                'paciente',
+                'medico',
+            ])
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            );
 
-    /*
+        if ($medicoSeleccionadoId !== null) {
+            $consultaCitasSeleccionadas->where(
+                'medico_id',
+                $medicoSeleccionadoId
+            );
+        }
+
+        $citasSeleccionadas = $consultaCitasSeleccionadas
+            ->orderBy('hora', 'asc')
+            ->get();
+
+        /*
+ * Cantidad de citas por médico en la fecha seleccionada.
+ */
+        $conteosPorMedico = Citas::query()
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            )
+            ->selectRaw('medico_id, COUNT(*) as total')
+            ->groupBy('medico_id')
+            ->pluck('total', 'medico_id');
+
+        /*
+ * Médicos disponibles para el filtro.
+ */
+        $medicosFiltro = Medicos::query()
+            ->where('status', true)
+            ->orderBy('nombre')
+            ->orderBy('apellido_paterno')
+            ->get()
+            ->map(function (Medicos $medico) use ($conteosPorMedico) {
+                $medico->citas_fecha_count = (int) (
+                    $conteosPorMedico->get($medico->id) ?? 0
+                );
+
+                return $medico;
+            });
+
+        /*
      * Todas las citas del mes para marcar los días
      * que tienen actividad en el calendario.
      */
-    $inicioMes = $mesCalendario
-        ->copy()
-        ->startOfMonth();
+        $inicioMes = $mesCalendario
+            ->copy()
+            ->startOfMonth();
 
-    $finMes = $mesCalendario
-        ->copy()
-        ->endOfMonth();
+        $finMes = $mesCalendario
+            ->copy()
+            ->endOfMonth();
 
-    $citasPorDia = Citas::query()
-        ->select([
-            'id',
-            'fecha',
-            'estado',
-            'modalidad',
-        ])
-        ->whereBetween('fecha', [
-            $inicioMes->toDateString(),
-            $finMes->toDateString(),
-        ])
-        ->orderBy('fecha')
-        ->get()
-        ->groupBy(
-            fn (Citas $cita) => $cita->fecha->format('Y-m-d')
-        )
-        ->map(
-            fn ($grupo) => [
-                'total' => $grupo->count(),
+        $consultaCitasMes = Citas::query()
+            ->select([
+                'id',
+                'fecha',
+                'estado',
+                'modalidad',
+                'medico_id',
+            ])
+            ->whereBetween('fecha', [
+                $inicioMes->toDateString(),
+                $finMes->toDateString(),
+            ]);
 
-                'activas' => $grupo
-                    ->where('estado', '!=', 'cancelada')
-                    ->count(),
+        if ($medicoSeleccionadoId !== null) {
+            $consultaCitasMes->where(
+                'medico_id',
+                $medicoSeleccionadoId
+            );
+        }
 
-                'canceladas' => $grupo
-                    ->where('estado', 'cancelada')
-                    ->count(),
+        $citasPorDia = $consultaCitasMes
+            ->orderBy('fecha')
+            ->get()
+            ->groupBy(
+                fn(Citas $cita) => $cita->fecha->format('Y-m-d')
+            )
+            ->map(
+                fn($grupo) => [
+                    'total' => $grupo->count(),
 
-                'videoconsultas' => $grupo
-                    ->where('modalidad', 'videoconsulta')
-                    ->count(),
-            ]
-        );
+                    'activas' => $grupo
+                        ->where('estado', '!=', 'cancelada')
+                        ->count(),
 
-    /*
+                    'canceladas' => $grupo
+                        ->where('estado', 'cancelada')
+                        ->count(),
+
+                    'videoconsultas' => $grupo
+                        ->where('modalidad', 'videoconsulta')
+                        ->count(),
+                ]
+            );
+
+        /*
      * Construcción de la cuadrícula completa.
      * Incluye algunos días del mes anterior y siguiente
      * para completar las semanas del calendario.
      */
-    $inicioCuadricula = $inicioMes
-        ->copy()
-        ->startOfWeek(Carbon::MONDAY);
+        $inicioCuadricula = $inicioMes
+            ->copy()
+            ->startOfWeek(Carbon::MONDAY);
 
-    $finCuadricula = $finMes
-        ->copy()
-        ->endOfWeek(Carbon::SUNDAY);
+        $finCuadricula = $finMes
+            ->copy()
+            ->endOfWeek(Carbon::SUNDAY);
 
-    $diasCalendario = collect();
+        $diasCalendario = collect();
 
-    for (
-        $dia = $inicioCuadricula->copy();
-        $dia->lte($finCuadricula);
-        $dia->addDay()
-    ) {
-        $diasCalendario->push($dia->copy());
-    }
+        for (
+            $dia = $inicioCuadricula->copy();
+            $dia->lte($finCuadricula);
+            $dia->addDay()
+        ) {
+            $diasCalendario->push($dia->copy());
+        }
 
-    /*
+        /*
      * Meses utilizados por los botones de navegación.
      */
-    $mesAnterior = $mesCalendario
-        ->copy()
-        ->subMonth()
-        ->startOfMonth();
+        $mesAnterior = $mesCalendario
+            ->copy()
+            ->subMonth()
+            ->startOfMonth();
 
-    $mesSiguiente = $mesCalendario
-        ->copy()
-        ->addMonth()
-        ->startOfMonth();
+        $mesSiguiente = $mesCalendario
+            ->copy()
+            ->addMonth()
+            ->startOfMonth();
 
-    /*
+        /*
      * Próxima cita del día seleccionado.
      */
-    $consultaProximaCita = Citas::query()
-        ->with([
-            'paciente',
-            'medico',
-        ])
-        ->whereDate(
-            'fecha',
-            $fechaSeleccionada->toDateString()
-        )
-        ->whereNotIn('estado', [
-            'cancelada',
-            'finalizada',
-        ]);
+        $consultaProximaCita = Citas::query()
+            ->with([
+                'paciente',
+                'medico',
+            ])
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            )
+            ->whereNotIn('estado', [
+                'cancelada',
+                'finalizada',
+            ]);
 
-    /*
+
+        if ($medicoSeleccionadoId !== null) {
+            $consultaProximaCita->where(
+                'medico_id',
+                $medicoSeleccionadoId
+            );
+        }
+        /*
      * Si se está consultando hoy, solo tomamos horarios
      * posteriores a la hora actual.
      */
-    if ($fechaSeleccionada->isToday()) {
-        $consultaProximaCita->whereTime(
-            'hora',
-            '>=',
-            now()->format('H:i:s')
+        if ($fechaSeleccionada->isToday()) {
+            $consultaProximaCita->whereTime(
+                'hora',
+                '>=',
+                now()->format('H:i:s')
+            );
+        }
+
+        $proximaCita = $consultaProximaCita
+            ->orderBy('hora', 'asc')
+            ->first();
+
+        return view(
+            'dashboard.recepcion',
+            compact(
+                'medicosFiltro',
+                'medicoSeleccionadoId',
+                'totalCitasHoy',
+                'citasEnEspera',
+                'citasConfirmadas',
+                'citasCanceladas',
+                'citasSeleccionadas',
+                'fechaSeleccionada',
+                'mesCalendario',
+                'mesAnterior',
+                'mesSiguiente',
+                'diasCalendario',
+                'citasPorDia',
+                'proximaCita',
+            )
         );
     }
 
-    $proximaCita = $consultaProximaCita
-        ->orderBy('hora', 'asc')
-        ->first();
 
-    return view(
-        'dashboard.recepcion',
-        compact(
-            'totalCitasHoy',
-            'citasEnEspera',
-            'citasConfirmadas',
-            'citasCanceladas',
-            'citasSeleccionadas',
-            'fechaSeleccionada',
-            'mesCalendario',
-            'mesAnterior',
-            'mesSiguiente',
-            'diasCalendario',
-            'citasPorDia',
-            'proximaCita',
-        )
-    );
-}
-
-    
-/**
- * Dashboard del médico autenticado.
- */
-private function dashboardMedico(User $user)
-{
-    /*
+    /**
+     * Dashboard del médico autenticado.
+     */
+    private function dashboardMedico(User $user)
+    {
+        /*
      * Médico vinculado con el usuario autenticado.
      */
-    $medico = $user->medico;
+        $medico = $user->medico;
 
-    /*
+        /*
      * Valores predeterminados por si el usuario
      * todavía no tiene un perfil médico asociado.
      */
-    $citas = collect();
+        $citas = collect();
 
-    if ($medico !== null) {
-        /*
+        if ($medico !== null) {
+            /*
          * El calendario conserva contexto reciente y permite planear
          * los siguientes meses sin descargar todo el historial clínico.
          */
-        $inicioCalendario = now()->subMonth()->startOfMonth();
-        $finCalendario = now()->addMonths(6)->endOfMonth();
+            $inicioCalendario = now()->subMonth()->startOfMonth();
+            $finCalendario = now()->addMonths(6)->endOfMonth();
 
-        $citas = Citas::query()
-            ->with([
-                'paciente' => function ($query) {
-                    $query->withCount('citas');
-                },
-                'signoVital.enfermero',
-            ])
-            ->where('medico_id', $medico->id)
-            ->where('estado', '!=', 'cancelada')
-            ->whereBetween('fecha', [
-                $inicioCalendario->toDateString(),
-                $finCalendario->toDateString(),
-            ])
-            ->orderBy('fecha')
-            ->orderBy('hora')
-            ->get();
+            $citas = Citas::query()
+                ->with([
+                    'paciente' => function ($query) {
+                        $query->withCount('citas');
+                    },
+                    'signoVital.enfermero',
+                ])
+                ->where('medico_id', $medico->id)
+                ->where('estado', '!=', 'cancelada')
+                ->whereBetween('fecha', [
+                    $inicioCalendario->toDateString(),
+                    $finCalendario->toDateString(),
+                ])
+                ->orderBy('fecha')
+                ->orderBy('hora')
+                ->get();
+        }
+
+        return view('dashboard.medico', compact(
+            'medico',
+            'citas',
+        ));
     }
 
-    return view('dashboard.medico', compact(
-        'medico',
-        'citas',
-    ));
-}
-
     /**
- * Dashboard del personal de enfermería.
- */
-private function dashboardEnfermero()
-{
-    $hoy = Carbon::today();
+     * Dashboard del personal de enfermería.
+     */
+    private function dashboardEnfermero()
+    {
+        $hoy = Carbon::today();
 
-    /*
+        /*
      * Todas las citas de hoy, junto con paciente, médico
      * y posibles signos vitales registrados.
      */
-    $citasHoy = Citas::query()
-        ->with([
-            'paciente',
-            'medico',
-            'signoVital',
-        ])
-        ->whereDate('fecha', $hoy)
-        ->where('estado', '!=', 'cancelada')
-        ->orderBy('hora')
-        ->get();
+        $citasHoy = Citas::query()
+            ->with([
+                'paciente',
+                'medico',
+                'signoVital',
+            ])
+            ->whereDate('fecha', $hoy)
+            ->where('estado', '!=', 'cancelada')
+            ->orderBy('hora')
+            ->get();
 
-    /*
+        /*
      * Citas que todavía no tienen signos vitales.
      */
-    $citasPendientes = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->where('estado', '!=', 'cancelada')
-        ->whereDoesntHave('signoVital')
-        ->count();
+        $citasPendientes = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->where('estado', '!=', 'cancelada')
+            ->whereDoesntHave('signoVital')
+            ->count();
 
-    /*
+        /*
      * Citas que ya tienen signos vitales registrados.
      */
-    $valoracionesRealizadas = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->whereHas('signoVital')
-        ->count();
+        $valoracionesRealizadas = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->whereHas('signoVital')
+            ->count();
 
-    /*
+        /*
      * Citas canceladas durante el día.
      */
-    $citasCanceladas = Citas::query()
-        ->whereDate('fecha', $hoy)
-        ->where('estado', 'cancelada')
-        ->count();
+        $citasCanceladas = Citas::query()
+            ->whereDate('fecha', $hoy)
+            ->where('estado', 'cancelada')
+            ->count();
 
-    /*
+        /*
      * Siguiente cita pendiente de valoración.
      */
-    $proximaCita = Citas::query()
-        ->with([
-            'paciente',
-            'medico',
-            'signoVital',
-        ])
-        ->whereDate('fecha', $hoy)
-        ->where('estado', '!=', 'cancelada')
-        ->whereDoesntHave('signoVital')
-        ->whereTime('hora', '>=', now()->format('H:i:s'))
-        ->orderBy('hora')
-        ->first();
+        $proximaCita = Citas::query()
+            ->with([
+                'paciente',
+                'medico',
+                'signoVital',
+            ])
+            ->whereDate('fecha', $hoy)
+            ->where('estado', '!=', 'cancelada')
+            ->whereDoesntHave('signoVital')
+            ->whereTime('hora', '>=', now()->format('H:i:s'))
+            ->orderBy('hora')
+            ->first();
 
-    return view('dashboard.enfermeria', compact(
-        'citasHoy',
-        'citasPendientes',
-        'valoracionesRealizadas',
-        'citasCanceladas',
-        'proximaCita',
-    ));
-}
-
+        return view('dashboard.enfermeria', compact(
+            'citasHoy',
+            'citasPendientes',
+            'valoracionesRealizadas',
+            'citasCanceladas',
+            'proximaCita',
+        ));
+    }
 }
