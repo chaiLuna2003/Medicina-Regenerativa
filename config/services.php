@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'google_calendar' => [
+        'client_id' => env('GOOGLE_CALENDAR_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CALENDAR_CLIENT_SECRET'),
+        'refresh_token' => env('GOOGLE_CALENDAR_REFRESH_TOKEN'),
+        'calendar_id' => env('GOOGLE_CALENDAR_ID', 'primary'),
+        'timezone' => env(
+            'GOOGLE_CALENDAR_TIMEZONE',
+            'America/Mexico_City'
+        ),
+    ],
+
 ];

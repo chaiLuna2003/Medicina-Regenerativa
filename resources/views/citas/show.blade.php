@@ -21,9 +21,9 @@
                 <a
                     href="{{ route('citas.index') }}"
                     class="inline-flex items-center justify-center rounded-xl border
-                           border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
-                           text-gray-700 transition hover:bg-gray-50">
-                    Volver a la agenda
+               border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
+               text-gray-700 transition hover:bg-gray-50">
+                    Volver a la agendas
                 </a>
 
                 {{-- Acciones exclusivas de administración y recepción --}}
@@ -35,9 +35,42 @@
                                text-white transition hover:bg-[#082a5d]">
                     Editar cita
                 </a>
+
+                <button
+                    type="button"
+                    onclick="abrirModalEstudios()"
+                    class="inline-flex items-center justify-center rounded-xl
+                   bg-emerald-600 px-5 py-2.5 text-sm font-semibold
+                   text-white transition hover:bg-emerald-700">
+                    Agregar estudios
+                </button>
+
                 @endif
+                @if (auth()->user()->role === 'medico')
+    @if ($cita->receta)
+        <a
+            href="{{ route('recetas.show', $cita->receta) }}"
+            class="inline-flex w-full items-center justify-center rounded-xl
+                   border border-[#0D3B7F] bg-white px-4 py-2.5
+                   text-sm font-semibold text-[#0D3B7F]
+                   transition hover:bg-[#0D3B7F] hover:text-white"
+        >
+            Ver receta
+        </a>
+    @else
+        <a
+            href="{{ route('citas.receta.create', $cita) }}"
+            class="inline-flex w-full items-center justify-center rounded-xl
+                   bg-[#0D3B7F] px-4 py-2.5
+                   text-sm font-semibold text-white
+                   transition hover:bg-[#082a5d]"
+        >
+            Crear receta
+        </a>
+    @endif
+@endif
             </div>
-            
+
         </div>
     </x-slot>
 
@@ -73,24 +106,6 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-
-            {{-- Mensajes --}}
-            @if (session('success'))
-                <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
-                    <p class="text-sm font-semibold text-green-800">
-                        {{ session('success') }}
-                    </p>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4">
-                    <p class="text-sm font-semibold text-red-800">
-                        {{ session('error') }}
-                    </p>
-                </div>
-            @endif
-
             <div class="grid gap-6 lg:grid-cols-3">
 
                 {{-- Información principal --}}
