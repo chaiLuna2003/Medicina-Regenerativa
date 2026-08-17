@@ -113,6 +113,13 @@ Route::middleware([
                 ->parameters([
                     'citas' => 'cita',
                 ]);
+            Route::post(
+                '/citas/{cita}/generar-meet',
+                [
+                    CitasController::class,
+                    'generarMeet',
+                ]
+            )->name('citas.generar-meet');
         });
 
     /*
@@ -155,59 +162,59 @@ Route::middleware([
 |
 */
 
-Route::middleware('role:admin,medico')
-    ->group(function () {
-        /*
+    Route::middleware('role:admin,medico')
+        ->group(function () {
+            /*
          * Historial de recetas de un paciente.
          */
-        Route::get(
-            '/pacientes/{paciente}/recetas',
-            [RecetasController::class, 'historial']
-        )->name('pacientes.recetas.index');
+            Route::get(
+                '/pacientes/{paciente}/recetas',
+                [RecetasController::class, 'historial']
+            )->name('pacientes.recetas.index');
 
-        /*
+            /*
          * Detalle de una receta.
          */
-        Route::get(
-            '/recetas/{receta}',
-            [RecetasController::class, 'show']
-        )->name('recetas.show');
-    });
+            Route::get(
+                '/recetas/{receta}',
+                [RecetasController::class, 'show']
+            )->name('recetas.show');
+        });
 
-Route::middleware('role:medico')
-    ->group(function () {
-        /*
+    Route::middleware('role:medico')
+        ->group(function () {
+            /*
          * Formulario para elaborar una receta.
          */
-        Route::get(
-            '/citas/{cita}/receta/crear',
-            [RecetasController::class, 'create']
-        )->name('citas.receta.create');
+            Route::get(
+                '/citas/{cita}/receta/crear',
+                [RecetasController::class, 'create']
+            )->name('citas.receta.create');
 
-        /*
+            /*
          * Guardar la receta.
          */
-        Route::post(
-            '/citas/{cita}/receta',
-            [RecetasController::class, 'store']
-        )->name('citas.receta.store');
+            Route::post(
+                '/citas/{cita}/receta',
+                [RecetasController::class, 'store']
+            )->name('citas.receta.store');
 
-        /*
+            /*
          * Formulario para editar una receta.
          */
-        Route::get(
-            '/recetas/{receta}/editar',
-            [RecetasController::class, 'edit']
-        )->name('recetas.edit');
+            Route::get(
+                '/recetas/{receta}/editar',
+                [RecetasController::class, 'edit']
+            )->name('recetas.edit');
 
-        /*
+            /*
          * Actualizar la receta.
          */
-        Route::put(
-            '/recetas/{receta}',
-            [RecetasController::class, 'update']
-        )->name('recetas.update');
-    });
+            Route::put(
+                '/recetas/{receta}',
+                [RecetasController::class, 'update']
+            )->name('recetas.update');
+        });
 
     /*
     |--------------------------------------------------------------------------
@@ -265,16 +272,24 @@ Route::middleware('role:medico')
 |
 */
 
-Route::middleware('role:admin,recepcionista')
-    ->group(function () {
+    Route::middleware('role:admin,recepcionista')
+        ->group(function () {
 
-        Route::post(
-            '/citas/{cita}/estudios',
-            [EstudiosController::class, 'store']
-        )->name('estudios.store');
-    });
+            Route::post(
+                '/citas/{cita}/estudios',
+                [EstudiosController::class, 'store']
+            )->name('estudios.store');
 
-/*
+            Route::post(
+                '/citas/{cita}/generar-meet',
+                [
+                    CitasController::class,
+                    'generarMeet',
+                ]
+            )->name('citas.generar-meet');
+        });
+
+    /*
 |--------------------------------------------------------------------------
 | Consulta de estudios clínicos
 |--------------------------------------------------------------------------
@@ -285,24 +300,24 @@ Route::middleware('role:admin,recepcionista')
 |
 */
 
-Route::middleware('role:admin,medico,recepcionista')
-    ->group(function () {
+    Route::middleware('role:admin,medico,recepcionista')
+        ->group(function () {
 
-        Route::get(
-            '/pacientes/{paciente}/estudios',
-            [EstudiosController::class, 'historial']
-        )->name('pacientes.estudios.index');
+            Route::get(
+                '/pacientes/{paciente}/estudios',
+                [EstudiosController::class, 'historial']
+            )->name('pacientes.estudios.index');
 
-        Route::get(
-            '/estudios/{estudio}/archivo',
-            [EstudiosController::class, 'archivo']
-        )->name('estudios.archivo');
+            Route::get(
+                '/estudios/{estudio}/archivo',
+                [EstudiosController::class, 'archivo']
+            )->name('estudios.archivo');
 
-        Route::get(
-            '/estudios/{estudio}/descargar',
-            [EstudiosController::class, 'descargar']
-        )->name('estudios.descargar');
-    });
+            Route::get(
+                '/estudios/{estudio}/descargar',
+                [EstudiosController::class, 'descargar']
+            )->name('estudios.descargar');
+        });
 
     /*
     |--------------------------------------------------------------------------
@@ -333,4 +348,4 @@ Route::middleware('role:admin,medico,recepcionista')
         });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

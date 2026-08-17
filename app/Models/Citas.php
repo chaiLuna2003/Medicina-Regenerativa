@@ -14,20 +14,27 @@ class Citas extends Model
     protected $table = 'citas';
 
     protected $fillable = [
-        'paciente_id',
-        'medico_id',
-        'fecha',
-        'hora',
-        'motivo',
-        'notas',
-        'estado',
-        'created_by',
-    ];
+    'paciente_id',
+    'medico_id',
+    'fecha',
+    'hora',
+    'modalidad',
+    'google_event_id',
+    'google_meet_url',
+    'google_calendar_url',
+    'estado_videoconferencia',
+    'meet_generado_at',
+    'motivo',
+    'notas',
+    'estado',
+    'created_by',
+];
 
     protected function casts(): array
     {
         return [
             'fecha' => 'date',
+               'meet_generado_at' => 'datetime',
         ];
     }
 

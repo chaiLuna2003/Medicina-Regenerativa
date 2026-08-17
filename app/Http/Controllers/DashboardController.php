@@ -8,17 +8,18 @@ use App\Models\Pacientes;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
 {
     /** @var User $user */
     $user = Auth::user();
 
     return match ($user->role) {
         'admin' => $this->dashboardAdministrador(),
-        'recepcionista' => $this->dashboardRecepcion(),
+        'recepcionista' => $this->dashboardRecepcion($request),
         'medico' => $this->dashboardMedico($user),
         'enfermero' => $this->dashboardEnfermero(),
         default => abort(403),
@@ -97,54 +98,213 @@ class DashboardController extends Controller
     }
 
     /**
-     * Dashboard de recepción.
+ * Dashboard de recepción.
+ */
+private function dashboardRecepcion(Request $request)
+{
+    $request->validate([
+        'fecha' => ['nullable', 'date_format:Y-m-d'],
+        'mes' => ['nullable', 'date_format:Y-m'],
+    ]);
+
+    $hoy = Carbon::today();
+
+    /*
+     * Día seleccionado.
+     * Si no se recibe una fecha, se utiliza el día actual.
      */
-    private function dashboardRecepcion()
-    {
-        $hoy = Carbon::today();
+    $fechaSeleccionada = $request->filled('fecha')
+        ? Carbon::createFromFormat(
+            'Y-m-d',
+            $request->input('fecha')
+        )->startOfDay()
+        : $hoy->copy();
 
-        $totalCitasHoy = Citas::query()
-            ->whereDate('fecha', $hoy)
-            ->count();
+    /*
+     * Mes mostrado en el calendario.
+     */
+    if ($request->filled('mes')) {
+        $mesCalendario = Carbon::createFromFormat(
+            'Y-m-d',
+            $request->input('mes') . '-01'
+        )->startOfMonth();
+    } else {
+        $mesCalendario = $fechaSeleccionada
+            ->copy()
+            ->startOfMonth();
+    }
 
-        $citasEnEspera = Citas::query()
-            ->whereDate('fecha', $hoy)
-            ->where('estado', 'en_espera')
-            ->count();
+    /*
+     * Indicadores correspondientes al día actual.
+     */
+    $totalCitasHoy = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->count();
 
-        $citasConfirmadas = Citas::query()
-            ->whereDate('fecha', $hoy)
-            ->where('estado', 'confirmada')
-            ->count();
+    $citasEnEspera = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->where('estado', 'en_espera')
+        ->count();
 
-        $citasCanceladas = Citas::query()
-            ->whereDate('fecha', $hoy)
-            ->where('estado', 'cancelada')
-            ->count();
+    $citasConfirmadas = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->where('estado', 'confirmada')
+        ->count();
 
-        $citasHoy = Citas::query()
-            ->with(['paciente', 'medico'])
-            ->whereDate('fecha', $hoy)
-            ->orderBy('hora')
-            ->get();
+    $citasCanceladas = Citas::query()
+        ->whereDate('fecha', $hoy)
+        ->where('estado', 'cancelada')
+        ->count();
 
-        $proximaCita = Citas::query()
-            ->with(['paciente', 'medico'])
-            ->whereDate('fecha', $hoy)
-            ->whereTime('hora', '>=', now()->format('H:i:s'))
-            ->whereNotIn('estado', ['cancelada', 'finalizada'])
-            ->orderBy('hora')
-            ->first();
+    /*
+     * Citas correspondientes al día seleccionado.
+     * Se ordenan por hora, no por fecha de creación.
+     */
+    $citasSeleccionadas = Citas::query()
+        ->with([
+            'paciente',
+            'medico',
+        ])
+        ->whereDate(
+            'fecha',
+            $fechaSeleccionada->toDateString()
+        )
+        ->orderBy('hora', 'asc')
+        ->get();
 
-        return view('dashboard.recepcion', compact(
+    /*
+     * Todas las citas del mes para marcar los días
+     * que tienen actividad en el calendario.
+     */
+    $inicioMes = $mesCalendario
+        ->copy()
+        ->startOfMonth();
+
+    $finMes = $mesCalendario
+        ->copy()
+        ->endOfMonth();
+
+    $citasPorDia = Citas::query()
+        ->select([
+            'id',
+            'fecha',
+            'estado',
+            'modalidad',
+        ])
+        ->whereBetween('fecha', [
+            $inicioMes->toDateString(),
+            $finMes->toDateString(),
+        ])
+        ->orderBy('fecha')
+        ->get()
+        ->groupBy(
+            fn (Citas $cita) => $cita->fecha->format('Y-m-d')
+        )
+        ->map(
+            fn ($grupo) => [
+                'total' => $grupo->count(),
+
+                'activas' => $grupo
+                    ->where('estado', '!=', 'cancelada')
+                    ->count(),
+
+                'canceladas' => $grupo
+                    ->where('estado', 'cancelada')
+                    ->count(),
+
+                'videoconsultas' => $grupo
+                    ->where('modalidad', 'videoconsulta')
+                    ->count(),
+            ]
+        );
+
+    /*
+     * Construcción de la cuadrícula completa.
+     * Incluye algunos días del mes anterior y siguiente
+     * para completar las semanas del calendario.
+     */
+    $inicioCuadricula = $inicioMes
+        ->copy()
+        ->startOfWeek(Carbon::MONDAY);
+
+    $finCuadricula = $finMes
+        ->copy()
+        ->endOfWeek(Carbon::SUNDAY);
+
+    $diasCalendario = collect();
+
+    for (
+        $dia = $inicioCuadricula->copy();
+        $dia->lte($finCuadricula);
+        $dia->addDay()
+    ) {
+        $diasCalendario->push($dia->copy());
+    }
+
+    /*
+     * Meses utilizados por los botones de navegación.
+     */
+    $mesAnterior = $mesCalendario
+        ->copy()
+        ->subMonth()
+        ->startOfMonth();
+
+    $mesSiguiente = $mesCalendario
+        ->copy()
+        ->addMonth()
+        ->startOfMonth();
+
+    /*
+     * Próxima cita del día seleccionado.
+     */
+    $consultaProximaCita = Citas::query()
+        ->with([
+            'paciente',
+            'medico',
+        ])
+        ->whereDate(
+            'fecha',
+            $fechaSeleccionada->toDateString()
+        )
+        ->whereNotIn('estado', [
+            'cancelada',
+            'finalizada',
+        ]);
+
+    /*
+     * Si se está consultando hoy, solo tomamos horarios
+     * posteriores a la hora actual.
+     */
+    if ($fechaSeleccionada->isToday()) {
+        $consultaProximaCita->whereTime(
+            'hora',
+            '>=',
+            now()->format('H:i:s')
+        );
+    }
+
+    $proximaCita = $consultaProximaCita
+        ->orderBy('hora', 'asc')
+        ->first();
+
+    return view(
+        'dashboard.recepcion',
+        compact(
             'totalCitasHoy',
             'citasEnEspera',
             'citasConfirmadas',
             'citasCanceladas',
-            'citasHoy',
+            'citasSeleccionadas',
+            'fechaSeleccionada',
+            'mesCalendario',
+            'mesAnterior',
+            'mesSiguiente',
+            'diasCalendario',
+            'citasPorDia',
             'proximaCita',
-        ));
-    }
+        )
+    );
+}
 
     
 /**

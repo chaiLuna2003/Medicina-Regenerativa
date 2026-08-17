@@ -23,7 +23,7 @@
                     class="inline-flex items-center justify-center rounded-xl border
                border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
                text-gray-700 transition hover:bg-gray-50">
-                    Volver a la agendas
+                    Volver a la agenda
                 </a>
 
                 {{-- Acciones exclusivas de administración y recepción --}}
@@ -48,30 +48,28 @@
 
                 @endif
                 @if (auth()->user()->role === 'medico')
-    @if ($cita->receta)
-        <a
-            href="{{ route('recetas.show', $cita->receta) }}"
-            class="inline-flex w-full items-center justify-center rounded-xl
+                @if ($cita->receta)
+                <a
+                    href="{{ route('recetas.show', $cita->receta) }}"
+                    class="inline-flex w-full items-center justify-center rounded-xl
                    border border-[#0D3B7F] bg-white px-4 py-2.5
                    text-sm font-semibold text-[#0D3B7F]
-                   transition hover:bg-[#0D3B7F] hover:text-white"
-        >
-            Ver receta
-        </a>
-    @else
-        <a
-            href="{{ route('citas.receta.create', $cita) }}"
-            class="inline-flex w-full items-center justify-center rounded-xl
+                   transition hover:bg-[#0D3B7F] hover:text-white">
+                    Ver receta
+                </a>
+                @else
+                <a
+                    href="{{ route('citas.receta.create', $cita) }}"
+                    class="inline-flex w-full items-center justify-center rounded-xl
                    bg-[#0D3B7F] px-4 py-2.5
                    text-sm font-semibold text-white
-                   transition hover:bg-[#082a5d]"
-        >
-            Crear receta
-        </a>
-    @endif
-@endif
+                   transition hover:bg-[#082a5d]">
+                    Crear receta
+                </a>
+                @endif
+                @endif
             </div>
-            
+
         </div>
     </x-slot>
 
@@ -94,6 +92,264 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+            @if (session('success'))
+            <div
+                class="mb-6 rounded-xl border
+               border-green-200 bg-green-50
+               p-4 text-sm font-semibold
+               text-green-800">
+                {{ session('success') }}
+            </div>
+            @endif
+
+            @if (session('error'))
+            <div
+                class="mb-6 rounded-xl border
+               border-red-200 bg-red-50
+               p-4 text-sm font-semibold
+               text-red-800">
+                {{ session('error') }}
+            </div>
+            @endif
+
+            @if ($cita->modalidad === 'videoconsulta')
+    @php
+        /*
+         * Normaliza números mexicanos para wa.me.
+         */
+        $normalizarTelefono = function (
+            ?string $telefono
+        ): ?string {
+            $telefono = preg_replace(
+                '/\D+/',
+                '',
+                (string) $telefono
+            );
+
+            if (strlen($telefono) === 10) {
+                $telefono = '52' . $telefono;
+            }
+
+            return $telefono !== ''
+                ? $telefono
+                : null;
+        };
+
+        $fechaVideoconsulta =
+            $cita->fecha->format('d/m/Y');
+
+        $horaVideoconsulta =
+            \Carbon\Carbon::parse(
+                $cita->hora
+            )->format('h:i A');
+
+        $telefonoPaciente =
+            $normalizarTelefono(
+                $cita->paciente?->telefono
+            );
+
+        $telefonoMedico =
+            $normalizarTelefono(
+                $cita->medico?->telefono
+            );
+
+        $mensajePaciente = rawurlencode(
+            "Hola {$cita->paciente?->nombre}, "
+            . "su videoconsulta está programada "
+            . "para el {$fechaVideoconsulta} "
+            . "a las {$horaVideoconsulta}. "
+            . "Enlace de Google Meet: "
+            . "{$cita->google_meet_url}"
+        );
+
+        $mensajeMedico = rawurlencode(
+            "Doctor {$cita->medico?->nombre}, "
+            . "tiene una videoconsulta programada "
+            . "para el {$fechaVideoconsulta} "
+            . "a las {$horaVideoconsulta}. "
+            . "Enlace de Google Meet: "
+            . "{$cita->google_meet_url}"
+        );
+
+        $estadoMeetTexto = match (
+            $cita->estado_videoconferencia
+        ) {
+            'disponible' => 'Enlace disponible',
+            'pendiente' => 'Generando enlace',
+            'fallido' => 'Error al generar enlace',
+            'cancelado' => 'Videoconsulta cancelada',
+            default => 'Sin configurar',
+        };
+
+        $estadoMeetClases = match (
+            $cita->estado_videoconferencia
+        ) {
+            'disponible' =>
+                'bg-green-100 text-green-700',
+
+            'pendiente' =>
+                'bg-amber-100 text-amber-700',
+
+            'fallido' =>
+                'bg-red-100 text-red-700',
+
+            'cancelado' =>
+                'bg-gray-200 text-gray-700',
+
+            default =>
+                'bg-gray-100 text-gray-600',
+        };
+    @endphp
+
+    <section
+        class="mb-6 rounded-2xl border
+               border-blue-200 bg-blue-50
+               p-6 shadow-sm"
+    >
+        <div
+            class="flex flex-col gap-5
+                   sm:flex-row sm:items-center
+                   sm:justify-between"
+        >
+            <div>
+                <p
+                    class="text-xs font-semibold
+                           uppercase tracking-wide
+                           text-blue-600"
+                >
+                    Videoconsulta
+                </p>
+
+                <h3
+                    class="mt-1 text-xl font-bold
+                           text-blue-950"
+                >
+                    Google Meet
+                </h3>
+
+                <span
+                    class="mt-3 inline-flex
+                           rounded-full px-3 py-1
+                           text-xs font-semibold
+                           {{ $estadoMeetClases }}"
+                >
+                    {{ $estadoMeetTexto }}
+                </span>
+            </div>
+
+            @if (
+    $cita->google_meet_url &&
+    $cita->estado !== 'cancelada' &&
+    $cita->estado_videoconferencia !== 'cancelado'
+)
+    <a
+        href="{{ $cita->google_meet_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center
+               justify-center rounded-xl
+               bg-[#0D3B7F] px-5 py-3
+               text-sm font-semibold
+               text-white transition
+               hover:bg-[#082a5d]"
+    >
+        Entrar a Google Meet
+    </a>
+@elseif (
+    !$cita->google_meet_url &&
+    $cita->estado !== 'cancelada' &&
+    $cita->estado_videoconferencia !== 'cancelado' &&
+    in_array(
+        auth()->user()->role,
+        ['admin', 'recepcionista'],
+        true
+    )
+)
+    <form
+        method="POST"
+        action="{{ route('citas.generar-meet', $cita) }}"
+    >
+        @csrf
+
+        <button
+            type="submit"
+            class="inline-flex items-center
+                   justify-center rounded-xl
+                   bg-[#0D3B7F] px-5 py-3
+                   text-sm font-semibold
+                   text-white transition
+                   hover:bg-[#082a5d]"
+        >
+            Generar o consultar enlace
+        </button>
+    </form>
+@endif
+        </div>
+
+        @if (
+            $cita->google_meet_url
+            && in_array(
+                auth()->user()->role,
+                ['admin', 'recepcionista'],
+                true
+            )
+        )
+            <div
+                class="mt-5 grid gap-3 border-t
+                       border-blue-200 pt-5
+                       sm:grid-cols-2"
+            >
+                {{-- WhatsApp del paciente --}}
+                @if ($telefonoPaciente)
+                    <a
+                        href="https://wa.me/{{ $telefonoPaciente }}?text={{ $mensajePaciente }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center
+                               justify-center rounded-xl
+                               bg-green-600 px-4 py-3
+                               text-sm font-semibold
+                               text-white transition
+                               hover:bg-green-700"
+                    >
+                        Enviar al paciente
+                    </a>
+                @else
+                    <p
+                        class="rounded-xl bg-white p-3
+                               text-sm text-gray-600"
+                    >
+                        El paciente no tiene teléfono.
+                    </p>
+                @endif
+
+                {{-- WhatsApp del médico --}}
+                @if ($telefonoMedico)
+                    <a
+                        href="https://wa.me/{{ $telefonoMedico }}?text={{ $mensajeMedico }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center
+                               justify-center rounded-xl
+                               bg-green-600 px-4 py-3
+                               text-sm font-semibold
+                               text-white transition
+                               hover:bg-green-700"
+                    >
+                        Enviar al médico
+                    </a>
+                @else
+                    <p
+                        class="rounded-xl bg-white p-3
+                               text-sm text-gray-600"
+                    >
+                        El médico no tiene teléfono.
+                    </p>
+                @endif
+            </div>
+        @endif
+    </section>
+@endif
             <div class="grid gap-6 lg:grid-cols-3">
 
                 {{-- Información principal --}}
