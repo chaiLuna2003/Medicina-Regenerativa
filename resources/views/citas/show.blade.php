@@ -113,194 +113,185 @@
             @endif
 
             @if ($cita->modalidad === 'videoconsulta')
-    @php
-        /*
-         * Normaliza números mexicanos para wa.me.
-         */
-        $normalizarTelefono = function (
+            @php
+            /*
+            * Normaliza números mexicanos para wa.me.
+            */
+            $normalizarTelefono = function (
             ?string $telefono
-        ): ?string {
+            ): ?string {
             $telefono = preg_replace(
-                '/\D+/',
-                '',
-                (string) $telefono
+            '/\D+/',
+            '',
+            (string) $telefono
             );
 
             if (strlen($telefono) === 10) {
-                $telefono = '52' . $telefono;
+            $telefono = '52' . $telefono;
             }
 
             return $telefono !== ''
-                ? $telefono
-                : null;
-        };
+            ? $telefono
+            : null;
+            };
 
-        $fechaVideoconsulta =
+            $fechaVideoconsulta =
             $cita->fecha->format('d/m/Y');
 
-        $horaVideoconsulta =
+            $horaVideoconsulta =
             \Carbon\Carbon::parse(
-                $cita->hora
+            $cita->hora
             )->format('h:i A');
 
-        $telefonoPaciente =
+            $telefonoPaciente =
             $normalizarTelefono(
-                $cita->paciente?->telefono
+            $cita->paciente?->telefono
             );
 
-        $telefonoMedico =
+            $telefonoMedico =
             $normalizarTelefono(
-                $cita->medico?->telefono
+            $cita->medico?->telefono
             );
 
-        $mensajePaciente = rawurlencode(
+            $mensajePaciente = rawurlencode(
             "Hola {$cita->paciente?->nombre}, "
             . "su videoconsulta está programada "
             . "para el {$fechaVideoconsulta} "
             . "a las {$horaVideoconsulta}. "
             . "Enlace de Google Meet: "
             . "{$cita->google_meet_url}"
-        );
+            );
 
-        $mensajeMedico = rawurlencode(
+            $mensajeMedico = rawurlencode(
             "Doctor {$cita->medico?->nombre}, "
             . "tiene una videoconsulta programada "
             . "para el {$fechaVideoconsulta} "
             . "a las {$horaVideoconsulta}. "
             . "Enlace de Google Meet: "
             . "{$cita->google_meet_url}"
-        );
+            );
 
-        $estadoMeetTexto = match (
+            $estadoMeetTexto = match (
             $cita->estado_videoconferencia
-        ) {
+            ) {
             'disponible' => 'Enlace disponible',
             'pendiente' => 'Generando enlace',
             'fallido' => 'Error al generar enlace',
             'cancelado' => 'Videoconsulta cancelada',
             default => 'Sin configurar',
-        };
+            };
 
-        $estadoMeetClases = match (
+            $estadoMeetClases = match (
             $cita->estado_videoconferencia
-        ) {
+            ) {
             'disponible' =>
-                'bg-green-100 text-green-700',
+            'bg-green-100 text-green-700',
 
             'pendiente' =>
-                'bg-amber-100 text-amber-700',
+            'bg-amber-100 text-amber-700',
 
             'fallido' =>
-                'bg-red-100 text-red-700',
+            'bg-red-100 text-red-700',
 
             'cancelado' =>
-                'bg-gray-200 text-gray-700',
+            'bg-gray-200 text-gray-700',
 
             default =>
-                'bg-gray-100 text-gray-600',
-        };
-    @endphp
+            'bg-gray-100 text-gray-600',
+            };
+            @endphp
 
-    <section
-        class="mb-6 rounded-2xl border
+            <section
+                class="mb-6 rounded-2xl border
                border-blue-200 bg-blue-50
-               p-6 shadow-sm"
-    >
-        <div
-            class="flex flex-col gap-5
+               p-6 shadow-sm">
+                <div
+                    class="flex flex-col gap-5
                    sm:flex-row sm:items-center
-                   sm:justify-between"
-        >
-            <div>
-                <p
-                    class="text-xs font-semibold
+                   sm:justify-between">
+                    <div>
+                        <p
+                            class="text-xs font-semibold
                            uppercase tracking-wide
-                           text-blue-600"
-                >
-                    Videoconsulta
-                </p>
+                           text-blue-600">
+                            Videoconsulta
+                        </p>
 
-                <h3
-                    class="mt-1 text-xl font-bold
-                           text-blue-950"
-                >
-                    Google Meet
-                </h3>
+                        <h3
+                            class="mt-1 text-xl font-bold
+                           text-blue-950">
+                            Google Meet
+                        </h3>
 
-                <span
-                    class="mt-3 inline-flex
+                        <span
+                            class="mt-3 inline-flex
                            rounded-full px-3 py-1
                            text-xs font-semibold
-                           {{ $estadoMeetClases }}"
-                >
-                    {{ $estadoMeetTexto }}
-                </span>
-            </div>
+                           {{ $estadoMeetClases }}">
+                            {{ $estadoMeetTexto }}
+                        </span>
+                    </div>
 
-            @if (
-    $cita->google_meet_url &&
-    $cita->estado !== 'cancelada' &&
-    $cita->estado_videoconferencia !== 'cancelado'
-)
-    <a
-        href="{{ $cita->google_meet_url }}"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex items-center
+                    @if (
+                    $cita->google_meet_url &&
+                    $cita->estado !== 'cancelada' &&
+                    $cita->estado_videoconferencia !== 'cancelado'
+                    )
+                    <a
+                        href="{{ $cita->google_meet_url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center
                justify-center rounded-xl
                bg-[#0D3B7F] px-5 py-3
                text-sm font-semibold
                text-white transition
-               hover:bg-[#082a5d]"
-    >
-        Entrar a Google Meet
-    </a>
-@elseif (
-    !$cita->google_meet_url &&
-    $cita->estado !== 'cancelada' &&
-    $cita->estado_videoconferencia !== 'cancelado' &&
-    in_array(
-        auth()->user()->role,
-        ['admin', 'recepcionista'],
-        true
-    )
-)
-    <form
-        method="POST"
-        action="{{ route('citas.generar-meet', $cita) }}"
-    >
-        @csrf
+               hover:bg-[#082a5d]">
+                        Entrar a Google Meet
+                    </a>
+                    @elseif (
+                    !$cita->google_meet_url &&
+                    $cita->estado !== 'cancelada' &&
+                    $cita->estado_videoconferencia !== 'cancelado' &&
+                    in_array(
+                    auth()->user()->role,
+                    ['admin', 'recepcionista'],
+                    true
+                    )
+                    )
+                    <form
+                        method="POST"
+                        action="{{ route('citas.generar-meet', $cita) }}">
+                        @csrf
 
-        <button
-            type="submit"
-            class="inline-flex items-center
+                        <button
+                            type="submit"
+                            class="inline-flex items-center
                    justify-center rounded-xl
                    bg-[#0D3B7F] px-5 py-3
                    text-sm font-semibold
                    text-white transition
-                   hover:bg-[#082a5d]"
-        >
-            Generar o consultar enlace
-        </button>
-    </form>
-@endif
-        </div>
+                   hover:bg-[#082a5d]">
+                            Generar o consultar enlace
+                        </button>
+                    </form>
+                    @endif
+                </div>
 
-        @if (
-            $cita->google_meet_url
-            && in_array(
+                @if (
+                $cita->google_meet_url
+                && in_array(
                 auth()->user()->role,
                 ['admin', 'recepcionista'],
                 true
-            )
-        )
-            <div
-                class="mt-5 grid gap-3 border-t
+                )
+                )
+                <div
+                    class="mt-5 grid gap-3 border-t
                        border-blue-200 pt-5
-                       sm:grid-cols-2"
-            >
-                {{-- WhatsApp del paciente --}}
-                @if ($telefonoPaciente)
+                       sm:grid-cols-2">
+                    {{-- WhatsApp del paciente --}}
+                    @if ($telefonoPaciente)
                     <a
                         href="https://wa.me/{{ $telefonoPaciente }}?text={{ $mensajePaciente }}"
                         target="_blank"
@@ -310,21 +301,19 @@
                                bg-green-600 px-4 py-3
                                text-sm font-semibold
                                text-white transition
-                               hover:bg-green-700"
-                    >
+                               hover:bg-green-700">
                         Enviar al paciente
                     </a>
-                @else
+                    @else
                     <p
                         class="rounded-xl bg-white p-3
-                               text-sm text-gray-600"
-                    >
+                               text-sm text-gray-600">
                         El paciente no tiene teléfono.
                     </p>
-                @endif
+                    @endif
 
-                {{-- WhatsApp del médico --}}
-                @if ($telefonoMedico)
+                    {{-- WhatsApp del médico --}}
+                    @if ($telefonoMedico)
                     <a
                         href="https://wa.me/{{ $telefonoMedico }}?text={{ $mensajeMedico }}"
                         target="_blank"
@@ -334,22 +323,20 @@
                                bg-green-600 px-4 py-3
                                text-sm font-semibold
                                text-white transition
-                               hover:bg-green-700"
-                    >
+                               hover:bg-green-700">
                         Enviar al médico
                     </a>
-                @else
+                    @else
                     <p
                         class="rounded-xl bg-white p-3
-                               text-sm text-gray-600"
-                    >
+                               text-sm text-gray-600">
                         El médico no tiene teléfono.
                     </p>
+                    @endif
+                </div>
                 @endif
-            </div>
-        @endif
-    </section>
-@endif
+            </section>
+            @endif
             <div class="grid gap-6 lg:grid-cols-3">
 
                 {{-- Información principal --}}
@@ -402,9 +389,29 @@
                                 Motivo
                             </p>
 
-                            <p class="mt-2 text-gray-700">
-                                {{ $cita->motivo }}
-                            </p>
+                            <div class="mt-3">
+                                @php
+                                $motivoClases = match ($cita->motivo) {
+                                'consulta_inicial' =>
+                                'border-blue-200 bg-blue-50 text-blue-700',
+
+                                'consulta_subsecuente' =>
+                                'border-emerald-200 bg-emerald-50 text-emerald-700',
+
+                                'consulta_emergencia' =>
+                                'border-red-200 bg-red-50 text-red-700',
+
+                                default =>
+                                'border-gray-200 bg-gray-50 text-gray-700',
+                                };
+                                @endphp
+
+                                <span
+                                    class="inline-flex items-center rounded-full border px-3 py-1.5
+               text-sm font-semibold {{ $motivoClases }}">
+                                    {{ $cita->motivo_texto }}
+                                </span>
+                            </div>
                         </div>
 
                         <div class="sm:col-span-2">

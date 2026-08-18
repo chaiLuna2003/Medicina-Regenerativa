@@ -14,27 +14,27 @@ class Citas extends Model
     protected $table = 'citas';
 
     protected $fillable = [
-    'paciente_id',
-    'medico_id',
-    'fecha',
-    'hora',
-    'modalidad',
-    'google_event_id',
-    'google_meet_url',
-    'google_calendar_url',
-    'estado_videoconferencia',
-    'meet_generado_at',
-    'motivo',
-    'notas',
-    'estado',
-    'created_by',
-];
+        'paciente_id',
+        'medico_id',
+        'fecha',
+        'hora',
+        'modalidad',
+        'google_event_id',
+        'google_meet_url',
+        'google_calendar_url',
+        'estado_videoconferencia',
+        'meet_generado_at',
+        'motivo',
+        'notas',
+        'estado',
+        'created_by',
+    ];
 
     protected function casts(): array
     {
         return [
             'fecha' => 'date',
-               'meet_generado_at' => 'datetime',
+            'meet_generado_at' => 'datetime',
         ];
     }
 
@@ -66,6 +66,27 @@ class Citas extends Model
         );
     }
 
+    protected function motivoTexto(): Attribute
+    {
+        return Attribute::make(
+            get: fn(): string => match ($this->motivo) {
+                'consulta_inicial' =>
+                'Consulta inicial',
+
+                'consulta_subsecuente' =>
+                'Consulta subsecuente',
+
+                'consulta_emergencia' =>
+                'Consulta de emergencia',
+
+                default =>
+                filled($this->motivo)
+                    ? $this->motivo
+                    : 'Sin especificar',
+            }
+        );
+    }
+
     public function paciente(): BelongsTo
     {
         return $this->belongsTo(Pacientes::class, 'paciente_id');
@@ -87,16 +108,15 @@ class Citas extends Model
     }
 
     /**
- * Receta médica asociada con la cita.
- */
-public function receta(): HasOne
-{
-    return $this->hasOne(Receta::class, 'cita_id');
-}
+     * Receta médica asociada con la cita.
+     */
+    public function receta(): HasOne
+    {
+        return $this->hasOne(Receta::class, 'cita_id');
+    }
 
-public function estudios():HasMany
-{
-    return $this->hasMany(Estudio::class, 'cita_id');
-}
-
+    public function estudios(): HasMany
+    {
+        return $this->hasMany(Estudio::class, 'cita_id');
+    }
 }

@@ -140,108 +140,96 @@
                     </div>
 
                     {{-- Modalidad de consulta --}}
-<div class="md:col-span-2">
-    <fieldset>
-        <legend
-            class="mb-3 text-sm font-semibold
-                   text-gray-700"
-        >
-            Modalidad de la consulta
-            <span class="text-red-500">*</span>
-        </legend>
+                    <div class="md:col-span-2">
+                        <fieldset>
+                            <legend
+                                class="mb-3 text-sm font-semibold
+                   text-gray-700">
+                                Modalidad de la consulta
+                                <span class="text-red-500">*</span>
+                            </legend>
 
-        <div class="grid gap-4 sm:grid-cols-2">
+                            <div class="grid gap-4 sm:grid-cols-2">
 
-            {{-- Consulta presencial --}}
-            <label
-                class="cursor-pointer rounded-2xl
+                                {{-- Consulta presencial --}}
+                                <label
+                                    class="cursor-pointer rounded-2xl
                        border border-gray-300 bg-white
                        p-4 transition
                        hover:border-[#0D3B7F]
-                       hover:bg-blue-50"
-            >
-                <div class="flex items-start gap-3">
-                    <input
-                        type="radio"
-                        name="modalidad"
-                        value="presencial"
-                        class="mt-1 text-[#0D3B7F]
+                       hover:bg-blue-50">
+                                    <div class="flex items-start gap-3">
+                                        <input
+                                            type="radio"
+                                            name="modalidad"
+                                            value="presencial"
+                                            class="mt-1 text-[#0D3B7F]
                                focus:ring-[#0D3B7F]"
-                        @checked(
-                            old(
-                                'modalidad',
-                                'presencial'
-                            ) === 'presencial'
-                        )
-                    >
+                                            @checked(
+                                            old( 'modalidad' , 'presencial'
+                                            )==='presencial'
+                                            )>
 
-                    <div>
-                        <p
-                            class="font-semibold
-                                   text-gray-900"
-                        >
-                            Consulta presencial
-                        </p>
+                                        <div>
+                                            <p
+                                                class="font-semibold
+                                   text-gray-900">
+                                                Consulta presencial
+                                            </p>
 
-                        <p
-                            class="mt-1 text-sm
-                                   text-gray-500"
-                        >
-                            Atención dentro de las
-                            instalaciones.
-                        </p>
-                    </div>
-                </div>
-            </label>
+                                            <p
+                                                class="mt-1 text-sm
+                                   text-gray-500">
+                                                Atención dentro de las
+                                                instalaciones.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </label>
 
-            {{-- Videoconsulta --}}
-            <label
-                class="cursor-pointer rounded-2xl
+                                {{-- Videoconsulta --}}
+                                <label
+                                    class="cursor-pointer rounded-2xl
                        border border-gray-300 bg-white
                        p-4 transition
                        hover:border-[#0D3B7F]
-                       hover:bg-blue-50"
-            >
-                <div class="flex items-start gap-3">
-                    <input
-                        type="radio"
-                        name="modalidad"
-                        value="videoconsulta"
-                        class="mt-1 text-[#0D3B7F]
+                       hover:bg-blue-50">
+                                    <div class="flex items-start gap-3">
+                                        <input
+                                            type="radio"
+                                            name="modalidad"
+                                            value="videoconsulta"
+                                            class="mt-1 text-[#0D3B7F]
                                focus:ring-[#0D3B7F]"
-                        @checked(
-                            old('modalidad')
-                            === 'videoconsulta'
-                        )
-                    >
+                                            @checked(
+                                            old('modalidad')==='videoconsulta'
+                                            )>
 
-                    <div>
-                        <p
-                            class="font-semibold
-                                   text-gray-900"
-                        >
-                            Videoconsulta
-                        </p>
+                                        <div>
+                                            <p
+                                                class="font-semibold
+                                   text-gray-900">
+                                                Videoconsulta
+                                            </p>
 
-                        <p
-                            class="mt-1 text-sm
-                                   text-gray-500"
-                        >
-                            Se generará automáticamente
-                            un enlace de Google Meet.
-                        </p>
+                                            <p
+                                                class="mt-1 text-sm
+                                   text-gray-500">
+                                                Se generará automáticamente
+                                                un enlace de Google Meet.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            @error('modalidad')
+                            <p class="mt-2 text-sm text-red-600">
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </fieldset>
                     </div>
-                </div>
-            </label>
-        </div>
-
-        @error('modalidad')
-            <p class="mt-2 text-sm text-red-600">
-                {{ $message }}
-            </p>
-        @enderror
-    </fieldset>
-</div>
 
                     {{-- Médico --}}
                     <div class="md:col-span-2">
@@ -355,18 +343,75 @@
                             <span class="text-red-500">*</span>
                         </label>
 
-                        <input
-                            id="motivo"
-                            name="motivo"
-                            type="text"
-                            value="{{ old('motivo') }}"
-                            placeholder="Ejemplo: Consulta inicial"
-                            required
-                            maxlength="255"
-                            class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <div class="relative">
+                            {{-- Icono --}}
+                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                                <svg
+                                    class="h-5 w-5 text-blue-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.8"
+                                    stroke="currentColor">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M8.25 6.75h7.5M8.25 10.5h7.5m-7.5 3.75h3M6.75 3.75h10.5A2.25 2.25 0 0 1 19.5 6v12A2.25 2.25 0 0 1 17.25 20.25H6.75A2.25 2.25 0 0 1 4.5 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
+                                </svg>
+                            </div>
+
+                            <select
+    id="motivo"
+    name="motivo"
+    required
+    class="block w-full rounded-xl border border-gray-300
+           bg-white py-3 pl-12 pr-10 text-sm font-medium text-gray-900
+           shadow-sm transition duration-200
+           hover:border-blue-400
+           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+
+                                <option value="" disabled @selected(old('motivo')===null)>
+                                    Selecciona el motivo de la cita
+                                </option>
+
+                                <option
+                                    value="consulta_inicial"
+                                    @selected(old('motivo')==='consulta_inicial' )>
+                                    Consulta inicial
+                                </option>
+
+                                <option
+                                    value="consulta_subsecuente"
+                                    @selected(old('motivo')==='consulta_subsecuente' )>
+                                    Consulta subsecuente
+                                </option>
+
+                                <option
+                                    value="consulta_emergencia"
+                                    @selected(old('motivo')==='consulta_emergencia' )>
+                                    Consulta de emergencia
+                                </option>
+                            </select>
+
+                            {{-- Flecha personalizada --}}
+                            
+                        </div>
+
+                        <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                            <span class="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
+                                Inicial
+                            </span>
+
+                            <span class="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+                                Subsecuente
+                            </span>
+
+                            <span class="rounded-full bg-red-50 px-3 py-1 font-medium text-red-700">
+                                Emergencia
+                            </span>
+                        </div>
 
                         @error('motivo')
-                        <p class="mt-2 text-sm text-red-600">
+                        <p class="mt-2 text-sm font-medium text-red-600">
                             {{ $message }}
                         </p>
                         @enderror

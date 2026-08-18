@@ -27,99 +27,127 @@ class CitasController extends Controller
      * Mostrar el listado de citas.
      */
     public function index(Request $request): View
-    {
-        $medicoAutenticado = $this->medicoAutenticado();
+{
+    $medicoAutenticado =
+        $this->medicoAutenticado();
 
-        $citas = Citas::query()
-            ->with([
-                'paciente',
-                'medico.user',
-            ])
+    $citas = Citas::query()
+        ->with([
+            'paciente',
+            'medico.user',
+        ])
 
-            /*
+        /*
          * Filtrar por nombre o apellido del paciente.
          */
-            ->when(
-                $request->filled('buscar'),
-                function ($query) use ($request) {
-                    $buscar = trim($request->string('buscar')->toString());
+        ->when(
+            $request->filled('buscar'),
+            function ($query) use ($request) {
+                $buscar = trim(
+                    $request->string('buscar')->toString()
+                );
 
-                    $query->whereHas(
-                        'paciente',
-                        function ($pacienteQuery) use ($buscar) {
-                            $pacienteQuery->where(
-                                function ($nombreQuery) use ($buscar) {
-                                    $nombreQuery
-                                        ->where('nombre', 'like', "%{$buscar}%")
-                                        ->orWhere('apellido', 'like', "%{$buscar}%");
-                                }
-                            );
-                        }
-                    );
-                }
-            )
+                $query->whereHas(
+                    'paciente',
+                    function ($pacienteQuery) use ($buscar) {
+                        $pacienteQuery->where(
+                            function ($nombreQuery) use ($buscar) {
+                                $nombreQuery
+                                    ->where(
+                                        'nombre',
+                                        'like',
+                                        "%{$buscar}%"
+                                    )
+                                    ->orWhere(
+                                        'apellido',
+                                        'like',
+                                        "%{$buscar}%"
+                                    );
+                            }
+                        );
+                    }
+                );
+            }
+        )
 
-            /*
+        /*
          * El médico solo puede consultar sus propias citas.
          */
-            ->when(
-                $medicoAutenticado,
-                fn($query, Medicos $medico) => $query->where(
+        ->when(
+            $medicoAutenticado,
+            fn ($query, Medicos $medico) =>
+                $query->where(
                     'medico_id',
                     $medico->id
                 )
-            )
+        )
 
-            /*
-         * Administración y recepción pueden filtrar por médico.
+        /*
+         * Administración y recepción pueden
+         * filtrar por médico.
          */
-            ->when(
-                !$medicoAutenticado && $request->filled('medico_id'),
-                fn($query) => $query->where(
+        ->when(
+            !$medicoAutenticado
+                && $request->filled('medico_id'),
+            fn ($query) =>
+                $query->where(
                     'medico_id',
                     $request->integer('medico_id')
                 )
-            )
+        )
 
-            /*
+        /*
          * Filtrar por modalidad.
          */
-            ->when(
-                in_array(
-                    $request->input('modalidad'),
-                    ['presencial', 'videoconsulta'],
-                    true
-                ),
-                fn($query) => $query->where(
+        ->when(
+            in_array(
+                $request->input('modalidad'),
+                [
+                    'presencial',
+                    'videoconsulta',
+                ],
+                true
+            ),
+            fn ($query) =>
+                $query->where(
                     'modalidad',
                     $request->input('modalidad')
                 )
-            )
-
-            ->orderByDesc('fecha')
-            ->orderByDesc('hora')
-            ->paginate(15)
-            ->withQueryString();
+        )
 
         /*
+         * Mostrar primero las citas creadas
+         * más recientemente, sin importar la
+         * fecha para la cual fueron programadas.
+         */
+        ->orderByDesc('created_at')
+        ->orderByDesc('id')
+        ->paginate(15)
+        ->withQueryString();
+
+    /*
      * Lista de médicos para el filtro.
      * El médico autenticado no necesita este selector.
      */
-        $medicos = $medicoAutenticado
-            ? collect()
-            : Medicos::query()
+    $medicos = $medicoAutenticado
+        ? collect()
+        : Medicos::query()
             ->with('user')
             ->get()
             ->sortBy(
-                fn(Medicos $medico) => $medico->user?->name
+                fn (Medicos $medico) =>
+                    $medico->user?->name
             )
             ->values();
 
-        return view(
-            'citas.index',
-            compact('citas', 'medicos')
-        );
-    }
+    return view(
+        'citas.index',
+        compact(
+            'citas',
+            'medicos'
+        )
+    );
+}
 
     /**
      * Mostrar el formulario para crear una cita.
@@ -198,8 +226,11 @@ class CitasController extends Controller
 
             'motivo' => [
                 'required',
-                'string',
-                'max:255',
+                Rule::in([
+                    'consulta_inicial',
+                    'consulta_subsecuente',
+                    'consulta_emergencia',
+                ]),
             ],
 
             'notas' => [
@@ -528,6 +559,32 @@ class CitasController extends Controller
         $estadoAnterior =
             $cita->estado;
 
+        /*
+     * Las citas nuevas y clasificadas solamente
+     * pueden utilizar estos tres motivos.
+     */
+        $motivosPermitidos = [
+            'consulta_inicial',
+            'consulta_subsecuente',
+            'consulta_emergencia',
+        ];
+
+        /*
+     * Si la cita contiene un motivo histórico,
+     * permitimos conservar exactamente ese valor.
+     */
+        if (
+            filled($cita->motivo)
+            && !in_array(
+                $cita->motivo,
+                $motivosPermitidos,
+                true
+            )
+        ) {
+            $motivosPermitidos[] =
+                $cita->motivo;
+        }
+
         $datos = $request->validate([
             'paciente_id' => [
                 'required',
@@ -573,6 +630,9 @@ class CitasController extends Controller
                 'required',
                 'string',
                 'max:255',
+                Rule::in(
+                    $motivosPermitidos
+                ),
             ],
 
             'notas' => [
@@ -683,8 +743,13 @@ class CitasController extends Controller
      * Obliga a Eloquent a recargar paciente
      * y médico si alguno fue modificado.
      */
-        $cita->unsetRelation('paciente');
-        $cita->unsetRelation('medico');
+        $cita->unsetRelation(
+            'paciente'
+        );
+
+        $cita->unsetRelation(
+            'medico'
+        );
 
         try {
             /*
@@ -692,10 +757,8 @@ class CitasController extends Controller
          * eliminamos el evento de Google.
          */
             if (
-                $modalidadAnterior
-                === 'videoconsulta'
-                && $datos['modalidad']
-                === 'presencial'
+                $modalidadAnterior === 'videoconsulta'
+                && $datos['modalidad'] === 'presencial'
             ) {
                 $googleCalendar
                     ->cancelarVideoconsulta(

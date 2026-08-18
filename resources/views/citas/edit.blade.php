@@ -396,6 +396,23 @@
                     </div>
 
                     {{-- Motivo --}}
+                    @php
+                    $motivosPermitidos = [
+                    'consulta_inicial',
+                    'consulta_subsecuente',
+                    'consulta_emergencia',
+                    ];
+
+                    $motivoSeleccionado = old('motivo', $cita->motivo);
+
+                    $tieneMotivoHistorico = filled($cita->motivo)
+                    && !in_array(
+                    $cita->motivo,
+                    $motivosPermitidos,
+                    true
+                    );
+                    @endphp
+
                     <div>
                         <label
                             for="motivo"
@@ -404,19 +421,55 @@
                             <span class="text-red-500">*</span>
                         </label>
 
-                        <input
+                        <select
                             id="motivo"
-                            type="text"
                             name="motivo"
-                            maxlength="255"
                             required
-                            value="{{ old('motivo', $cita->motivo) }}"
-                            placeholder="Ej. Consulta de valoración"
                             class="block w-full rounded-xl border-gray-300
-                                   text-gray-900 shadow-sm transition
-                                   placeholder:text-gray-400
-                                   focus:border-[#0D3B7F] focus:ring-[#0D3B7F]
-                                   @error('motivo') border-red-400 @enderror">
+               bg-white text-gray-900 shadow-sm transition
+               focus:border-[#0D3B7F] focus:ring-[#0D3B7F]
+               @error('motivo') border-red-400 @enderror">
+
+                            <option
+                                value=""
+                                disabled
+                                @selected(blank($motivoSeleccionado))>
+                                Selecciona el motivo de la cita
+                            </option>
+
+                            @if ($tieneMotivoHistorico)
+                            <option
+                                value="{{ $cita->motivo }}"
+                                @selected($motivoSeleccionado===$cita->motivo)>
+                                {{ $cita->motivo }} — registro histórico
+                            </option>
+                            @endif
+
+                            <option
+                                value="consulta_inicial"
+                                @selected($motivoSeleccionado==='consulta_inicial' )>
+                                Consulta inicial
+                            </option>
+
+                            <option
+                                value="consulta_subsecuente"
+                                @selected($motivoSeleccionado==='consulta_subsecuente' )>
+                                Consulta subsecuente
+                            </option>
+
+                            <option
+                                value="consulta_emergencia"
+                                @selected($motivoSeleccionado==='consulta_emergencia' )>
+                                Consulta de emergencia
+                            </option>
+                        </select>
+
+                        @if ($tieneMotivoHistorico)
+                        <p class="mt-2 text-xs text-amber-700">
+                            Este motivo pertenece a un registro anterior.
+                            Puedes conservarlo o cambiarlo por una categoría nueva.
+                        </p>
+                        @endif
 
                         @error('motivo')
                         <p class="mt-2 text-sm text-red-600">
