@@ -179,6 +179,14 @@ Route::middleware([
                 '/recetas/{receta}',
                 [RecetasController::class, 'show']
             )->name('recetas.show');
+
+            /*
+ * Descargar una receta médica en PDF.
+ */
+            Route::get(
+                '/recetas/{receta}/pdf',
+                [RecetasController::class, 'pdf']
+            )->name('recetas.pdf');
         });
 
     Route::middleware('role:medico')

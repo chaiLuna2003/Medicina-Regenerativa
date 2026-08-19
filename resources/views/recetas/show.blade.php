@@ -1,13 +1,13 @@
 <x-app-layout>
     @php
-        $cita = $receta->cita;
-        $paciente = $cita->paciente;
-        $medico = $cita->medico;
-        $signoVital = $cita->signoVital;
-        $usuario = auth()->user();
+    $cita = $receta->cita;
+    $paciente = $cita->paciente;
+    $medico = $cita->medico;
+    $signoVital = $cita->signoVital;
+    $usuario = auth()->user();
 
-        $esMedicoResponsable = $usuario->role === 'medico'
-            && (int) $medico?->user_id === (int) $usuario->id;
+    $esMedicoResponsable = $usuario->role === 'medico'
+    && (int) $medico?->user_id === (int) $usuario->id;
     @endphp
 
     <x-slot name="header">
@@ -29,23 +29,45 @@
 
             <div class="flex flex-col gap-3 sm:flex-row">
                 <a
+                    href="{{ route('recetas.pdf', $receta) }}"
+                    class="inline-flex items-center justify-center gap-2
+           rounded-xl bg-emerald-600 px-5 py-2.5
+           text-sm font-semibold text-white shadow-sm
+           transition hover:bg-emerald-700">
+                    <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.8"
+                        stroke="currentColor">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M12 3v12m0 0 4-4m-4 4-4-4M5.25
+               15.75v2.5A2.75 2.75 0 0 0 8
+               21h8a2.75 2.75 0 0 0 2.75-2.75
+               v-2.5" />
+                    </svg>
+
+                    Descargar PDF
+                </a>
+
+                <a
                     href="{{ route('citas.show', $cita) }}"
                     class="inline-flex items-center justify-center rounded-xl border
                            border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
-                           text-gray-700 transition hover:bg-gray-50"
-                >
+                           text-gray-700 transition hover:bg-gray-50">
                     Volver a la cita
                 </a>
 
                 @if ($esMedicoResponsable)
-                    <a
-                        href="{{ route('recetas.edit', $receta) }}"
-                        class="inline-flex items-center justify-center rounded-xl
+                <a
+                    href="{{ route('recetas.edit', $receta) }}"
+                    class="inline-flex items-center justify-center rounded-xl
                                bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
-                               text-white transition hover:bg-[#082a5d]"
-                    >
-                        Editar receta
-                    </a>
+                               text-white transition hover:bg-[#082a5d]">
+                    Editar receta
+                </a>
                 @endif
             </div>
         </div>
@@ -55,11 +77,11 @@
         <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 
             @if (session('success'))
-                <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
-                    <p class="text-sm font-semibold text-green-800">
-                        {{ session('success') }}
-                    </p>
-                </div>
+            <div class="mb-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+                <p class="text-sm font-semibold text-green-800">
+                    {{ session('success') }}
+                </p>
+            </div>
             @endif
 
             <div class="grid gap-6 lg:grid-cols-3">
@@ -77,8 +99,7 @@
                                         class="h-6 w-6"
                                         fill="none"
                                         stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
+                                        viewBox="0 0 24 24">
                                         <path
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
@@ -86,8 +107,7 @@
                                             d="M9 12h6m-6 4h6m2 5H7a2 2 0
                                                01-2-2V5a2 2 0 012-2h5.586a1
                                                1 0 01.707.293l3.414 3.414A1
-                                               1 0 0117 7.414V19a2 2 0 01-2 2z"
-                                        />
+                                               1 0 0117 7.414V19a2 2 0 01-2 2z" />
                                     </svg>
                                 </div>
 
@@ -130,102 +150,102 @@
                         </p>
 
                         @if ($signoVital)
-                            <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Peso
-                                    </p>
+                        <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Peso
+                                </p>
 
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        {{ number_format((float) $signoVital->peso, 2) }} kg
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Estatura
-                                    </p>
-
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        {{ number_format((float) $signoVital->estatura, 2) }} cm
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Temperatura
-                                    </p>
-
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        {{ $signoVital->temperatura !== null
-                                            ? number_format((float) $signoVital->temperatura, 1).' °C'
-                                            : 'No registrada' }}
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Presión arterial
-                                    </p>
-
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        @if (
-                                            $signoVital->presion_sistolica !== null
-                                            && $signoVital->presion_diastolica !== null
-                                        )
-                                            {{ $signoVital->presion_sistolica }}/{{ $signoVital->presion_diastolica }}
-                                            mmHg
-                                        @else
-                                            No registrada
-                                        @endif
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Frecuencia cardiaca
-                                    </p>
-
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        {{ $signoVital->frecuencia_cardiaca !== null
-                                            ? $signoVital->frecuencia_cardiaca.' lpm'
-                                            : 'No registrada' }}
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl bg-blue-50 p-4">
-                                    <p class="text-xs font-semibold uppercase text-blue-600">
-                                        Saturación
-                                    </p>
-
-                                    <p class="mt-1 font-bold text-blue-950">
-                                        {{ $signoVital->saturacion_oxigeno !== null
-                                            ? $signoVital->saturacion_oxigeno.'%'
-                                            : 'No registrada' }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            @if ($signoVital->observaciones)
-                                <div class="mt-5 rounded-xl border border-blue-100
-                                            bg-blue-50/60 p-4">
-                                    <p class="text-xs font-semibold uppercase
-                                              tracking-wide text-blue-600">
-                                        Observaciones
-                                    </p>
-
-                                    <p class="mt-2 whitespace-pre-line text-sm text-blue-950">
-                                        {{ $signoVital->observaciones }}
-                                    </p>
-                                </div>
-                            @endif
-                        @else
-                            <div class="mt-5 rounded-xl border border-dashed
-                                        border-gray-300 bg-gray-50 p-4">
-                                <p class="text-sm text-gray-600">
-                                    Esta consulta no tiene signos vitales registrados.
+                                <p class="mt-1 font-bold text-blue-950">
+                                    {{ number_format((float) $signoVital->peso, 2) }} kg
                                 </p>
                             </div>
+
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Estatura
+                                </p>
+
+                                <p class="mt-1 font-bold text-blue-950">
+                                    {{ number_format((float) $signoVital->estatura, 2) }} cm
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Temperatura
+                                </p>
+
+                                <p class="mt-1 font-bold text-blue-950">
+                                    {{ $signoVital->temperatura !== null
+                                            ? number_format((float) $signoVital->temperatura, 1).' °C'
+                                            : 'No registrada' }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Presión arterial
+                                </p>
+
+                                <p class="mt-1 font-bold text-blue-950">
+                                    @if (
+                                    $signoVital->presion_sistolica !== null
+                                    && $signoVital->presion_diastolica !== null
+                                    )
+                                    {{ $signoVital->presion_sistolica }}/{{ $signoVital->presion_diastolica }}
+                                    mmHg
+                                    @else
+                                    No registrada
+                                    @endif
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Frecuencia cardiaca
+                                </p>
+
+                                <p class="mt-1 font-bold text-blue-950">
+                                    {{ $signoVital->frecuencia_cardiaca !== null
+                                            ? $signoVital->frecuencia_cardiaca.' lpm'
+                                            : 'No registrada' }}
+                                </p>
+                            </div>
+
+                            <div class="rounded-xl bg-blue-50 p-4">
+                                <p class="text-xs font-semibold uppercase text-blue-600">
+                                    Saturación
+                                </p>
+
+                                <p class="mt-1 font-bold text-blue-950">
+                                    {{ $signoVital->saturacion_oxigeno !== null
+                                            ? $signoVital->saturacion_oxigeno.'%'
+                                            : 'No registrada' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        @if ($signoVital->observaciones)
+                        <div class="mt-5 rounded-xl border border-blue-100
+                                            bg-blue-50/60 p-4">
+                            <p class="text-xs font-semibold uppercase
+                                              tracking-wide text-blue-600">
+                                Observaciones
+                            </p>
+
+                            <p class="mt-2 whitespace-pre-line text-sm text-blue-950">
+                                {{ $signoVital->observaciones }}
+                            </p>
+                        </div>
+                        @endif
+                        @else
+                        <div class="mt-5 rounded-xl border border-dashed
+                                        border-gray-300 bg-gray-50 p-4">
+                            <p class="text-sm text-gray-600">
+                                Esta consulta no tiene signos vitales registrados.
+                            </p>
+                        </div>
                         @endif
                     </section>
                 </div>
@@ -241,8 +261,7 @@
                                 src="{{ $paciente->fotoUrl() }}"
                                 alt="Foto de {{ $paciente->nombre }}"
                                 class="h-16 w-16 shrink-0 rounded-full border-2
-                                       border-blue-100 object-cover"
-                            >
+                                       border-blue-100 object-cover">
 
                             <div class="min-w-0">
                                 <p class="text-xs font-semibold uppercase
@@ -266,8 +285,7 @@
                             class="mt-5 inline-flex w-full items-center justify-center
                                    rounded-xl border border-gray-300 bg-white px-4 py-3
                                    text-sm font-semibold text-gray-700 transition
-                                   hover:bg-gray-50"
-                        >
+                                   hover:bg-gray-50">
                             Ver historial de recetas
                         </a>
                     </section>
