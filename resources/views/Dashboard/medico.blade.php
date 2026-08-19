@@ -16,61 +16,59 @@
             </div>
 
             @if ($medico !== null)
-                <button
-                    id="activar-notificaciones"
-                    type="button"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl
+            <button
+                id="activar-notificaciones"
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl
                            border border-blue-200 bg-blue-50 px-4 py-2.5
                            text-sm font-semibold text-blue-700 transition
-                           hover:bg-blue-100"
-                >
-                    <span>🔔</span>
-                    Activar recordatorios
-                </button>
+                           hover:bg-blue-100">
+                <span>🔔</span>
+                Activar recordatorios
+            </button>
             @endif
         </div>
     </x-slot>
 
     @php
-        $citasCalendario = $citas->map(function ($cita) {
-            $paciente = $cita->paciente;
+    $citasCalendario = $citas->map(function ($cita) {
+    $paciente = $cita->paciente;
 
-            return [
-                'id' => $cita->id,
-                'fecha' => $cita->fecha->format('Y-m-d'),
-                'hora' => \Carbon\Carbon::parse($cita->hora)->format('H:i'),
-                'hora_formateada' => \Carbon\Carbon::parse($cita->hora)
-                    ->format('h:i A'),
-                'paciente' => trim(
-                    ($paciente?->nombre ?? '') . ' ' .
-                    ($paciente?->apellido ?? '')
-                ),
-                'edad' => $paciente?->edad,
-                'telefono' => $paciente?->telefono,
-                'motivo' => $cita->motivo,
-                'estado' => $cita->estado_actual,
-                'primera_consulta' => ($paciente?->citas_count ?? 0) <= 1,
-                'tiene_signos' => $cita->signoVital !== null,
-                'url' => route('citas.show', $cita),
-                'signos' => $cita->signoVital ? [
-                    'peso' => $cita->signoVital->peso,
-                    'temperatura' => $cita->signoVital->temperatura,
-                    'presion' =>
-                        ($cita->signoVital->presion_sistolica ?? '—') . '/' .
-                        ($cita->signoVital->presion_diastolica ?? '—'),
-                    'frecuencia' =>
-                        $cita->signoVital->frecuencia_cardiaca,
-                    'saturacion' =>
-                        $cita->signoVital->saturacion_oxigeno,
-                ] : null,
-            ];
+    return [
+    'id' => $cita->id,
+    'fecha' => $cita->fecha->format('Y-m-d'),
+    'hora' => \Carbon\Carbon::parse($cita->hora)->format('H:i'),
+    'hora_formateada' => \Carbon\Carbon::parse($cita->hora)
+    ->format('h:i A'),
+    'paciente' => trim(
+    ($paciente?->nombre ?? '') . ' ' .
+    ($paciente?->apellido ?? '')
+    ),
+    'edad' => $paciente?->edad,
+    'telefono' => $paciente?->telefono,
+    'motivo' => $cita->motivo,
+    'estado' => $cita->estado_actual,
+    'primera_consulta' => ($paciente?->citas_count ?? 0) <= 1, 'tiene_signos'=> $cita->signoVital !== null,
+        'url' => route('citas.show', $cita),
+        'signos' => $cita->signoVital ? [
+        'peso' => $cita->signoVital->peso,
+        'temperatura' => $cita->signoVital->temperatura,
+        'presion' =>
+        ($cita->signoVital->presion_sistolica ?? '—') . '/' .
+        ($cita->signoVital->presion_diastolica ?? '—'),
+        'frecuencia' =>
+        $cita->signoVital->frecuencia_cardiaca,
+        'saturacion' =>
+        $cita->signoVital->saturacion_oxigeno,
+        ] : null,
+        ];
         })->values();
-    @endphp
+        @endphp
 
-    <div class="py-8">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-            @if ($medico === null)
+                @if ($medico === null)
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
                     <h3 class="font-bold text-amber-900">
                         Perfil médico no encontrado
@@ -81,7 +79,73 @@
                         Solicita al administrador completar la vinculación.
                     </p>
                 </div>
-            @else
+                @else
+                {{-- Resumen de citas --}}
+                <div class="mb-6 grid gap-4 sm:grid-cols-2">
+
+                    {{-- Próximas citas --}}
+                    {{-- Próximas citas --}}
+                    <button
+                        id="abrir-modal-proximas"
+                        type="button"
+                        class="rounded-2xl border border-blue-200
+           bg-gradient-to-br from-blue-50 to-white
+           p-5 text-left shadow-sm transition
+           hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-blue-600">
+                                    Próximas citas
+                                </p>
+
+                                <p class="mt-2 text-3xl font-bold text-gray-900">
+                                    {{ $citas->count() }}
+                                </p>
+
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Presiona para consultar la agenda
+                                </p>
+                            </div>
+
+                            <div
+                                class="flex h-12 w-12 items-center justify-center
+                       rounded-2xl bg-blue-100 text-2xl">
+                                📅
+                            </div>
+                        </div>
+                    </button>
+
+                    {{-- Citas finalizadas --}}
+                    <button
+                        id="abrir-modal-finalizadas"
+                        type="button"
+                        class="rounded-2xl border border-emerald-200
+               bg-gradient-to-br from-emerald-50 to-white
+               p-5 text-left shadow-sm transition
+               hover:-translate-y-0.5 hover:shadow-md">
+                        <div class="flex items-center justify-between gap-4">
+                            <div>
+                                <p class="text-sm font-semibold text-emerald-700">
+                                    Citas finalizadas
+                                </p>
+
+                                <p class="mt-2 text-3xl font-bold text-gray-900">
+                                    {{ $citasFinalizadas->count() }}
+                                </p>
+
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Presiona para consultar el historial
+                                </p>
+                            </div>
+
+                            <div
+                                class="flex h-12 w-12 items-center justify-center
+                       rounded-2xl bg-emerald-100 text-2xl">
+                                ✓
+                            </div>
+                        </div>
+                    </button>
+                </div>
                 <div class="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
 
                     {{-- Columna izquierda --}}
@@ -91,30 +155,26 @@
                         <section
                             class="overflow-hidden rounded-2xl
                                    bg-gradient-to-br from-[#0D3B7F]
-                                   to-blue-600 p-6 text-white shadow-lg"
-                        >
+                                   to-blue-600 p-6 text-white shadow-lg">
                             <p class="text-sm font-medium text-blue-100">
                                 Hora actual
                             </p>
 
                             <p
                                 id="reloj"
-                                class="mt-3 text-4xl font-bold tracking-tight"
-                            >
+                                class="mt-3 text-4xl font-bold tracking-tight">
                                 --:--:--
                             </p>
 
                             <p
                                 id="fecha-actual"
-                                class="mt-2 text-sm capitalize text-blue-100"
-                            ></p>
+                                class="mt-2 text-sm capitalize text-blue-100"></p>
                         </section>
 
                         {{-- Calendario --}}
                         <section
                             class="rounded-2xl border border-gray-200
-                                   bg-white p-5 shadow-sm"
-                        >
+                                   bg-white p-5 shadow-sm">
                             <div class="flex items-center justify-between">
                                 <button
                                     id="mes-anterior"
@@ -122,15 +182,13 @@
                                     class="flex h-10 w-10 items-center justify-center
                                            rounded-xl border border-gray-200
                                            text-gray-600 transition hover:bg-gray-50"
-                                    aria-label="Mes anterior"
-                                >
+                                    aria-label="Mes anterior">
                                     ←
                                 </button>
 
                                 <h3
                                     id="titulo-calendario"
-                                    class="font-bold capitalize text-gray-900"
-                                ></h3>
+                                    class="font-bold capitalize text-gray-900"></h3>
 
                                 <button
                                     id="mes-siguiente"
@@ -138,16 +196,14 @@
                                     class="flex h-10 w-10 items-center justify-center
                                            rounded-xl border border-gray-200
                                            text-gray-600 transition hover:bg-gray-50"
-                                    aria-label="Mes siguiente"
-                                >
+                                    aria-label="Mes siguiente">
                                     →
                                 </button>
                             </div>
 
                             <div
                                 class="mt-5 grid grid-cols-7 gap-1 text-center
-                                       text-xs font-semibold text-gray-400"
-                            >
+                                       text-xs font-semibold text-gray-400">
                                 <span>Dom</span>
                                 <span>Lun</span>
                                 <span>Mar</span>
@@ -159,8 +215,7 @@
 
                             <div
                                 id="dias-calendario"
-                                class="mt-2 grid grid-cols-7 gap-1"
-                            ></div>
+                                class="mt-2 grid grid-cols-7 gap-1"></div>
 
                             <div class="mt-5 flex flex-wrap gap-4 border-t border-gray-100 pt-4 text-xs text-gray-500">
                                 <span class="flex items-center gap-2">
@@ -179,8 +234,7 @@
                     {{-- Agenda --}}
                     <section
                         class="overflow-hidden rounded-2xl
-                               border border-gray-200 bg-white shadow-sm"
-                    >
+                               border border-gray-200 bg-white shadow-sm">
                         <div class="border-b border-gray-100 px-6 py-5">
                             <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
@@ -191,15 +245,13 @@
                                     <h3
                                         id="fecha-seleccionada"
                                         class="mt-1 text-xl font-bold
-                                               capitalize text-gray-900"
-                                    ></h3>
+                                               capitalize text-gray-900"></h3>
                                 </div>
 
                                 <span
                                     id="contador-citas"
                                     class="w-fit rounded-full bg-blue-50 px-3 py-1.5
-                                           text-xs font-semibold text-blue-700"
-                                >
+                                           text-xs font-semibold text-blue-700">
                                     0 citas
                                 </span>
                             </div>
@@ -207,18 +259,15 @@
 
                         <div
                             id="lista-citas"
-                            class="divide-y divide-gray-100"
-                        ></div>
+                            class="divide-y divide-gray-100"></div>
 
                         <div
                             id="sin-citas"
-                            class="hidden px-6 py-20 text-center"
-                        >
+                            class="hidden px-6 py-20 text-center">
                             <div
                                 class="mx-auto flex h-14 w-14 items-center
                                        justify-center rounded-full bg-gray-100
-                                       text-2xl"
-                            >
+                                       text-2xl">
                                 📅
                             </div>
 
@@ -232,63 +281,318 @@
                         </div>
                     </section>
                 </div>
-            @endif
+                @endif
+            </div>
         </div>
-    </div>
 
-    {{-- Ventana de recordatorio --}}
-    <div
-        id="modal-recordatorio"
-        class="fixed inset-0 z-50 hidden items-center justify-center
-               bg-gray-950/50 p-4"
-        role="dialog"
-        aria-modal="true"
-    >
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+
+        {{-- Modal de próximas citas --}}
+        <div
+            id="modal-proximas-citas"
+            class="fixed inset-0 z-50 hidden items-center justify-center
+           bg-gray-950/60 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-proximas-citas">
             <div
-                class="flex h-12 w-12 items-center justify-center
-                       rounded-full bg-blue-100 text-2xl"
-            >
-                🔔
-            </div>
+                class="flex max-h-[85vh] w-full max-w-4xl flex-col
+               overflow-hidden rounded-2xl bg-white shadow-2xl">
+                {{-- Encabezado --}}
+                <div
+                    class="flex items-center justify-between gap-4
+                   border-b border-gray-200 px-6 py-5">
+                    <div>
+                        <p class="text-sm font-semibold text-blue-600">
+                            Agenda médica
+                        </p>
 
-            <p class="mt-5 text-xs font-bold uppercase tracking-widest text-blue-600">
-                Consulta próxima
-            </p>
+                        <h3
+                            id="titulo-proximas-citas"
+                            class="mt-1 text-xl font-bold text-gray-900">
+                            Próximas citas
+                        </h3>
 
-            <h3 class="mt-2 text-xl font-bold text-gray-900">
-                Tu cita comienza en cinco minutos
-            </h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            {{ $citas->count() }}
+                            {{ $citas->count() === 1
+                        ? 'cita pendiente'
+                        : 'citas pendientes' }}
+                        </p>
+                    </div>
 
-            <p
-                id="mensaje-recordatorio"
-                class="mt-2 text-sm leading-6 text-gray-600"
-            ></p>
+                    <button
+                        id="cerrar-modal-proximas"
+                        type="button"
+                        class="flex h-10 w-10 shrink-0 items-center
+                       justify-center rounded-xl border border-gray-200
+                       text-xl text-gray-500 transition hover:bg-gray-100"
+                        aria-label="Cerrar próximas citas">
+                        &times;
+                    </button>
+                </div>
 
-            <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button
-                    id="cerrar-recordatorio"
-                    type="button"
-                    class="rounded-xl border border-gray-300 px-4 py-2.5
-                           text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                    Silenciar
-                </button>
+                {{-- Listado --}}
+                <div class="overflow-y-auto">
+                    @forelse ($citas as $cita)
+                    <article
+                        class="border-b border-gray-100 px-6 py-5
+                           transition last:border-b-0 hover:bg-gray-50">
+                        <div
+                            class="flex flex-col gap-4
+                               sm:flex-row sm:items-center">
+                            {{-- Fecha --}}
+                            <div
+                                class="flex w-full shrink-0 items-center gap-3
+                                   sm:w-36 sm:block">
+                                <p class="text-lg font-bold text-[#0D3B7F]">
+                                    {{ \Carbon\Carbon::parse(
+                                    $cita->hora
+                                )->format('h:i A') }}
+                                </p>
 
-                <a
-                    id="abrir-cita-recordatorio"
-                    href="#"
-                    class="rounded-xl bg-[#0D3B7F] px-4 py-2.5
-                           text-center text-sm font-semibold text-white
-                           hover:bg-[#082a5d]"
-                >
-                    Ver cita
-                </a>
+                                <p class="text-xs capitalize text-gray-500 sm:mt-1">
+                                    {{ $cita->fecha->translatedFormat(
+                                    'd M Y'
+                                ) }}
+                                </p>
+                            </div>
+
+                            {{-- Información --}}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="font-bold text-gray-900">
+                                        {{ $cita->paciente?->nombre }}
+                                        {{ $cita->paciente?->apellido }}
+                                    </h4>
+
+                                    <span
+                                        class="rounded-full bg-blue-50
+                                           px-2.5 py-1 text-xs font-semibold
+                                           text-blue-700">
+                                        {{ ucfirst(
+                                        str_replace(
+                                            '_',
+                                            ' ',
+                                            $cita->estado_actual
+                                        )
+                                    ) }}
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 text-sm text-gray-600">
+                                    {{ $cita->motivo
+                                    ?: 'Sin motivo registrado' }}
+                                </p>
+
+                                <p class="mt-2 text-xs text-gray-400">
+                                    @if ($cita->signoVital)
+                                    Signos vitales registrados
+                                    @else
+                                    Signos vitales pendientes
+                                    @endif
+                                </p>
+                            </div>
+
+                            {{-- Acción --}}
+                            <a
+                                href="{{ route('citas.show', $cita) }}"
+                                class="inline-flex shrink-0 items-center
+                                   justify-center rounded-xl bg-[#0D3B7F]
+                                   px-4 py-2.5 text-sm font-semibold
+                                   text-white transition hover:bg-[#082a5d]">
+                                Ver cita
+                            </a>
+                        </div>
+                    </article>
+                    @empty
+                    <div class="px-6 py-16 text-center">
+                        <div
+                            class="mx-auto flex h-14 w-14 items-center
+                               justify-center rounded-full bg-blue-50 text-2xl">
+                            📅
+                        </div>
+
+                        <h4 class="mt-4 font-bold text-gray-900">
+                            No hay próximas citas
+                        </h4>
+
+                        <p class="mt-2 text-sm text-gray-500">
+                            No tienes consultas pendientes en tu agenda.
+                        </p>
+                    </div>
+                    @endforelse
+                </div>
             </div>
         </div>
-    </div>
 
-    @if ($medico !== null)
+        {{-- Modal de citas finalizadas --}}
+        <div
+            id="modal-citas-finalizadas"
+            class="fixed inset-0 z-50 hidden items-center justify-center
+           bg-gray-950/60 p-4 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-citas-finalizadas">
+            <div
+                class="flex max-h-[85vh] w-full max-w-4xl flex-col
+               overflow-hidden rounded-2xl bg-white shadow-2xl">
+                {{-- Encabezado --}}
+                <div
+                    class="flex items-center justify-between gap-4
+                   border-b border-gray-200 px-6 py-5">
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-600">
+                            Historial médico
+                        </p>
+
+                        <h3
+                            id="titulo-citas-finalizadas"
+                            class="mt-1 text-xl font-bold text-gray-900">
+                            Citas finalizadas
+                        </h3>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            {{ $citasFinalizadas->count() }}
+                            {{ $citasFinalizadas->count() === 1
+                        ? 'cita registrada'
+                        : 'citas registradas' }}
+                        </p>
+                    </div>
+
+                    <button
+                        id="cerrar-modal-finalizadas"
+                        type="button"
+                        class="flex h-10 w-10 shrink-0 items-center
+                       justify-center rounded-xl border border-gray-200
+                       text-xl text-gray-500 transition hover:bg-gray-100"
+                        aria-label="Cerrar historial">
+                        &times;
+                    </button>
+                </div>
+
+                {{-- Contenido --}}
+                <div class="overflow-y-auto">
+                    @forelse ($citasFinalizadas as $cita)
+                    <article
+                        class="border-b border-gray-100 px-6 py-5
+                           transition last:border-b-0 hover:bg-gray-50">
+                        <div
+                            class="flex flex-col gap-4
+                               sm:flex-row sm:items-center">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="font-bold text-gray-900">
+                                        {{ $cita->paciente?->nombre }}
+                                        {{ $cita->paciente?->apellido }}
+                                    </h4>
+
+                                    <span
+                                        class="rounded-full bg-emerald-50
+                                           px-2.5 py-1 text-xs font-semibold
+                                           text-emerald-700">
+                                        Finalizada
+                                    </span>
+                                </div>
+
+                                <p class="mt-2 text-sm text-gray-600">
+                                    {{ $cita->motivo
+                                    ?: 'Sin motivo registrado' }}
+                                </p>
+
+                                <p class="mt-2 text-xs text-gray-400">
+                                    {{ $cita->fecha->translatedFormat(
+                                    'd \d\e F \d\e Y'
+                                ) }}
+
+                                    ·
+
+                                    {{ \Carbon\Carbon::parse(
+                                    $cita->hora
+                                )->format('h:i A') }}
+                                </p>
+                            </div>
+
+                            <a
+                                href="{{ route('citas.show', $cita) }}"
+                                class="inline-flex shrink-0 items-center
+                                   justify-center rounded-xl border
+                                   border-gray-300 bg-white px-4 py-2.5
+                                   text-sm font-semibold text-gray-700
+                                   transition hover:bg-gray-100">
+                                Ver cita
+                            </a>
+                        </div>
+                    </article>
+                    @empty
+                    <div class="px-6 py-16 text-center">
+                        <div
+                            class="mx-auto flex h-14 w-14 items-center
+                               justify-center rounded-full
+                               bg-emerald-50 text-2xl">
+                            ✓
+                        </div>
+
+                        <h4 class="mt-4 font-bold text-gray-900">
+                            No hay citas finalizadas
+                        </h4>
+
+                        <p class="mt-2 text-sm text-gray-500">
+                            Las consultas vencidas aparecerán aquí.
+                        </p>
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+
+        {{-- Ventana de recordatorio --}}
+        <div
+            id="modal-recordatorio"
+            class="fixed inset-0 z-50 hidden items-center justify-center
+               bg-gray-950/50 p-4"
+            role="dialog"
+            aria-modal="true">
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+                <div
+                    class="flex h-12 w-12 items-center justify-center
+                       rounded-full bg-blue-100 text-2xl">
+                    🔔
+                </div>
+
+                <p class="mt-5 text-xs font-bold uppercase tracking-widest text-blue-600">
+                    Consulta próxima
+                </p>
+
+                <h3 class="mt-2 text-xl font-bold text-gray-900">
+                    Tu cita comienza en cinco minutos
+                </h3>
+
+                <p
+                    id="mensaje-recordatorio"
+                    class="mt-2 text-sm leading-6 text-gray-600"></p>
+
+                <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <button
+                        id="cerrar-recordatorio"
+                        type="button"
+                        class="rounded-xl border border-gray-300 px-4 py-2.5
+                           text-sm font-semibold text-gray-700 hover:bg-gray-50">
+                        Silenciar
+                    </button>
+
+                    <a
+                        id="abrir-cita-recordatorio"
+                        href="#"
+                        class="rounded-xl bg-[#0D3B7F] px-4 py-2.5
+                           text-center text-sm font-semibold text-white
+                           hover:bg-[#082a5d]">
+                        Ver cita
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        @if ($medico !== null)
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const citas = @json($citasCalendario);
@@ -408,12 +712,12 @@
 
                         boton.className = [
                             'relative h-11 rounded-xl text-sm font-semibold transition',
-                            esSeleccionado
-                                ? 'bg-[#0D3B7F] text-white'
-                                : 'text-gray-700 hover:bg-blue-50',
-                            esHoy && !esSeleccionado
-                                ? 'ring-1 ring-blue-300'
-                                : '',
+                            esSeleccionado ?
+                            'bg-[#0D3B7F] text-white' :
+                            'text-gray-700 hover:bg-blue-50',
+                            esHoy && !esSeleccionado ?
+                            'ring-1 ring-blue-300' :
+                            '',
                         ].join(' ');
 
                         boton.innerHTML = `
@@ -475,8 +779,8 @@
                         articulo.className =
                             'px-6 py-5 transition hover:bg-gray-50';
 
-                        const signos = cita.tiene_signos
-                            ? `
+                        const signos = cita.tiene_signos ?
+                            `
                                 <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                                     <div class="rounded-xl bg-gray-50 px-3 py-2">
                                         <p class="text-xs text-gray-400">Peso</p>
@@ -506,8 +810,8 @@
                                         </p>
                                     </div>
                                 </div>
+                            ` :
                             `
-                            : `
                                 <p class="mt-4 inline-flex rounded-full
                                           bg-amber-50 px-3 py-1.5 text-xs
                                           font-semibold text-amber-700">
@@ -576,8 +880,8 @@
 
                 function reproducirSonido() {
                     audioContext ??=
-                        new (window.AudioContext ||
-                             window.webkitAudioContext)();
+                        new(window.AudioContext ||
+                            window.webkitAudioContext)();
 
                     const inicio = audioContext.currentTime;
 
@@ -611,8 +915,8 @@
 
                 async function activarRecordatorios() {
                     audioContext ??=
-                        new (window.AudioContext ||
-                             window.webkitAudioContext)();
+                        new(window.AudioContext ||
+                            window.webkitAudioContext)();
 
                     if (audioContext.state === 'suspended') {
                         await audioContext.resume();
@@ -693,10 +997,8 @@
                                 Notification.permission === 'granted'
                             ) {
                                 const notificacion = new Notification(
-                                    'Consulta próxima',
-                                    {
-                                        body:
-                                            `${cita.paciente} tiene cita ` +
+                                    'Consulta próxima', {
+                                        body: `${cita.paciente} tiene cita ` +
                                             `en cinco minutos.`,
                                         icon: '/favicon.ico',
                                     }
@@ -756,6 +1058,114 @@
                         '<span>✓</span> Recordatorios activados';
                 }
 
+                const botonAbrirProximas =
+                    document.getElementById('abrir-modal-proximas');
+
+                const botonCerrarProximas =
+                    document.getElementById('cerrar-modal-proximas');
+
+                const modalProximas =
+                    document.getElementById('modal-proximas-citas');
+
+                function abrirModalProximas() {
+                    modalProximas.classList.remove('hidden');
+                    modalProximas.classList.add('flex');
+
+                    document.body.classList.add('overflow-hidden');
+                }
+
+                function cerrarModalProximas() {
+                    modalProximas.classList.add('hidden');
+                    modalProximas.classList.remove('flex');
+
+                    document.body.classList.remove('overflow-hidden');
+                }
+
+                botonAbrirProximas.addEventListener(
+                    'click',
+                    abrirModalProximas
+                );
+
+                botonCerrarProximas.addEventListener(
+                    'click',
+                    cerrarModalProximas
+                );
+
+                /*
+                 * Cerrar al presionar el fondo oscuro.
+                 */
+                modalProximas.addEventListener('click', event => {
+                    if (event.target === modalProximas) {
+                        cerrarModalProximas();
+                    }
+                });
+
+                /*
+                 * Cerrar con Escape.
+                 */
+                document.addEventListener('keydown', event => {
+                    if (
+                        event.key === 'Escape' &&
+                        !modalProximas.classList.contains('hidden')
+                    ) {
+                        cerrarModalProximas();
+                    }
+                });
+
+                const botonAbrirFinalizadas =
+                    document.getElementById('abrir-modal-finalizadas');
+
+                const botonCerrarFinalizadas =
+                    document.getElementById('cerrar-modal-finalizadas');
+
+                const modalFinalizadas =
+                    document.getElementById('modal-citas-finalizadas');
+
+                function abrirModalFinalizadas() {
+                    modalFinalizadas.classList.remove('hidden');
+                    modalFinalizadas.classList.add('flex');
+
+                    document.body.classList.add('overflow-hidden');
+                }
+
+                function cerrarModalFinalizadas() {
+                    modalFinalizadas.classList.add('hidden');
+                    modalFinalizadas.classList.remove('flex');
+
+                    document.body.classList.remove('overflow-hidden');
+                }
+
+                botonAbrirFinalizadas.addEventListener(
+                    'click',
+                    abrirModalFinalizadas
+                );
+
+                botonCerrarFinalizadas.addEventListener(
+                    'click',
+                    cerrarModalFinalizadas
+                );
+
+                /*
+                 * Cerrar al presionar el fondo oscuro.
+                 */
+                modalFinalizadas.addEventListener('click', event => {
+                    if (event.target === modalFinalizadas) {
+                        cerrarModalFinalizadas();
+                    }
+                });
+
+                /*
+                 * Cerrar con la tecla Escape.
+                 */
+                document.addEventListener('keydown', event => {
+                    if (
+                        event.key === 'Escape' &&
+                        !modalFinalizadas.classList.contains('hidden')
+                    ) {
+                        cerrarModalFinalizadas();
+                    }
+                });
+
                 actualizarReloj();
                 renderizarCalendario();
                 renderizarCitas();
@@ -765,5 +1175,5 @@
                 window.setInterval(revisarRecordatorios, 30000);
             });
         </script>
-    @endif
+        @endif
 </x-app-layout>

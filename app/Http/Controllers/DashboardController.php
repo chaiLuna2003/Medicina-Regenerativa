@@ -387,6 +387,7 @@ class DashboardController extends Controller
      * todavía no tiene un perfil médico asociado.
      */
         $citas = collect();
+        $citasFinalizadas = collect();
 
         if ($medico !== null) {
             /*
@@ -396,15 +397,22 @@ class DashboardController extends Controller
             $inicioCalendario = now()->subMonth()->startOfMonth();
             $finCalendario = now()->addMonths(6)->endOfMonth();
 
-            $citas = Citas::query()
+            $todasLasCitas = Citas::query()
                 ->with([
                     'paciente' => function ($query) {
                         $query->withCount('citas');
                     },
                     'signoVital.enfermero',
                 ])
-                ->where('medico_id', $medico->id)
-                ->where('estado', '!=', 'cancelada')
+                ->where(
+                    'medico_id',
+                    $medico->id
+                )
+                ->where(
+                    'estado',
+                    '!=',
+                    'cancelada'
+                )
                 ->whereBetween('fecha', [
                     $inicioCalendario->toDateString(),
                     $finCalendario->toDateString(),
@@ -412,11 +420,24 @@ class DashboardController extends Controller
                 ->orderBy('fecha')
                 ->orderBy('hora')
                 ->get();
+
+            [$citas, $citasFinalizadas] = $todasLasCitas
+                ->partition(function (Citas $cita) {
+                    $fechaHoraFinal = Carbon::parse(
+                        $cita->fecha->format('Y-m-d')
+                            . ' '
+                            . Carbon::parse($cita->hora)->format('H:i:s')
+                    )->addMinutes(15);
+
+                    return $cita->estado !== 'finalizada'
+                        && $fechaHoraFinal->gte(now());
+                });
         }
 
-        return view('dashboard.medico', compact(
+        return view('Dashboard.medico', compact(
             'medico',
             'citas',
+            'citasFinalizadas',
         ));
     }
 
