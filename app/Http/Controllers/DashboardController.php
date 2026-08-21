@@ -191,8 +191,8 @@ class DashboardController extends Controller
             ->get();
 
         /*
- * Cantidad de citas por médico en la fecha seleccionada.
- */
+        * Cantidad de citas por médico en la fecha seleccionada.
+    */
         $conteosPorMedico = Citas::query()
             ->whereDate(
                 'fecha',
@@ -216,6 +216,46 @@ class DashboardController extends Controller
                 );
 
                 return $medico;
+            });
+
+        /*
+ * Construye los horarios de la agenda visual.
+ * Las citas se manejan en intervalos de 15 minutos,
+ * desde las 09:00 hasta las 20:45.
+ */
+        $horasAgenda = collect();
+
+        $horaAgenda = Carbon::createFromTime(9, 0);
+        $ultimaHoraAgenda = Carbon::createFromTime(20, 45);
+
+        while ($horaAgenda->lte($ultimaHoraAgenda)) {
+            $horasAgenda->push(
+                $horaAgenda->format('H:i')
+            );
+
+            $horaAgenda->addMinutes(15);
+        }
+
+        /*
+ * Si se seleccionó un médico, la agenda mostrará
+ * únicamente su columna. En caso contrario,
+ * mostrará todos los médicos activos.
+ */
+        $medicosAgenda = $medicoSeleccionadoId !== null
+            ? $medicosFiltro
+            ->where('id', $medicoSeleccionadoId)
+            ->values()
+            : $medicosFiltro->values();
+
+        /*
+        * Organiza las citas utilizando el médico y la hora
+        * como llave, por ejemplo: "3|09:15".
+        */
+        $citasAgenda = $citasSeleccionadas
+            ->keyBy(function (Citas $cita) {
+                return $cita->medico_id
+                    . '|'
+                    . Carbon::parse($cita->hora)->format('H:i');
             });
 
         /*
@@ -367,6 +407,9 @@ class DashboardController extends Controller
                 'diasCalendario',
                 'citasPorDia',
                 'proximaCita',
+                'citasAgenda',
+                'horasAgenda',
+                'medicosAgenda',
             )
         );
     }

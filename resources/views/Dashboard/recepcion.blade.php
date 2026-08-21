@@ -1,8 +1,8 @@
 <x-app-layout>
     @php
-        $medicoSeleccionado = $medicoSeleccionadoId
-            ? $medicosFiltro->firstWhere('id', $medicoSeleccionadoId)
-            : null;
+    $medicoSeleccionado = $medicoSeleccionadoId
+    ? $medicosFiltro->firstWhere('id', $medicoSeleccionadoId)
+    : null;
     @endphp
 
     <x-slot name="header">
@@ -26,20 +26,17 @@
                     href="{{ route('citas.create') }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl
                            bg-[#0D3B7F] px-5 py-3 text-sm font-semibold
-                           text-white shadow-sm transition hover:bg-[#082a5d]"
-                >
+                           text-white shadow-sm transition hover:bg-[#082a5d]">
                     <svg
                         class="h-5 w-5"
                         fill="none"
                         stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
+                        viewBox="0 0 24 24">
                         <path
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M12 4v16m8-8H4"
-                        />
+                            d="M12 4v16m8-8H4" />
                     </svg>
 
                     Nueva cita
@@ -50,8 +47,7 @@
                     class="inline-flex items-center justify-center rounded-xl
                            border border-gray-300 bg-white px-5 py-3
                            text-sm font-semibold text-gray-700 shadow-sm
-                           transition hover:bg-gray-50"
-                >
+                           transition hover:bg-gray-50">
                     Nuevo paciente
                 </a>
             </div>
@@ -64,89 +60,90 @@
             {{-- Indicadores generales de hoy --}}
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @php
-                    $indicadores = [
-                        [
-                            'titulo' => 'Citas de hoy',
-                            'valor' => $totalCitasHoy,
-                            'descripcion' => 'Total de consultas registradas',
-                            'barra' => 'bg-blue-500',
-                            'fondo' => 'bg-blue-50',
-                            'texto' => 'text-blue-600',
-                        ],
-                        [
-                            'titulo' => 'En espera',
-                            'valor' => $citasEnEspera,
-                            'descripcion' => 'Pendientes de atención',
-                            'barra' => 'bg-amber-500',
-                            'fondo' => 'bg-amber-50',
-                            'texto' => 'text-amber-600',
-                        ],
-                        [
-                            'titulo' => 'Confirmadas',
-                            'valor' => $citasConfirmadas,
-                            'descripcion' => 'Consultas confirmadas',
-                            'barra' => 'bg-emerald-500',
-                            'fondo' => 'bg-emerald-50',
-                            'texto' => 'text-emerald-600',
-                        ],
-                        [
-                            'titulo' => 'Canceladas',
-                            'valor' => $citasCanceladas,
-                            'descripcion' => 'Cancelaciones registradas hoy',
-                            'barra' => 'bg-red-500',
-                            'fondo' => 'bg-red-50',
-                            'texto' => 'text-red-600',
-                        ],
-                    ];
+                $indicadores = [
+                [
+                'titulo' => 'Citas de hoy',
+                'valor' => $totalCitasHoy,
+                'descripcion' => 'Total de consultas registradas',
+                'barra' => 'bg-blue-500',
+                'fondo' => 'bg-blue-50',
+                'texto' => 'text-blue-600',
+                ],
+                [
+                'titulo' => 'En espera',
+                'valor' => $citasEnEspera,
+                'descripcion' => 'Pendientes de atención',
+                'barra' => 'bg-amber-500',
+                'fondo' => 'bg-amber-50',
+                'texto' => 'text-amber-600',
+                ],
+                [
+                'titulo' => 'Confirmadas',
+                'valor' => $citasConfirmadas,
+                'descripcion' => 'Consultas confirmadas',
+                'barra' => 'bg-emerald-500',
+                'fondo' => 'bg-emerald-50',
+                'texto' => 'text-emerald-600',
+                ],
+                [
+                'titulo' => 'Canceladas',
+                'valor' => $citasCanceladas,
+                'descripcion' => 'Cancelaciones registradas hoy',
+                'barra' => 'bg-red-500',
+                'fondo' => 'bg-red-50',
+                'texto' => 'text-red-600',
+                ],
+                ];
                 @endphp
 
                 @foreach ($indicadores as $indicador)
-                    <article class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <div class="absolute inset-x-0 top-0 h-1 {{ $indicador['barra'] }}"></div>
+                <article class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <div class="absolute inset-x-0 top-0 h-1 {{ $indicador['barra'] }}"></div>
 
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-500">
-                                    {{ $indicador['titulo'] }}
-                                </p>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500">
+                                {{ $indicador['titulo'] }}
+                            </p>
 
-                                <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
-                                    {{ $indicador['valor'] }}
-                                </p>
-                            </div>
-
-                            <div class="flex h-11 w-11 items-center justify-center rounded-xl {{ $indicador['fondo'] }} {{ $indicador['texto'] }}">
-                                <svg
-                                    class="h-5 w-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M8 7V3m8 4V3M5 11h14M5
-                                           5h14a2 2 0 012 2v12a2 2
-                                           0 01-2 2H5a2 2 0
-                                           01-2-2V7a2 2 0 012-2z"
-                                    />
-                                </svg>
-                            </div>
+                            <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                                {{ $indicador['valor'] }}
+                            </p>
                         </div>
 
-                        <p class="mt-4 text-xs text-gray-400">
-                            {{ $indicador['descripcion'] }}
-                        </p>
-                    </article>
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl {{ $indicador['fondo'] }} {{ $indicador['texto'] }}">
+                            <svg
+                                class="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M8 7V3m8 4V3M5 11h14M5
+                                           5h14a2 2 0 012 2v12a2 2
+                                           0 01-2 2H5a2 2 0
+                                           01-2-2V7a2 2 0 012-2z" />
+                            </svg>
+                        </div>
+                    </div>
+
+                    <p class="mt-4 text-xs text-gray-400">
+                        {{ $indicador['descripcion'] }}
+                    </p>
+                </article>
                 @endforeach
             </section>
 
-            {{-- Agenda y calendario --}}
-            <section class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px]">
+            {{-- Calendario, agenda visual y listado detallado --}}
+            <section class="grid gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
 
-                {{-- Agenda --}}
-                <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                {{-- Listado detallado de citas --}}
+                <div
+                    class="order-3 overflow-hidden rounded-2xl
+                   border border-gray-200 bg-white shadow-sm
+                   xl:col-span-2">
 
                     {{-- Encabezado --}}
                     <div class="flex flex-col gap-4 border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
@@ -164,9 +161,9 @@
                             <div>
                                 <h3 class="text-lg font-bold text-gray-900">
                                     @if ($fechaSeleccionada->isToday())
-                                        Agenda de hoy
+                                    Agenda de hoy
                                     @else
-                                        Agenda del día
+                                    Agenda del día
                                     @endif
                                 </h3>
 
@@ -186,8 +183,7 @@
                                 href="{{ route('citas.index', [
                                     'medico_id' => $medicoSeleccionadoId,
                                 ]) }}"
-                                class="text-sm font-semibold text-[#0D3B7F] hover:text-[#082a5d]"
-                            >
+                                class="text-sm font-semibold text-[#0D3B7F] hover:text-[#082a5d]">
                                 Ver todas
                             </a>
                         </div>
@@ -207,35 +203,34 @@
                             </div>
 
                             @if ($medicoSeleccionadoId)
-                                <a
-                                    href="{{ route('dashboard', [
+                            <a
+                                href="{{ route('dashboard', [
                                         'fecha' => $fechaSeleccionada->format('Y-m-d'),
                                         'mes' => $mesCalendario->format('Y-m'),
                                     ]) }}"
-                                    class="text-xs font-semibold text-[#0D3B7F] hover:text-[#082a5d]"
-                                >
-                                    Quitar filtro
-                                </a>
+                                class="text-xs font-semibold text-[#0D3B7F] hover:text-[#082a5d]">
+                                Quitar filtro
+                            </a>
                             @endif
                         </div>
 
                         {{-- Médico seleccionado --}}
                         @if ($medicoSeleccionado)
-                            <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-blue-500">
-                                    Médico seleccionado
-                                </p>
+                        <div class="mb-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-blue-500">
+                                Médico seleccionado
+                            </p>
 
-                                <p class="mt-1 font-semibold text-[#0D3B7F]">
-                                    Dr. {{ $medicoSeleccionado->nombre }}
-                                    {{ $medicoSeleccionado->apellido_paterno }}
-                                </p>
+                            <p class="mt-1 font-semibold text-[#0D3B7F]">
+                                Dr. {{ $medicoSeleccionado->nombre }}
+                                {{ $medicoSeleccionado->apellido_paterno }}
+                            </p>
 
-                                <p class="mt-1 text-xs text-blue-600">
-                                    {{ $medicoSeleccionado->citas_fecha_count }}
-                                    {{ $medicoSeleccionado->citas_fecha_count === 1 ? 'cita programada' : 'citas programadas' }}
-                                </p>
-                            </div>
+                            <p class="mt-1 text-xs text-blue-600">
+                                {{ $medicoSeleccionado->citas_fecha_count }}
+                                {{ $medicoSeleccionado->citas_fecha_count === 1 ? 'cita programada' : 'citas programadas' }}
+                            </p>
+                        </div>
                         @endif
 
                         <div class="flex gap-3 overflow-x-auto pb-2">
@@ -245,107 +240,87 @@
                                     'fecha' => $fechaSeleccionada->format('Y-m-d'),
                                     'mes' => $mesCalendario->format('Y-m'),
                                 ]) }}"
-                                @class([
-                                    'flex min-w-[155px] shrink-0 items-center justify-between gap-3 rounded-xl border px-4 py-3 transition',
+                                @class([ 'flex min-w-[155px] shrink-0 items-center justify-between gap-3 rounded-xl border px-4 py-3 transition' , 'border-[#0D3B7F] bg-[#0D3B7F] text-white shadow-sm'=> !$medicoSeleccionadoId,
 
-                                    'border-[#0D3B7F] bg-[#0D3B7F] text-white shadow-sm'
-                                        => !$medicoSeleccionadoId,
-
-                                    'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                                        => $medicoSeleccionadoId,
+                                'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                => $medicoSeleccionadoId,
                                 ])
-                            >
+                                >
                                 <div>
                                     <p class="text-sm font-semibold">
                                         Todos
                                     </p>
 
                                     <p
-                                        @class([
-                                            'mt-1 text-xs',
-                                            'text-blue-100' => !$medicoSeleccionadoId,
-                                            'text-gray-400' => $medicoSeleccionadoId,
+                                        @class([ 'mt-1 text-xs' , 'text-blue-100'=> !$medicoSeleccionadoId,
+                                        'text-gray-400' => $medicoSeleccionadoId,
                                         ])
-                                    >
+                                        >
                                         Equipo médico
                                     </p>
                                 </div>
 
                                 <span
-                                    @class([
-                                        'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-xs font-bold',
+                                    @class([ 'flex h-8 min-w-8 items-center justify-center rounded-full px-2 text-xs font-bold' , 'bg-white/20 text-white'=> !$medicoSeleccionadoId,
 
-                                        'bg-white/20 text-white'
-                                            => !$medicoSeleccionadoId,
-
-                                        'bg-slate-100 text-slate-600'
-                                            => $medicoSeleccionadoId,
+                                    'bg-slate-100 text-slate-600'
+                                    => $medicoSeleccionadoId,
                                     ])
-                                >
+                                    >
                                     {{ $medicosFiltro->sum('citas_fecha_count') }}
                                 </span>
                             </a>
 
                             {{-- Médicos --}}
                             @foreach ($medicosFiltro as $medico)
-                                @php
-                                    $estaSeleccionado =
-                                        (int) $medicoSeleccionadoId ===
-                                        (int) $medico->id;
-                                @endphp
+                            @php
+                            $estaSeleccionado =
+                            (int) $medicoSeleccionadoId ===
+                            (int) $medico->id;
+                            @endphp
 
-                                <a
-                                    href="{{ route('dashboard', [
+                            <a
+                                href="{{ route('dashboard', [
                                         'fecha' => $fechaSeleccionada->format('Y-m-d'),
                                         'mes' => $mesCalendario->format('Y-m'),
                                         'medico_id' => $medico->id,
                                     ]) }}"
-                                    @class([
-                                        'flex min-w-[220px] shrink-0 items-center justify-between gap-3 rounded-xl border px-4 py-3 transition',
+                                @class([ 'flex min-w-[220px] shrink-0 items-center justify-between gap-3 rounded-xl border px-4 py-3 transition' , 'border-[#0D3B7F] bg-[#0D3B7F] text-white shadow-sm'=> $estaSeleccionado,
 
-                                        'border-[#0D3B7F] bg-[#0D3B7F] text-white shadow-sm'
-                                            => $estaSeleccionado,
-
-                                        'border-gray-200 bg-white text-gray-700 hover:border-[#0D3B7F]/40 hover:shadow-sm'
-                                            => !$estaSeleccionado,
-                                    ])
+                                'border-gray-200 bg-white text-gray-700 hover:border-[#0D3B7F]/40 hover:shadow-sm'
+                                => !$estaSeleccionado,
+                                ])
                                 >
-                                    <div class="min-w-0">
-                                        <p class="truncate text-sm font-semibold">
-                                            Dr. {{ $medico->nombre }}
-                                            {{ $medico->apellido_paterno }}
-                                        </p>
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold">
+                                        Dr. {{ $medico->nombre }}
+                                        {{ $medico->apellido_paterno }}
+                                    </p>
 
-                                        <p
-                                            @class([
-                                                'mt-1 truncate text-xs',
-                                                'text-blue-100' => $estaSeleccionado,
-                                                'text-gray-400' => !$estaSeleccionado,
-                                            ])
-                                        >
-                                            {{ $medico->especialidad ?: 'Sin especialidad' }}
-                                        </p>
-                                    </div>
-
-                                    <span
-                                        @class([
-                                            'flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full px-2 text-xs font-bold',
-
-                                            'bg-white/20 text-white'
-                                                => $estaSeleccionado,
-
-                                            'bg-slate-100 text-slate-600'
-                                                => !$estaSeleccionado &&
-                                                   $medico->citas_fecha_count > 0,
-
-                                            'bg-gray-50 text-gray-300'
-                                                => !$estaSeleccionado &&
-                                                   $medico->citas_fecha_count === 0,
+                                    <p
+                                        @class([ 'mt-1 truncate text-xs' , 'text-blue-100'=> $estaSeleccionado,
+                                        'text-gray-400' => !$estaSeleccionado,
                                         ])
+                                        >
+                                        {{ $medico->especialidad ?: 'Sin especialidad' }}
+                                    </p>
+                                </div>
+
+                                <span
+                                    @class([ 'flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full px-2 text-xs font-bold' , 'bg-white/20 text-white'=> $estaSeleccionado,
+
+                                    'bg-slate-100 text-slate-600'
+                                    => !$estaSeleccionado &&
+                                    $medico->citas_fecha_count > 0,
+
+                                    'bg-gray-50 text-gray-300'
+                                    => !$estaSeleccionado &&
+                                    $medico->citas_fecha_count === 0,
+                                    ])
                                     >
-                                        {{ $medico->citas_fecha_count }}
-                                    </span>
-                                </a>
+                                    {{ $medico->citas_fecha_count }}
+                                </span>
+                            </a>
                             @endforeach
                         </div>
                     </div>
@@ -353,172 +328,349 @@
                     {{-- Listado de citas --}}
                     <div class="divide-y divide-gray-100">
                         @forelse ($citasSeleccionadas as $cita)
-                            @php
-                                $estadoActual = $cita->estado_actual;
+                        @php
+                        $estadoActual = $cita->estado_actual;
 
-                                [$estadoClases, $puntoClases, $estadoTexto] = match ($estadoActual) {
-                                    'confirmada' => [
-                                        'bg-emerald-50 text-emerald-700',
-                                        'bg-emerald-500',
-                                        'Confirmada',
-                                    ],
-                                    'en_espera' => [
-                                        'bg-amber-50 text-amber-700',
-                                        'bg-amber-500',
-                                        'En espera',
-                                    ],
-                                    'en_curso', 'en_consulta' => [
-                                        'bg-blue-50 text-blue-700',
-                                        'bg-blue-500',
-                                        'En consulta',
-                                    ],
-                                    'finalizada' => [
-                                        'bg-gray-100 text-gray-600',
-                                        'bg-gray-500',
-                                        'Finalizada',
-                                    ],
-                                    'cancelada' => [
-                                        'bg-red-50 text-red-700',
-                                        'bg-red-500',
-                                        'Cancelada',
-                                    ],
-                                    default => [
-                                        'bg-violet-50 text-violet-700',
-                                        'bg-violet-500',
-                                        'Programada',
-                                    ],
-                                };
+                        [$estadoClases, $puntoClases, $estadoTexto] = match ($estadoActual) {
+                        'confirmada' => [
+                        'bg-emerald-50 text-emerald-700',
+                        'bg-emerald-500',
+                        'Confirmada',
+                        ],
+                        'en_espera' => [
+                        'bg-amber-50 text-amber-700',
+                        'bg-amber-500',
+                        'En espera',
+                        ],
+                        'en_curso', 'en_consulta' => [
+                        'bg-blue-50 text-blue-700',
+                        'bg-blue-500',
+                        'En consulta',
+                        ],
+                        'finalizada' => [
+                        'bg-gray-100 text-gray-600',
+                        'bg-gray-500',
+                        'Finalizada',
+                        ],
+                        'cancelada' => [
+                        'bg-red-50 text-red-700',
+                        'bg-red-500',
+                        'Cancelada',
+                        ],
+                        default => [
+                        'bg-violet-50 text-violet-700',
+                        'bg-violet-500',
+                        'Programada',
+                        ],
+                        };
 
-                                $nombrePaciente = trim(
-                                    ($cita->paciente?->nombre ?? '') . ' ' .
-                                    ($cita->paciente?->apellido ?? '')
-                                );
+                        $nombrePaciente = trim(
+                        ($cita->paciente?->nombre ?? '') . ' ' .
+                        ($cita->paciente?->apellido ?? '')
+                        );
 
-                                $nombreMedico = trim(
-                                    ($cita->medico?->nombre ?? '') . ' ' .
-                                    ($cita->medico?->apellido_paterno ?? '')
-                                );
+                        $nombreMedico = trim(
+                        ($cita->medico?->nombre ?? '') . ' ' .
+                        ($cita->medico?->apellido_paterno ?? '')
+                        );
 
-                                $inicialPaciente = mb_strtoupper(
-                                    mb_substr(
-                                        $cita->paciente?->nombre ?? 'P',
-                                        0,
-                                        1
-                                    )
-                                );
-                            @endphp
+                        $inicialPaciente = mb_strtoupper(
+                        mb_substr(
+                        $cita->paciente?->nombre ?? 'P',
+                        0,
+                        1
+                        )
+                        );
+                        @endphp
 
-                            <article class="group px-6 py-5 transition hover:bg-slate-50">
-                                <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                                    {{-- Hora --}}
-                                    <div class="flex w-24 shrink-0 items-center gap-2 sm:block">
-                                        <p class="text-lg font-bold text-gray-900">
-                                            {{ \Carbon\Carbon::parse($cita->hora)->format('h:i') }}
-                                        </p>
+                        <article class="group px-6 py-5 transition hover:bg-slate-50">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+                                {{-- Hora --}}
+                                <div class="flex w-24 shrink-0 items-center gap-2 sm:block">
+                                    <p class="text-lg font-bold text-gray-900">
+                                        {{ \Carbon\Carbon::parse($cita->hora)->format('h:i') }}
+                                    </p>
 
-                                        <p class="text-xs font-semibold uppercase text-gray-400">
-                                            {{ \Carbon\Carbon::parse($cita->hora)->format('A') }}
-                                        </p>
-                                    </div>
-
-                                    {{-- Información --}}
-                                    <div class="flex min-w-0 flex-1 items-center gap-3">
-                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
-                                            {{ $inicialPaciente }}
-                                        </div>
-
-                                        <div class="min-w-0">
-                                            <div class="flex flex-wrap items-center gap-2">
-                                                <h4 class="truncate font-semibold text-gray-900">
-                                                    {{ $nombrePaciente ?: 'Paciente no disponible' }}
-                                                </h4>
-
-                                                <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $estadoClases }}">
-                                                    <span class="h-1.5 w-1.5 rounded-full {{ $puntoClases }}"></span>
-                                                    {{ $estadoTexto }}
-                                                </span>
-                                            </div>
-
-                                            <p class="mt-1 truncate text-sm text-gray-500">
-                                                {{ $cita->motivo ?: 'Sin motivo registrado' }}
-                                            </p>
-
-                                            <p class="mt-1 text-xs text-gray-400">
-                                                Dr. {{ $nombreMedico ?: 'No asignado' }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {{-- Modalidad --}}
-                                    <div class="shrink-0">
-                                        @if ($cita->modalidad === 'videoconsulta')
-                                            <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
-                                                <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
-                                                Videoconsulta
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                                Presencial
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <a
-                                        href="{{ route('citas.show', $cita) }}"
-                                        class="inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#0D3B7F] hover:text-[#0D3B7F]"
-                                    >
-                                        Ver
-                                    </a>
+                                    <p class="text-xs font-semibold uppercase text-gray-400">
+                                        {{ \Carbon\Carbon::parse($cita->hora)->format('A') }}
+                                    </p>
                                 </div>
-                            </article>
+
+                                {{-- Información --}}
+                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">
+                                        {{ $inicialPaciente }}
+                                    </div>
+
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <h4 class="truncate font-semibold text-gray-900">
+                                                {{ $nombrePaciente ?: 'Paciente no disponible' }}
+                                            </h4>
+
+                                            <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $estadoClases }}">
+                                                <span class="h-1.5 w-1.5 rounded-full {{ $puntoClases }}"></span>
+                                                {{ $estadoTexto }}
+                                            </span>
+                                        </div>
+
+                                        <p class="mt-1 truncate text-sm text-gray-500">
+                                            {{ $cita->motivo ?: 'Sin motivo registrado' }}
+                                        </p>
+
+                                        <p class="mt-1 text-xs text-gray-400">
+                                            Dr. {{ $nombreMedico ?: 'No asignado' }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Modalidad --}}
+                                <div class="shrink-0">
+                                    @if ($cita->modalidad === 'videoconsulta')
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700">
+                                        <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                                        Videoconsulta
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                        Presencial
+                                    </span>
+                                    @endif
+                                </div>
+
+                                <a
+                                    href="{{ route('citas.show', $cita) }}"
+                                    class="inline-flex shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-600 transition hover:border-[#0D3B7F] hover:text-[#0D3B7F]">
+                                    Ver
+                                </a>
+                            </div>
+                        </article>
                         @empty
-                            <div class="px-6 py-16 text-center">
-                                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
-                                    <svg
-                                        class="h-7 w-7"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="1.5"
-                                            d="M8 7V3m8 4V3M5 11h14M5
+                        <div class="px-6 py-16 text-center">
+                            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                <svg
+                                    class="h-7 w-7"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="1.5"
+                                        d="M8 7V3m8 4V3M5 11h14M5
                                                5h14a2 2 0 012 2v12a2
                                                2 0 01-2 2H5a2 2 0
-                                               01-2-2V7a2 2 0 012-2z"
-                                        />
-                                    </svg>
-                                </div>
+                                               01-2-2V7a2 2 0 012-2z" />
+                                </svg>
+                            </div>
 
-                                <h4 class="mt-4 font-semibold text-gray-900">
-                                    No hay citas para esta selección
-                                </h4>
+                            <h4 class="mt-4 font-semibold text-gray-900">
+                                No hay citas para esta selección
+                            </h4>
 
-                                <p class="mt-1 text-sm text-gray-500">
-                                    Selecciona otro día o cambia el filtro de médico.
-                                </p>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Selecciona otro día o cambia el filtro de médico.
+                            </p>
 
-                                @if ($medicoSeleccionadoId)
-                                    <a
-                                        href="{{ route('dashboard', [
+                            @if ($medicoSeleccionadoId)
+                            <a
+                                href="{{ route('dashboard', [
                                             'fecha' => $fechaSeleccionada->format('Y-m-d'),
                                             'mes' => $mesCalendario->format('Y-m'),
                                         ]) }}"
-                                        class="mt-5 inline-flex rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
-                                    >
-                                        Mostrar todos
-                                    </a>
-                                @endif
-                            </div>
+                                class="mt-5 inline-flex rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
+                                Mostrar todos
+                            </a>
+                            @endif
+                        </div>
                         @endforelse
                     </div>
                 </div>
 
+
+                {{-- Agenda visual por horario y médico --}}
+                <div
+                    class="order-2 overflow-hidden rounded-2xl
+           border border-gray-200 bg-white shadow-sm">
+                    {{-- Encabezado --}}
+                    <div
+                        class="flex flex-col gap-3 border-b border-gray-100
+               px-5 py-5 sm:flex-row sm:items-center
+               sm:justify-between">
+                        <div>
+                            <p
+                                class="text-xs font-semibold uppercase
+                       tracking-wider text-emerald-600">
+                                Agenda por horario
+                            </p>
+
+                            <h3 class="mt-1 text-lg font-bold text-gray-900">
+                                {{ $fechaSeleccionada
+                    ->locale('es')
+                    ->translatedFormat('l, d \d\e F') }}
+                            </h3>
+                        </div>
+
+                        <span
+                            class="w-fit rounded-full bg-slate-100
+                   px-3 py-1 text-xs font-semibold
+                   text-slate-600">
+                            Bloques de 15 minutos
+                        </span>
+                    </div>
+
+                    {{-- Cuadrícula de médicos y horarios --}}
+                    <div class="max-h-[690px] overflow-auto">
+                        @if ($medicosAgenda->isEmpty())
+                        <div class="px-6 py-16 text-center">
+                            <p class="font-semibold text-gray-900">
+                                No hay médicos activos
+                            </p>
+
+                            <p class="mt-1 text-sm text-gray-500">
+                                Registra o activa un médico para mostrar la agenda.
+                            </p>
+                        </div>
+                        @else
+                        <div
+                            class="grid min-w-max"
+                            style="grid-template-columns:
+                       76px repeat(
+                           {{ $medicosAgenda->count() }},
+                           minmax(210px, 1fr)
+                       );">
+                            {{-- Encabezado de hora --}}
+                            <div
+                                class="sticky left-0 top-0 z-30 flex h-14
+                           items-center justify-center border-b
+                           border-r border-gray-200 bg-slate-100
+                           text-xs font-bold text-gray-500">
+                                Hora
+                            </div>
+
+                            {{-- Encabezados de médicos --}}
+                            @foreach ($medicosAgenda as $medico)
+                            <div
+                                class="sticky top-0 z-20 flex h-14
+                               items-center justify-center border-b
+                               border-r border-gray-200 bg-slate-100
+                               px-3 text-center">
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-bold text-gray-800">
+                                        Dr. {{ $medico->nombre }}
+                                        {{ $medico->apellido_paterno }}
+                                    </p>
+
+                                    <p class="mt-0.5 truncate text-[11px] text-gray-500">
+                                        {{ $medico->especialidad
+                                    ?: 'Medicina general' }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endforeach
+                            {{-- Filas de horarios --}}
+@foreach ($horasAgenda as $horaAgenda)
+    {{-- Columna de hora --}}
+    <div
+        class="sticky left-0 z-10 flex h-12
+               items-center justify-center border-b
+               border-r border-gray-100 bg-white
+               text-xs font-semibold text-gray-500"
+    >
+        {{ \Carbon\Carbon::createFromFormat(
+            'H:i',
+            $horaAgenda
+        )->format('h:i A') }}
+    </div>
+
+    {{-- Espacio de cada médico --}}
+    @foreach ($medicosAgenda as $medico)
+        @php
+            $llaveAgenda =
+                $medico->id . '|' . $horaAgenda;
+
+            $citaAgenda =
+                $citasAgenda->get($llaveAgenda);
+
+            $colorCitaAgenda = match (
+                $citaAgenda?->estado_actual
+            ) {
+                'confirmada' =>
+                    'border-emerald-500 bg-emerald-500 text-white',
+
+                'en_espera' =>
+                    'border-amber-400 bg-amber-400 text-white',
+
+                'en_curso', 'en_consulta' =>
+                    'border-blue-500 bg-blue-500 text-white',
+
+                'finalizada' =>
+                    'border-slate-400 bg-slate-400 text-white',
+
+                'cancelada' =>
+                    'border-red-200 bg-red-50 text-red-600 line-through',
+
+                default =>
+                    'border-indigo-500 bg-indigo-500 text-white',
+            };
+
+            $pacienteAgenda = $citaAgenda
+                ? trim(
+                    ($citaAgenda->paciente?->nombre ?? '')
+                    . ' '
+                    . ($citaAgenda->paciente?->apellido ?? '')
+                )
+                : null;
+        @endphp
+
+        <div
+            class="h-12 border-b border-r
+                   border-gray-100 bg-white p-1"
+        >
+            @if ($citaAgenda)
+                <a
+                    href="{{ route(
+                        'citas.show',
+                        $citaAgenda
+                    ) }}"
+                    title="{{ $pacienteAgenda
+                        ?: 'Paciente no disponible' }}"
+                    class="flex h-full items-center gap-2
+                           overflow-hidden rounded-md border
+                           px-2 text-xs font-semibold shadow-sm
+                           transition hover:brightness-95
+                           {{ $colorCitaAgenda }}"
+                >
+                    <span
+                        class="shrink-0 rounded bg-white/20
+                               px-1.5 py-0.5 text-[9px]
+                               font-bold uppercase"
+                    >
+                        {{ $citaAgenda->modalidad ===
+                            'videoconsulta'
+                            ? 'Video'
+                            : 'Pres.' }}
+                    </span>
+
+                    <span class="truncate">
+                        {{ $pacienteAgenda
+                            ?: 'Paciente no disponible' }}
+                    </span>
+                </a>
+            @endif
+        </div>
+    @endforeach
+@endforeach
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
                 {{-- Calendario --}}
-                <aside class="h-fit rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                <aside
+                    class="order-1 h-fit rounded-2xl border
+           border-gray-200 bg-white p-6 shadow-sm">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">
@@ -538,20 +690,17 @@
                                     'medico_id' => $medicoSeleccionadoId,
                                 ]) }}"
                                 title="Mes anterior"
-                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
-                            >
+                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900">
                                 <svg
                                     class="h-4 w-4"
                                     fill="none"
                                     stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                                    viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
                                         stroke-width="2"
-                                        d="M15 19l-7-7 7-7"
-                                    />
+                                        d="M15 19l-7-7 7-7" />
                                 </svg>
                             </a>
 
@@ -562,97 +711,87 @@
                                     'medico_id' => $medicoSeleccionadoId,
                                 ]) }}"
                                 title="Mes siguiente"
-                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900"
-                            >
+                                class="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-900">
                                 <svg
                                     class="h-4 w-4"
                                     fill="none"
                                     stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
+                                    viewBox="0 0 24 24">
                                     <path
                                         stroke-linecap="round"
                                         stroke-linejoin="round"
                                         stroke-width="2"
-                                        d="M9 5l7 7-7 7"
-                                    />
+                                        d="M9 5l7 7-7 7" />
                                 </svg>
                             </a>
                         </div>
                     </div>
 
                     @if (!$fechaSeleccionada->isToday())
-                        <a
-                            href="{{ route('dashboard', [
+                    <a
+                        href="{{ route('dashboard', [
                                 'medico_id' => $medicoSeleccionadoId,
                             ]) }}"
-                            class="mt-4 inline-flex text-sm font-semibold text-[#0D3B7F] hover:text-[#082a5d]"
-                        >
-                            Regresar a hoy
-                        </a>
+                        class="mt-4 inline-flex text-sm font-semibold text-[#0D3B7F] hover:text-[#082a5d]">
+                        Regresar a hoy
+                    </a>
                     @endif
 
                     <div class="mt-5 grid grid-cols-7 gap-1 text-center">
                         @foreach (['L', 'M', 'M', 'J', 'V', 'S', 'D'] as $nombreDia)
-                            <div class="py-2 text-xs font-semibold text-gray-400">
-                                {{ $nombreDia }}
-                            </div>
+                        <div class="py-2 text-xs font-semibold text-gray-400">
+                            {{ $nombreDia }}
+                        </div>
                         @endforeach
 
                         @foreach ($diasCalendario as $dia)
-                            @php
-                                $fechaDia = $dia->format('Y-m-d');
-                                $informacionDia = $citasPorDia->get($fechaDia);
-                                $totalDia = $informacionDia['total'] ?? 0;
+                        @php
+                        $fechaDia = $dia->format('Y-m-d');
+                        $informacionDia = $citasPorDia->get($fechaDia);
+                        $totalDia = $informacionDia['total'] ?? 0;
 
-                                $esMesActual =
-                                    $dia->month === $mesCalendario->month &&
-                                    $dia->year === $mesCalendario->year;
+                        $esMesActual =
+                        $dia->month === $mesCalendario->month &&
+                        $dia->year === $mesCalendario->year;
 
-                                $esSeleccionado = $dia->isSameDay($fechaSeleccionada);
-                                $esHoy = $dia->isToday();
-                            @endphp
+                        $esSeleccionado = $dia->isSameDay($fechaSeleccionada);
+                        $esHoy = $dia->isToday();
+                        @endphp
 
-                            <a
-                                href="{{ route('dashboard', [
+                        <a
+                            href="{{ route('dashboard', [
                                     'fecha' => $fechaDia,
                                     'mes' => $dia->format('Y-m'),
                                     'medico_id' => $medicoSeleccionadoId,
                                 ]) }}"
-                                title="{{ $totalDia }} {{ $totalDia === 1 ? 'cita' : 'citas' }}"
-                                @class([
-                                    'relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold transition',
+                            title="{{ $totalDia }} {{ $totalDia === 1 ? 'cita' : 'citas' }}"
+                            @class([ 'relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm font-semibold transition' , 'bg-[#0D3B7F] text-white shadow-sm'=> $esSeleccionado,
 
-                                    'bg-[#0D3B7F] text-white shadow-sm'
-                                        => $esSeleccionado,
+                            'bg-blue-50 text-[#0D3B7F] ring-1 ring-inset ring-blue-200'
+                            => $esHoy && !$esSeleccionado,
 
-                                    'bg-blue-50 text-[#0D3B7F] ring-1 ring-inset ring-blue-200'
-                                        => $esHoy && !$esSeleccionado,
+                            'text-gray-700 hover:bg-gray-100'
+                            => $esMesActual &&
+                            !$esSeleccionado &&
+                            !$esHoy,
 
-                                    'text-gray-700 hover:bg-gray-100'
-                                        => $esMesActual &&
-                                           !$esSeleccionado &&
-                                           !$esHoy,
-
-                                    'text-gray-300 hover:bg-gray-50'
-                                        => !$esMesActual &&
-                                           !$esSeleccionado,
-                                ])
+                            'text-gray-300 hover:bg-gray-50'
+                            => !$esMesActual &&
+                            !$esSeleccionado,
+                            ])
                             >
-                                <span>
-                                    {{ $dia->day }}
-                                </span>
+                            <span>
+                                {{ $dia->day }}
+                            </span>
 
-                                @if ($totalDia > 0)
-                                    <span
-                                        @class([
-                                            'absolute bottom-1 h-1.5 w-1.5 rounded-full',
-                                            'bg-white' => $esSeleccionado,
-                                            'bg-emerald-500' => !$esSeleccionado,
-                                        ])
-                                    ></span>
-                                @endif
-                            </a>
+                            @if ($totalDia > 0)
+                            <span
+                                @class([ 'absolute bottom-1 h-1.5 w-1.5 rounded-full' , 'bg-white'=> $esSeleccionado,
+                                'bg-emerald-500' => !$esSeleccionado,
+                                ])
+                                ></span>
+                            @endif
+                        </a>
                         @endforeach
                     </div>
 
@@ -671,43 +810,42 @@
                     {{-- Próxima cita --}}
                     <div class="mt-5 rounded-xl bg-slate-50 p-4">
                         @if ($proximaCita)
-                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                                @if ($fechaSeleccionada->isToday())
-                                    Próxima cita
-                                @else
-                                    Primera cita activa
-                                @endif
-                            </p>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            @if ($fechaSeleccionada->isToday())
+                            Próxima cita
+                            @else
+                            Primera cita activa
+                            @endif
+                        </p>
 
-                            <div class="mt-3 flex items-center justify-between gap-3">
-                                <div class="min-w-0">
-                                    <p class="font-semibold text-gray-900">
-                                        {{ \Carbon\Carbon::parse($proximaCita->hora)->format('h:i A') }}
-                                    </p>
+                        <div class="mt-3 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-gray-900">
+                                    {{ \Carbon\Carbon::parse($proximaCita->hora)->format('h:i A') }}
+                                </p>
 
-                                    <p class="mt-1 truncate text-sm text-gray-500">
-                                        {{ trim(
+                                <p class="mt-1 truncate text-sm text-gray-500">
+                                    {{ trim(
                                             ($proximaCita->paciente?->nombre ?? '') . ' ' .
                                             ($proximaCita->paciente?->apellido ?? '')
                                         ) ?: 'Paciente no disponible' }}
-                                    </p>
-                                </div>
-
-                                <a
-                                    href="{{ route('citas.show', $proximaCita) }}"
-                                    class="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#0D3B7F] shadow-sm transition hover:bg-[#0D3B7F] hover:text-white"
-                                >
-                                    Ver
-                                </a>
+                                </p>
                             </div>
-                        @else
-                            <p class="text-sm font-semibold text-gray-900">
-                                Sin citas activas
-                            </p>
 
-                            <p class="mt-1 text-sm text-gray-500">
-                                No hay consultas pendientes para esta selección.
-                            </p>
+                            <a
+                                href="{{ route('citas.show', $proximaCita) }}"
+                                class="shrink-0 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#0D3B7F] shadow-sm transition hover:bg-[#0D3B7F] hover:text-white">
+                                Ver
+                            </a>
+                        </div>
+                        @else
+                        <p class="text-sm font-semibold text-gray-900">
+                            Sin citas activas
+                        </p>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            No hay consultas pendientes para esta selección.
+                        </p>
                         @endif
                     </div>
                 </aside>
@@ -728,8 +866,7 @@
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <a
                         href="{{ route('pacientes.create') }}"
-                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
+                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-xl text-violet-600">
                             +
                         </div>
@@ -747,8 +884,7 @@
 
                     <a
                         href="{{ route('citas.create') }}"
-                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
+                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-xl text-emerald-600">
                             +
                         </div>
@@ -766,8 +902,7 @@
 
                     <a
                         href="{{ route('pacientes.index') }}"
-                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                    >
+                        class="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
                         <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-xl text-blue-600">
                             ≡
                         </div>
