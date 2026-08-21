@@ -18,6 +18,7 @@ class Citas extends Model
         'medico_id',
         'fecha',
         'hora',
+        'duracion_minutos',
         'modalidad',
         'google_event_id',
         'google_meet_url',
@@ -34,6 +35,7 @@ class Citas extends Model
     {
         return [
             'fecha' => 'date',
+            'duracion_minutos' => 'integer',
             'meet_generado_at' => 'datetime',
         ];
     }
@@ -50,7 +52,11 @@ class Citas extends Model
                     $this->fecha->format('Y-m-d') . ' ' . $this->hora
                 );
 
-                $fin = $inicio->copy()->addMinutes(15);
+                $fin = $inicio
+                    ->copy()
+                    ->addMinutes(
+                        $this->duracion_minutos ?? 15
+                    );
                 $ahora = now();
 
                 if ($ahora->lt($inicio)) {
@@ -66,23 +72,47 @@ class Citas extends Model
         );
     }
 
-    protected function motivoTexto(): Attribute
+    /**
+     * Fecha y hora exactas en las que termina la cita.
+     */
+    protected function horaFin(): Attribute
     {
         return Attribute::make(
-            get: fn(): string => match ($this->motivo) {
-                'consulta_inicial' =>
-                'Consulta inicial',
+            get: function (): Carbon {
+                $inicio = Carbon::parse(
+                    $this->fecha->format('Y-m-d')
+                        . ' '
+                        . $this->hora
+                );
 
-                'consulta_subsecuente' =>
-                'Consulta subsecuente',
+                return $inicio->addMinutes(
+                    $this->duracion_minutos ?? 15
+                );
+            }
+        );
+    }
 
-                'consulta_emergencia' =>
-                'Consulta de emergencia',
+    /**
+     * Nombre visible de la modalidad de atención.
+     */
+    protected function modalidadTexto(): Attribute
+    {
+        return Attribute::make(
+            get: fn(): string => match ($this->modalidad) {
+                'presencial' =>
+                'Consultorio u oficina',
+
+                'telefonica' =>
+                'Telefónica',
+
+                'videoconsulta' =>
+                'Videollamada',
+
+                'fuera_instalaciones' =>
+                'Fuera de las instalaciones',
 
                 default =>
-                filled($this->motivo)
-                    ? $this->motivo
-                    : 'Sin especificar',
+                'Sin especificar',
             }
         );
     }

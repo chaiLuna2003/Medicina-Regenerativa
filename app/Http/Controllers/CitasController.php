@@ -104,7 +104,9 @@ class CitasController extends Controller
                     $request->input('modalidad'),
                     [
                         'presencial',
+                        'telefonica',
                         'videoconsulta',
+                        'fuera_instalaciones',
                     ],
                     true
                 ),
@@ -216,11 +218,28 @@ class CitasController extends Controller
                 'date_format:H:i',
             ],
 
+            'duracion_minutos' => [
+                'required',
+                'integer',
+                Rule::in([
+                    15,
+                    30,
+                    45,
+                    60,
+                    75,
+                    90,
+                    105,
+                    120,
+                ]),
+            ],
+
             'modalidad' => [
                 'required',
                 Rule::in([
                     'presencial',
+                    'telefonica',
                     'videoconsulta',
+                    'fuera_instalaciones',
                 ]),
             ],
 
@@ -268,15 +287,17 @@ class CitasController extends Controller
         }
 
         /*
-     * La modalidad no modifica la comprobación
-     * de horarios. Una cita presencial y una
-     * videoconsulta ocupan igualmente al médico.
-     */
+        * La modalidad no modifica la comprobación
+        * de disponibilidad. Cualquier tipo de atención
+        * ocupa al médico durante toda la duración
+        * seleccionada para la cita.
+        */
         $this->validarHorarioDisponible(
             (int) $datos['medico_id'],
             (int) $datos['paciente_id'],
             $datos['fecha'],
-            $datos['hora']
+            $datos['hora'],
+            (int) $datos['duracion_minutos']
         );
 
         $datos['created_by'] =
@@ -619,20 +640,49 @@ class CitasController extends Controller
                 'date_format:H:i',
             ],
 
+            'duracion_minutos' => [
+                'required',
+                'integer',
+                Rule::in([
+                    15,
+                    30,
+                    45,
+                    60,
+                    75,
+                    90,
+                    105,
+                    120,
+                ]),
+            ],
+
             'modalidad' => [
                 'required',
                 Rule::in([
                     'presencial',
+                    'telefonica',
                     'videoconsulta',
+                    'fuera_instalaciones',
                 ]),
             ],
 
             'motivo' => [
                 'required',
                 'string',
-                'max:255',
+
                 Rule::in(
-                    $motivosPermitidos
+                    array_values(
+                        array_unique([
+                            'consulta_inicial',
+                            'consulta_subsecuente',
+                            'consulta_emergencia',
+
+                            /*
+                 * Permite conservar el motivo histórico
+                 * que ya pertenece a esta cita.
+                 */
+                            $cita->motivo,
+                        ])
+                    )
                 ),
             ],
 
@@ -706,14 +756,20 @@ class CitasController extends Controller
         $horarioFueModificado =
             (int) $cita->paciente_id
             !== (int) $datos['paciente_id']
+
             || (int) $cita->medico_id
             !== (int) $datos['medico_id']
+
             || $cita->fecha->format('Y-m-d')
             !== $datos['fecha']
+
             || Carbon::parse(
                 $cita->hora
             )->format('H:i')
-            !== $datos['hora'];
+            !== $datos['hora']
+
+            || (int) $cita->duracion_minutos
+            !== (int) $datos['duracion_minutos'];
 
         $seEstaReactivando =
             $cita->estado === 'cancelada'
@@ -731,6 +787,7 @@ class CitasController extends Controller
                 (int) $datos['paciente_id'],
                 $datos['fecha'],
                 $datos['hora'],
+                (int) $datos['duracion_minutos'],
                 $cita->id
             );
         }
@@ -762,7 +819,7 @@ class CitasController extends Controller
          */
             if (
                 $modalidadAnterior === 'videoconsulta'
-                && $datos['modalidad'] === 'presencial'
+                && $datos['modalidad'] !== 'videoconsulta'
             ) {
                 $googleCalendar
                     ->cancelarVideoconsulta(
@@ -980,73 +1037,201 @@ class CitasController extends Controller
 
         return response()->json($pacientes);
     }
-    public function horariosDisponibles(Request $request): JsonResponse
-    {
+
+    public function horariosDisponibles(
+        Request $request
+    ): JsonResponse {
         $datos = $request->validate([
-            'medico_id' => ['required', 'integer', 'exists:medicos,id'],
-            'fecha' => ['required', 'date'],
-            'ignorar_cita' => ['nullable', 'integer', 'exists:citas,id'],
+            'medico_id' => [
+                'required',
+                'integer',
+                'exists:medicos,id',
+            ],
+
+            'fecha' => [
+                'required',
+                'date',
+            ],
+
+            'ignorar_cita' => [
+                'nullable',
+                'integer',
+                'exists:citas,id',
+            ],
         ]);
 
-        $medicoAutenticado = $this->medicoAutenticado();
+        $medicoAutenticado =
+            $this->medicoAutenticado();
 
         if (
             $medicoAutenticado !== null
-            && (int) $datos['medico_id'] !== (int) $medicoAutenticado->id
+            && (int) $datos['medico_id']
+            !== (int) $medicoAutenticado->id
         ) {
-            abort(403, 'No puedes consultar la agenda de otro médico.');
+            abort(
+                403,
+                'No puedes consultar la agenda '
+                    . 'de otro médico.'
+            );
         }
 
-        if (! empty($datos['ignorar_cita'])) {
-            $citaIgnorada = Citas::query()->findOrFail($datos['ignorar_cita']);
-            $this->autorizarAccesoMedico($citaIgnorada);
+        if (!empty($datos['ignorar_cita'])) {
+            $citaIgnorada = Citas::query()
+                ->findOrFail(
+                    $datos['ignorar_cita']
+                );
+
+            $this->autorizarAccesoMedico(
+                $citaIgnorada
+            );
         }
 
-        $fecha = Carbon::parse($datos['fecha'])->startOfDay();
+        $fecha = Carbon::parse(
+            $datos['fecha']
+        )->startOfDay();
+
         $ahora = now();
 
+        /*
+     * Obtenemos la hora y duración de todas
+     * las citas activas del médico.
+     */
         $citasOcupadas = Citas::query()
-            ->where('medico_id', $datos['medico_id'])
-            ->whereDate('fecha', $fecha->format('Y-m-d'))
-            ->where('estado', '!=', 'cancelada')
-            ->when(
-                ! empty($datos['ignorar_cita']),
-                fn($query) => $query->whereKeyNot($datos['ignorar_cita'])
+            ->where(
+                'medico_id',
+                $datos['medico_id']
             )
-            ->pluck('hora')
-            ->map(fn($hora) => Carbon::parse($hora)->format('H:i'))
-            ->all();
+            ->whereDate(
+                'fecha',
+                $fecha->format('Y-m-d')
+            )
+            ->where(
+                'estado',
+                '!=',
+                'cancelada'
+            )
+            ->when(
+                !empty($datos['ignorar_cita']),
+                fn($query) =>
+                $query->whereKeyNot(
+                    $datos['ignorar_cita']
+                )
+            )
+            ->get([
+                'id',
+                'hora',
+                'duracion_minutos',
+            ]);
 
         $inicio = Carbon::parse(
-            $fecha->format('Y-m-d') . ' ' . self::HORA_APERTURA
+            $fecha->format('Y-m-d')
+                . ' '
+                . self::HORA_APERTURA
         );
 
         $cierre = Carbon::parse(
-            $fecha->format('Y-m-d') . ' ' . self::HORA_CIERRE
+            $fecha->format('Y-m-d')
+                . ' '
+                . self::HORA_CIERRE
         );
 
         $horarios = [];
 
-        while ($inicio->copy()->addMinutes(self::DURACION_CITA)->lte($cierre)) {
-            $hora = $inicio->format('H:i');
-            $ocupado = in_array($hora, $citasOcupadas, true);
-            $yaPaso = $fecha->isToday() && $inicio->lte($ahora);
-            $fechaPasada = $fecha->isBefore($ahora->copy()->startOfDay());
+        while (
+            $inicio
+            ->copy()
+            ->addMinutes(
+                self::DURACION_CITA
+            )
+            ->lte($cierre)
+        ) {
+            $inicioBloque =
+                $inicio->copy();
+
+            $finBloque = $inicioBloque
+                ->copy()
+                ->addMinutes(
+                    self::DURACION_CITA
+                );
+
+            /*
+         * Un bloque está ocupado cuando se cruza
+         * con cualquier parte de una cita existente.
+         */
+            $ocupado = $citasOcupadas
+                ->contains(
+                    function (
+                        Citas $cita
+                    ) use (
+                        $fecha,
+                        $inicioBloque,
+                        $finBloque
+                    ) {
+                        $inicioCita = Carbon::parse(
+                            $fecha->format('Y-m-d')
+                                . ' '
+                                . $cita->hora
+                        );
+
+                        $finCita = $inicioCita
+                            ->copy()
+                            ->addMinutes(
+                                $cita->duracion_minutos
+                                    ?? 15
+                            );
+
+                        return $inicioCita
+                            ->lt($finBloque)
+                            && $finCita
+                            ->gt($inicioBloque);
+                    }
+                );
+
+            $yaPaso =
+                $fecha->isToday()
+                && $inicioBloque->lte($ahora);
+
+            $fechaPasada =
+                $fecha->isBefore(
+                    $ahora
+                        ->copy()
+                        ->startOfDay()
+                );
 
             $horarios[] = [
-                'hora' => $hora,
-                'texto' => $inicio->format('h:i A'),
-                'disponible' => ! $ocupado && ! $yaPaso && ! $fechaPasada,
-                'ocupado' => $ocupado,
+                'hora' =>
+                $inicioBloque->format('H:i'),
+
+                'texto' =>
+                $inicioBloque->format('h:i A'),
+
+                'disponible' =>
+                !$ocupado
+                    && !$yaPaso
+                    && !$fechaPasada,
+
+                'ocupado' =>
+                $ocupado,
             ];
 
-            $inicio->addMinutes(self::DURACION_CITA);
+            $inicio->addMinutes(
+                self::DURACION_CITA
+            );
         }
 
         return response()->json([
-            'horarios' => $horarios,
-            'primer_disponible' => collect($horarios)
-                ->firstWhere('disponible', true)['hora'] ?? null,
+            'horarios' =>
+            $horarios,
+
+            'primer_disponible' =>
+            collect($horarios)
+                ->firstWhere(
+                    'disponible',
+                    true
+                )['hora'] ?? null,
+
+            'hora_cierre' =>
+            $cierre->format('H:i'),
         ]);
     }
 
@@ -1055,12 +1240,45 @@ class CitasController extends Controller
         int $pacienteId,
         string $fecha,
         string $hora,
+        int $duracionMinutos,
         ?int $ignorarCitaId = null
     ): void {
+        /*
+     * Validación defensiva de duración.
+     */
+        $duracionesPermitidas = [
+            15,
+            30,
+            45,
+            60,
+            75,
+            90,
+            105,
+            120,
+        ];
+
+        if (
+            !in_array(
+                $duracionMinutos,
+                $duracionesPermitidas,
+                true
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'duracion_minutos' =>
+                'Selecciona una duración válida '
+                    . 'en intervalos de 15 minutos.',
+            ]);
+        }
+
         $inicio = Carbon::createFromFormat(
             'Y-m-d H:i',
             $fecha . ' ' . $hora
         );
+
+        $fin = $inicio
+            ->copy()
+            ->addMinutes($duracionMinutos);
 
         $apertura = Carbon::createFromFormat(
             'Y-m-d H:i',
@@ -1072,59 +1290,139 @@ class CitasController extends Controller
             $fecha . ' ' . self::HORA_CIERRE
         );
 
-        $minutosDesdeApertura = (int) $apertura->diffInMinutes($inicio, false);
+        $minutosDesdeApertura = (int) $apertura
+            ->diffInMinutes(
+                $inicio,
+                false
+            );
 
+        /*
+     * La cita debe iniciar en un bloque de 15 minutos
+     * y terminar antes o exactamente al cierre.
+     */
         $esBloqueValido =
             $inicio->gte($apertura)
-            && $inicio->copy()->addMinutes(self::DURACION_CITA)->lte($cierre)
-            && $minutosDesdeApertura % self::DURACION_CITA === 0;
+            && $fin->lte($cierre)
+            && $minutosDesdeApertura >= 0
+            && $minutosDesdeApertura
+            % self::DURACION_CITA === 0;
 
-        if (! $esBloqueValido) {
+        if (!$esBloqueValido) {
             throw ValidationException::withMessages([
-                'hora' => 'Selecciona un horario válido de 15 minutos entre las 09:00 AM y las 08:45 PM.',
+                'hora' =>
+                'La cita debe comenzar en un intervalo '
+                    . 'de 15 minutos y finalizar antes '
+                    . 'de las 09:00 PM.',
             ]);
         }
 
         if ($inicio->lte(now())) {
             throw ValidationException::withMessages([
-                'hora' => 'No puedes registrar una cita en un horario que ya pasó.',
+                'hora' =>
+                'No puedes registrar una cita '
+                    . 'en un horario que ya pasó.',
             ]);
         }
 
-        $horarioOcupado = Citas::query()
+        /*
+     * Detectamos cualquier traslape con las citas
+     * existentes del médico.
+     */
+        $citasDelMedico = Citas::query()
             ->where('medico_id', $medicoId)
             ->whereDate('fecha', $fecha)
-            ->whereTime('hora', $hora)
-            ->where('estado', '!=', 'cancelada')
-            ->when(
-                $ignorarCitaId,
-                fn($query) => $query->whereKeyNot($ignorarCitaId)
-            )
-            ->exists();
-
-        if ($horarioOcupado) {
-            throw ValidationException::withMessages([
-                'hora' => 'Ese horario acaba de ser ocupado. Selecciona otro espacio disponible.',
-            ]);
-        }
-
-        $pacienteOcupado = Citas::query()
-            ->where('paciente_id', $pacienteId)
-            ->whereDate('fecha', $fecha)
-            ->whereTime('hora', $hora)
             ->where('estado', '!=', 'cancelada')
             ->when(
                 $ignorarCitaId !== null,
                 fn($query) =>
                 $query->whereKeyNot($ignorarCitaId)
             )
-            ->exists();
+            ->get([
+                'id',
+                'hora',
+                'duracion_minutos',
+            ]);
+
+        $medicoOcupado = $citasDelMedico
+            ->contains(function (Citas $citaExistente) use (
+                $fecha,
+                $inicio,
+                $fin
+            ) {
+                $inicioExistente = Carbon::parse(
+                    $fecha . ' ' . $citaExistente->hora
+                );
+
+                $finExistente = $inicioExistente
+                    ->copy()
+                    ->addMinutes(
+                        $citaExistente->duracion_minutos
+                            ?? 15
+                    );
+
+                /*
+             * Existe traslape cuando:
+             *
+             * inicio existente < fin nuevo
+             * y fin existente > inicio nuevo.
+             */
+                return $inicioExistente->lt($fin)
+                    && $finExistente->gt($inicio);
+            });
+
+        if ($medicoOcupado) {
+            throw ValidationException::withMessages([
+                'hora' =>
+                'El médico ya tiene una cita que '
+                    . 'se cruza con el horario seleccionado.',
+            ]);
+        }
+
+        /*
+     * El paciente tampoco puede tener dos citas
+     * que se traslapen, aunque sean con médicos distintos.
+     */
+        $citasDelPaciente = Citas::query()
+            ->where('paciente_id', $pacienteId)
+            ->whereDate('fecha', $fecha)
+            ->where('estado', '!=', 'cancelada')
+            ->when(
+                $ignorarCitaId !== null,
+                fn($query) =>
+                $query->whereKeyNot($ignorarCitaId)
+            )
+            ->get([
+                'id',
+                'hora',
+                'duracion_minutos',
+            ]);
+
+        $pacienteOcupado = $citasDelPaciente
+            ->contains(function (Citas $citaExistente) use (
+                $fecha,
+                $inicio,
+                $fin
+            ) {
+                $inicioExistente = Carbon::parse(
+                    $fecha . ' ' . $citaExistente->hora
+                );
+
+                $finExistente = $inicioExistente
+                    ->copy()
+                    ->addMinutes(
+                        $citaExistente->duracion_minutos
+                            ?? 15
+                    );
+
+                return $inicioExistente->lt($fin)
+                    && $finExistente->gt($inicio);
+            });
 
         if ($pacienteOcupado) {
             throw ValidationException::withMessages([
                 'hora' =>
-                'El paciente seleccionado ya tiene '
-                    . 'otra cita programada en ese horario.',
+                'El paciente ya tiene otra cita que '
+                    . 'se cruza con el horario seleccionado.',
             ]);
         }
     }

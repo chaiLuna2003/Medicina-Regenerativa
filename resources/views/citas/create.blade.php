@@ -223,11 +223,90 @@
                                 </label>
                             </div>
 
-                            @error('modalidad')
-                            <p class="mt-2 text-sm text-red-600">
-                                {{ $message }}
-                            </p>
-                            @enderror
+                            {{-- Tipo de atención --}}
+                            <div class="md:col-span-2">
+                                <fieldset>
+                                    <legend class="mb-3 text-sm font-semibold text-gray-700">
+                                        Tipo de atención
+                                        <span class="text-red-500">*</span>
+                                    </legend>
+
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        @php
+                                        $modalidades = [
+                                        'presencial' => [
+                                        'titulo' => 'Consultorio u oficina',
+                                        'descripcion' =>
+                                        'Atención presencial dentro de las instalaciones.',
+                                        'icono' => '🏥',
+                                        ],
+
+                                        'telefonica' => [
+                                        'titulo' => 'Telefónica',
+                                        'descripcion' =>
+                                        'Consulta realizada mediante llamada telefónica.',
+                                        'icono' => '📞',
+                                        ],
+
+                                        'videoconsulta' => [
+                                        'titulo' => 'Videollamada',
+                                        'descripcion' =>
+                                        'Se generará automáticamente un enlace de Google Meet.',
+                                        'icono' => '💻',
+                                        ],
+
+                                        'fuera_instalaciones' => [
+                                        'titulo' => 'Fuera de las instalaciones',
+                                        'descripcion' =>
+                                        'Atención presencial fuera del consultorio.',
+                                        'icono' => '📍',
+                                        ],
+                                        ];
+                                        @endphp
+
+                                        @foreach ($modalidades as $valor => $modalidad)
+                                        <label
+                                            class="cursor-pointer rounded-2xl border
+                           border-gray-300 bg-white p-4 transition
+                           hover:border-[#0D3B7F]
+                           hover:bg-blue-50">
+                                            <div class="flex items-start gap-3">
+                                                <input
+                                                    type="radio"
+                                                    name="modalidad"
+                                                    value="{{ $valor }}"
+                                                    class="mt-1 text-[#0D3B7F]
+                                   focus:ring-[#0D3B7F]"
+                                                    @checked(
+                                                    old( 'modalidad' , 'presencial'
+                                                    )===$valor
+                                                    )>
+
+                                                <div class="min-w-0">
+                                                    <div class="flex items-center gap-2">
+                                                        <span>{{ $modalidad['icono'] }}</span>
+
+                                                        <p class="font-semibold text-gray-900">
+                                                            {{ $modalidad['titulo'] }}
+                                                        </p>
+                                                    </div>
+
+                                                    <p class="mt-1 text-sm text-gray-500">
+                                                        {{ $modalidad['descripcion'] }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        @endforeach
+                                    </div>
+
+                                    @error('modalidad')
+                                    <p class="mt-2 text-sm text-red-600">
+                                        {{ $message }}
+                                    </p>
+                                    @enderror
+                                </fieldset>
+                            </div>
                         </fieldset>
                     </div>
 
@@ -315,9 +394,9 @@
                             disabled
                             data-valor-anterior="{{ old('hora') }}"
                             class="block w-full rounded-xl border-gray-300 bg-white
-               text-gray-900 shadow-sm
-               focus:border-blue-500 focus:ring-blue-500
-               disabled:cursor-not-allowed disabled:bg-gray-100">
+                            text-gray-900 shadow-sm
+                            focus:border-blue-500 focus:ring-blue-500
+                              disabled:cursor-not-allowed disabled:bg-gray-100">
                             <option value="">
                                 Selecciona primero médico y fecha
                             </option>
@@ -334,87 +413,118 @@
                         @enderror
                     </div>
 
-                    {{-- Motivo --}}
-                    <div class="md:col-span-2">
+                    {{-- Hora de finalización --}}
+                    {{-- Hora de finalización --}}
+                    <div>
                         <label
-                            for="motivo"
+                            for="duracion_minutos"
                             class="mb-2 block text-sm font-semibold text-gray-700">
-                            Motivo de la cita
+                            Finaliza la cita
                             <span class="text-red-500">*</span>
                         </label>
 
-                        <div class="relative">
-                            {{-- Icono --}}
-                            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <svg
-                                    class="h-5 w-5 text-blue-500"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke-width="1.8"
-                                    stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        d="M8.25 6.75h7.5M8.25 10.5h7.5m-7.5 3.75h3M6.75 3.75h10.5A2.25 2.25 0 0 1 19.5 6v12A2.25 2.25 0 0 1 17.25 20.25H6.75A2.25 2.25 0 0 1 4.5 18V6a2.25 2.25 0 0 1 2.25-2.25Z" />
-                                </svg>
-                            </div>
+                        <select
+                            id="duracion_minutos"
+                            name="duracion_minutos"
+                            required
+                            disabled
+                            data-valor-anterior="{{ old(
+            'duracion_minutos',
+            15
+        ) }}"
+                            class="block w-full rounded-xl
+               border-gray-300 bg-white
+               text-gray-900 shadow-sm
+               focus:border-blue-500
+               focus:ring-blue-500
+               disabled:cursor-not-allowed
+               disabled:bg-gray-100">
+                            <option value="">
+                                Selecciona primero la hora de inicio
+                            </option>
+                        </select>
 
-                            <select
-    id="motivo"
-    name="motivo"
-    required
-    class="block w-full rounded-xl border border-gray-300
-           bg-white py-3 pl-12 pr-10 text-sm font-medium text-gray-900
-           shadow-sm transition duration-200
-           hover:border-blue-400
-           focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20">
+                        <p
+                            id="mensaje_duracion"
+                            class="mt-2 text-sm text-gray-500">
+                            La duración puede ser de 15 minutos hasta 2 horas.
+                        </p>
 
-                                <option value="" disabled @selected(old('motivo')===null)>
-                                    Selecciona el motivo de la cita
-                                </option>
-
-                                <option
-                                    value="consulta_inicial"
-                                    @selected(old('motivo')==='consulta_inicial' )>
-                                    Consulta inicial
-                                </option>
-
-                                <option
-                                    value="consulta_subsecuente"
-                                    @selected(old('motivo')==='consulta_subsecuente' )>
-                                    Consulta subsecuente
-                                </option>
-
-                                <option
-                                    value="consulta_emergencia"
-                                    @selected(old('motivo')==='consulta_emergencia' )>
-                                    Consulta de emergencia
-                                </option>
-                            </select>
-
-                            {{-- Flecha personalizada --}}
-                            
-                        </div>
-
-                        <div class="mt-3 flex flex-wrap gap-2 text-xs">
-                            <span class="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
-                                Inicial
-                            </span>
-
-                            <span class="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
-                                Subsecuente
-                            </span>
-
-                            <span class="rounded-full bg-red-50 px-3 py-1 font-medium text-red-700">
-                                Emergencia
-                            </span>
-                        </div>
-
-                        @error('motivo')
-                        <p class="mt-2 text-sm font-medium text-red-600">
+                        @error('duracion_minutos')
+                        <p class="mt-2 text-sm text-red-600">
                             {{ $message }}
                         </p>
                         @enderror
+                    </div>
+
+                    {{-- Motivo de la cita --}}
+                    <div class="md:col-span-2">
+                        <fieldset>
+                            <legend class="mb-3 text-sm font-semibold text-gray-700">
+                                Motivo de la cita
+                                <span class="text-red-500">*</span>
+                            </legend>
+
+                            @php
+                            $motivosCita = [
+                            'consulta_inicial' => [
+                            'titulo' => 'Consulta inicial',
+                            'descripcion' =>
+                            'Primera valoración del paciente.',
+                            ],
+
+                            'consulta_subsecuente' => [
+                            'titulo' => 'Consulta subsecuente',
+                            'descripcion' =>
+                            'Seguimiento de una consulta anterior.',
+                            ],
+
+                            'consulta_emergencia' => [
+                            'titulo' => 'Consulta de emergencia',
+                            'descripcion' =>
+                            'Atención prioritaria o urgente.',
+                            ],
+                            ];
+                            @endphp
+
+                            <div class="grid gap-4 sm:grid-cols-3">
+                                @foreach ($motivosCita as $valor => $motivoCita)
+                                <label
+                                    class="cursor-pointer rounded-2xl border
+                           border-gray-300 bg-white p-4 transition
+                           hover:border-[#0D3B7F]
+                           hover:bg-blue-50">
+                                    <div class="flex items-start gap-3">
+                                        <input
+                                            type="radio"
+                                            name="motivo"
+                                            value="{{ $valor }}"
+                                            class="mt-1 text-[#0D3B7F]
+                                   focus:ring-[#0D3B7F]"
+                                            @checked(
+                                            old('motivo')===$valor
+                                            )>
+
+                                        <div>
+                                            <p class="font-semibold text-gray-900">
+                                                {{ $motivoCita['titulo'] }}
+                                            </p>
+
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                {{ $motivoCita['descripcion'] }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </label>
+                                @endforeach
+                            </div>
+
+                            @error('motivo')
+                            <p class="mt-2 text-sm text-red-600">
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </fieldset>
                     </div>
 
                     {{-- Estado --}}
@@ -494,9 +604,8 @@
             </form>
         </div>
     </div>
-</x-app-layout>
 
-<script>
+    <script>
     document.addEventListener('DOMContentLoaded', () => {
         const buscador = document.getElementById('buscar_paciente');
         const pacienteId = document.getElementById('paciente_id');
@@ -511,6 +620,17 @@
         const medico = document.getElementById('medico_id');
         const fecha = document.getElementById('fecha');
         const hora = document.getElementById('hora');
+        const duracion =
+            document.getElementById(
+                'duracion_minutos'
+            );
+
+        const mensajeDuracion =
+            document.getElementById(
+                'mensaje_duracion'
+            );
+
+        let bloquesHorarios = [];
         const mensajeHorarios = document.getElementById('mensaje_horarios');
 
         let solicitudHorarios;
@@ -671,9 +791,181 @@
             }
         });
 
+        function formatearHoraFinal(
+            horaInicio,
+            duracionMinutos
+        ) {
+            const [horas, minutos] =
+            horaInicio
+                .split(':')
+                .map(Number);
+
+            const fechaHora = new Date();
+
+            fechaHora.setHours(
+                horas,
+                minutos + duracionMinutos,
+                0,
+                0
+            );
+
+            return fechaHora.toLocaleTimeString(
+                'es-MX', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                }
+            );
+        }
+
+        function generarOpcionesDuracion() {
+            duracion.innerHTML = '';
+
+            if (
+                !hora.value ||
+                bloquesHorarios.length === 0
+            ) {
+                duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">' +
+                    'Selecciona primero la hora de inicio' +
+                    '</option>';
+
+                mensajeDuracion.textContent =
+                    'La duración puede ser de ' +
+                    '15 minutos hasta 2 horas.';
+
+                return;
+            }
+
+            const indiceInicio =
+                bloquesHorarios.findIndex(
+                    bloque =>
+                    bloque.hora === hora.value
+                );
+
+            if (indiceInicio === -1) {
+                duracion.disabled = true;
+                return;
+            }
+
+            const valorAnterior =
+                Number(
+                    duracion.dataset.valorAnterior ||
+                    15
+                );
+
+            const duracionesPermitidas = [
+                15,
+                30,
+                45,
+                60,
+                75,
+                90,
+                105,
+                120,
+            ];
+
+            let primeraOpcion = null;
+
+            duracionesPermitidas.forEach(
+                duracionMinutos => {
+                    const bloquesNecesarios =
+                        duracionMinutos / 15;
+
+                    const bloquesRequeridos =
+                        bloquesHorarios.slice(
+                            indiceInicio,
+                            indiceInicio +
+                            bloquesNecesarios
+                        );
+
+                    /*
+                     * La duración solamente está disponible
+                     * si existen todos los bloques necesarios
+                     * y ninguno se encuentra ocupado.
+                     */
+                    const estaDisponible =
+                        bloquesRequeridos.length ===
+                        bloquesNecesarios &&
+                        bloquesRequeridos.every(
+                            bloque =>
+                            bloque.disponible
+                        );
+
+                    if (!estaDisponible) {
+                        return;
+                    }
+
+                    const opcion =
+                        document.createElement(
+                            'option'
+                        );
+
+                    opcion.value =
+                        String(duracionMinutos);
+
+                    const horaFinal =
+                        formatearHoraFinal(
+                            hora.value,
+                            duracionMinutos
+                        );
+
+                    opcion.textContent =
+                        `${horaFinal} — ` +
+                        `${duracionMinutos} minutos`;
+
+                    if (
+                        duracionMinutos ===
+                        valorAnterior
+                    ) {
+                        opcion.selected = true;
+                    }
+
+                    primeraOpcion ??= opcion;
+
+                    duracion.appendChild(opcion);
+                }
+            );
+
+            if (duracion.options.length === 0) {
+                duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">' +
+                    'No hay una duración disponible' +
+                    '</option>';
+
+                mensajeDuracion.textContent =
+                    'El siguiente horario ya está ocupado.';
+
+                return;
+            }
+
+            /*
+             * Si la duración anterior ya no está disponible,
+             * seleccionamos la primera opción válida.
+             */
+            if (!duracion.value && primeraOpcion) {
+                primeraOpcion.selected = true;
+            }
+
+            duracion.disabled = false;
+
+            mensajeDuracion.textContent =
+                'La cita terminará a las ' +
+                formatearHoraFinal(
+                    hora.value,
+                    Number(duracion.value)
+                ) +
+                '.';
+        }
+
         async function cargarHorarios() {
             if (!medico.value || !fecha.value) {
                 hora.disabled = true;
+            
                 hora.innerHTML =
                     '<option value="">Selecciona primero médico y fecha</option>';
 
@@ -717,6 +1009,8 @@
                 }
 
                 const datos = await respuesta.json();
+                bloquesHorarios =
+                    datos.horarios;
 
                 const horariosDisponibles = datos.horarios.filter(
                     (horarioDisponible) => horarioDisponible.disponible
@@ -781,6 +1075,27 @@
             }
         }
 
+        hora.addEventListener(
+            'change',
+            generarOpcionesDuracion
+        );
+
+        duracion.addEventListener(
+            'change',
+            () => {
+                duracion.dataset.valorAnterior =
+                    duracion.value;
+
+                mensajeDuracion.textContent =
+                    'La cita terminará a las ' +
+                    formatearHoraFinal(
+                        hora.value,
+                        Number(duracion.value)
+                    ) +
+                    '.';
+            }
+        );
+
         medico.addEventListener('change', () => {
             hora.dataset.valorAnterior = '';
             cargarHorarios();
@@ -792,6 +1107,9 @@
         });
 
         cargarHorarios();
+        
+        generarOpcionesDuracion();
 
     });
 </script>
+</x-app-layout>

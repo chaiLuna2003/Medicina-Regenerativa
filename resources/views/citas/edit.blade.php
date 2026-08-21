@@ -173,92 +173,102 @@
                     </div>
 
                     {{-- Modalidad de consulta --}}
-                    <div>
+                    {{-- Tipo de atención --}}
+                    <div class="md:col-span-2">
                         <fieldset>
                             <legend
-                                class="mb-3 text-sm font-semibold
-                   text-gray-700">
-                                Modalidad de la consulta
+                                class="mb-3 text-sm font-semibold text-gray-700">
+                                Tipo de atención
                                 <span class="text-red-500">*</span>
                             </legend>
 
+                            @php
+                            $modalidades = [
+                            'presencial' => [
+                            'titulo' =>
+                            'Consultorio u oficina',
+
+                            'descripcion' =>
+                            'Atención presencial dentro de las instalaciones.',
+
+                            'icono' => '🏥',
+                            ],
+
+                            'telefonica' => [
+                            'titulo' =>
+                            'Telefónica',
+
+                            'descripcion' =>
+                            'Consulta realizada mediante llamada telefónica.',
+
+                            'icono' => '📞',
+                            ],
+
+                            'videoconsulta' => [
+                            'titulo' =>
+                            'Videollamada',
+
+                            'descripcion' =>
+                            'Se utilizará una sala de Google Meet.',
+
+                            'icono' => '💻',
+                            ],
+
+                            'fuera_instalaciones' => [
+                            'titulo' =>
+                            'Fuera de las instalaciones',
+
+                            'descripcion' =>
+                            'Atención presencial fuera del consultorio.',
+
+                            'icono' => '📍',
+                            ],
+                            ];
+
+                            $modalidadSeleccionada = old(
+                            'modalidad',
+                            $cita->modalidad
+                            );
+                            @endphp
+
                             <div class="grid gap-4 sm:grid-cols-2">
-
-                                {{-- Presencial --}}
+                                @foreach ($modalidades as $valor => $modalidad)
                                 <label
                                     class="cursor-pointer rounded-2xl
-                       border border-gray-300 bg-white
-                       p-4 transition
-                       hover:border-[#0D3B7F]
-                       hover:bg-blue-50">
+                           border border-gray-300 bg-white
+                           p-4 transition
+                           hover:border-[#0D3B7F]
+                           hover:bg-blue-50">
                                     <div class="flex items-start gap-3">
                                         <input
                                             type="radio"
                                             name="modalidad"
-                                            value="presencial"
+                                            value="{{ $valor }}"
+                                            required
                                             class="mt-1 text-[#0D3B7F]
-                               focus:ring-[#0D3B7F]"
+                                   focus:ring-[#0D3B7F]"
                                             @checked(
-                                            old( 'modalidad' ,
-                                            $cita->modalidad
-                                        ) === 'presencial'
-                                        )
-                                        >
+                                            $modalidadSeleccionada===$valor
+                                            )>
 
-                                        <div>
-                                            <p
-                                                class="font-semibold
-                                   text-gray-900">
-                                                Consulta presencial
-                                            </p>
+                                        <div class="min-w-0">
+                                            <div class="flex items-center gap-2">
+                                                <span>
+                                                    {{ $modalidad['icono'] }}
+                                                </span>
 
-                                            <p
-                                                class="mt-1 text-sm
-                                   text-gray-500">
-                                                Atención dentro de las
-                                                instalaciones.
+                                                <p class="font-semibold text-gray-900">
+                                                    {{ $modalidad['titulo'] }}
+                                                </p>
+                                            </div>
+
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                {{ $modalidad['descripcion'] }}
                                             </p>
                                         </div>
                                     </div>
                                 </label>
-
-                                {{-- Videoconsulta --}}
-                                <label
-                                    class="cursor-pointer rounded-2xl
-                       border border-gray-300 bg-white
-                       p-4 transition
-                       hover:border-[#0D3B7F]
-                       hover:bg-blue-50">
-                                    <div class="flex items-start gap-3">
-                                        <input
-                                            type="radio"
-                                            name="modalidad"
-                                            value="videoconsulta"
-                                            class="mt-1 text-[#0D3B7F]
-                               focus:ring-[#0D3B7F]"
-                                            @checked(
-                                            old( 'modalidad' ,
-                                            $cita->modalidad
-                                        ) === 'videoconsulta'
-                                        )
-                                        >
-
-                                        <div>
-                                            <p
-                                                class="font-semibold
-                                   text-gray-900">
-                                                Videoconsulta
-                                            </p>
-
-                                            <p
-                                                class="mt-1 text-sm
-                                   text-gray-500">
-                                                Utiliza una sala de
-                                                Google Meet.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </label>
+                                @endforeach
                             </div>
 
                             @error('modalidad')
@@ -302,28 +312,93 @@
                         </div>
 
                         {{-- Hora --}}
+
                         <div>
                             <label
                                 for="hora"
                                 class="mb-2 block text-sm font-semibold text-gray-700">
-                                Hora <span class="text-red-500">*</span>
+                                Hora
+                                <span class="text-red-500">*</span>
                             </label>
 
-                            <input
+                            <select
                                 id="hora"
-                                type="time"
                                 name="hora"
                                 required
-                                value="{{ old(
-                                    'hora',
-                                    \Carbon\Carbon::parse($cita->hora)->format('H:i')
-                                ) }}"
-                                class="block w-full rounded-xl border-gray-300
-                                       text-gray-900 shadow-sm transition
-                                       focus:border-[#0D3B7F] focus:ring-[#0D3B7F]
-                                       @error('hora') border-red-400 @enderror">
+                                disabled
+                                data-valor-anterior="{{ old(
+            'hora',
+            \Carbon\Carbon::parse(
+                $cita->hora
+            )->format('H:i')
+        ) }}"
+                                class="block w-full rounded-xl
+               border-gray-300 bg-white
+               text-gray-900 shadow-sm transition
+               focus:border-[#0D3B7F]
+               focus:ring-[#0D3B7F]
+               disabled:cursor-not-allowed
+               disabled:bg-gray-100
+               @error('hora') border-red-400 @enderror">
+                                <option value="">
+                                    Consultando horarios disponibles...
+                                </option>
+                            </select>
+
+                            <p
+                                id="mensaje_horarios"
+                                class="mt-2 text-sm text-gray-500">
+                                El sistema mostrará bloques disponibles de 15 minutos.
+                            </p>
 
                             @error('hora')
+                            <p class="mt-2 text-sm text-red-600">
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </div>
+
+                        {{-- Hora de finalización --}}
+                        {{-- Hora de finalización --}}
+                        <div>
+                            <label
+                                for="duracion_minutos"
+                                class="mb-2 block text-sm font-semibold text-gray-700">
+                                Finaliza la cita
+                                <span class="text-red-500">*</span>
+                            </label>
+
+                            <select
+                                id="duracion_minutos"
+                                name="duracion_minutos"
+                                required
+                                disabled
+                                data-valor-anterior="{{ old(
+            'duracion_minutos',
+            $cita->duracion_minutos ?? 15
+        ) }}"
+                                class="block w-full rounded-xl
+               border-gray-300 bg-white
+               text-gray-900 shadow-sm
+               focus:border-[#0D3B7F]
+               focus:ring-[#0D3B7F]
+               disabled:cursor-not-allowed
+               disabled:bg-gray-100
+               @error('duracion_minutos')
+                   border-red-400
+               @enderror">
+                                <option value="">
+                                    Selecciona primero la hora de inicio
+                                </option>
+                            </select>
+
+                            <p
+                                id="mensaje_duracion"
+                                class="mt-2 text-sm text-gray-500">
+                                La duración puede ser de 15 minutos hasta 2 horas.
+                            </p>
+
+                            @error('duracion_minutos')
                             <p class="mt-2 text-sm text-red-600">
                                 {{ $message }}
                             </p>
@@ -395,89 +470,125 @@
                         </div>
                     </div>
 
-                    {{-- Motivo --}}
+                    {{-- Motivo de la cita --}}
                     @php
-                    $motivosPermitidos = [
-                    'consulta_inicial',
-                    'consulta_subsecuente',
-                    'consulta_emergencia',
+                    $motivosCita = [
+                    'consulta_inicial' => [
+                    'titulo' => 'Consulta inicial',
+                    'descripcion' =>
+                    'Primera valoración del paciente.',
+                    ],
+
+                    'consulta_subsecuente' => [
+                    'titulo' => 'Consulta subsecuente',
+                    'descripcion' =>
+                    'Seguimiento de una consulta anterior.',
+                    ],
+
+                    'consulta_emergencia' => [
+                    'titulo' => 'Consulta de emergencia',
+                    'descripcion' =>
+                    'Atención prioritaria o urgente.',
+                    ],
                     ];
 
-                    $motivoSeleccionado = old('motivo', $cita->motivo);
+                    $motivoSeleccionado = old(
+                    'motivo',
+                    $cita->motivo
+                    );
 
-                    $tieneMotivoHistorico = filled($cita->motivo)
-                    && !in_array(
+                    $tieneMotivoHistorico =
+                    filled($cita->motivo)
+                    && !array_key_exists(
                     $cita->motivo,
-                    $motivosPermitidos,
-                    true
+                    $motivosCita
                     );
                     @endphp
 
-                    <div>
-                        <label
-                            for="motivo"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Motivo de la cita
-                            <span class="text-red-500">*</span>
-                        </label>
+                    <div class="md:col-span-2">
+                        <fieldset>
+                            <legend
+                                class="mb-3 text-sm font-semibold
+                   text-gray-700">
+                                Motivo de la cita
+                                <span class="text-red-500">*</span>
+                            </legend>
 
-                        <select
-                            id="motivo"
-                            name="motivo"
-                            required
-                            class="block w-full rounded-xl border-gray-300
-               bg-white text-gray-900 shadow-sm transition
-               focus:border-[#0D3B7F] focus:ring-[#0D3B7F]
-               @error('motivo') border-red-400 @enderror">
-
-                            <option
-                                value=""
-                                disabled
-                                @selected(blank($motivoSeleccionado))>
-                                Selecciona el motivo de la cita
-                            </option>
-
+                            {{-- Motivo histórico --}}
                             @if ($tieneMotivoHistorico)
-                            <option
-                                value="{{ $cita->motivo }}"
-                                @selected($motivoSeleccionado===$cita->motivo)>
-                                {{ $cita->motivo }} — registro histórico
-                            </option>
+                            <label
+                                class="mb-4 flex cursor-pointer items-start
+               gap-3 rounded-2xl border
+               border-amber-300 bg-amber-50 p-4
+               transition hover:border-amber-400">
+                                <input
+                                    type="radio"
+                                    name="motivo"
+                                    value="{{ $cita->motivo }}"
+                                    required
+                                    class="mt-1 text-amber-600
+                   focus:ring-amber-600"
+                                    @checked(
+                                    $motivoSeleccionado===$cita->motivo
+                                )
+                                >
+
+                                <div>
+                                    <p class="font-semibold text-amber-900">
+                                        {{ $cita->motivo }}
+                                    </p>
+
+                                    <p class="mt-1 text-sm text-amber-700">
+                                        Este motivo pertenece a un registro
+                                        histórico. Puedes conservarlo o elegir
+                                        una categoría actual.
+                                    </p>
+                                </div>
+                            </label>
                             @endif
 
-                            <option
-                                value="consulta_inicial"
-                                @selected($motivoSeleccionado==='consulta_inicial' )>
-                                Consulta inicial
-                            </option>
+                            {{-- Motivos actuales --}}
+                            <div class="grid gap-4 sm:grid-cols-3">
+                                @foreach ($motivosCita as $valor => $motivoCita)
+                                <label
+                                    class="cursor-pointer rounded-2xl
+                           border border-gray-300 bg-white
+                           p-4 transition
+                           hover:border-[#0D3B7F]
+                           hover:bg-blue-50">
+                                    <div class="flex items-start gap-3">
+                                        <input
+                                            type="radio"
+                                            name="motivo"
+                                            value="{{ $valor }}"
+                                            required
+                                            class="mt-1 text-[#0D3B7F]
+                                   focus:ring-[#0D3B7F]"
+                                            @checked(
+                                            $motivoSeleccionado===$valor
+                                            )>
 
-                            <option
-                                value="consulta_subsecuente"
-                                @selected($motivoSeleccionado==='consulta_subsecuente' )>
-                                Consulta subsecuente
-                            </option>
+                                        <div class="min-w-0">
+                                            <p class="font-semibold text-gray-900">
+                                                {{ $motivoCita['titulo'] }}
+                                            </p>
 
-                            <option
-                                value="consulta_emergencia"
-                                @selected($motivoSeleccionado==='consulta_emergencia' )>
-                                Consulta de emergencia
-                            </option>
-                        </select>
+                                            <p class="mt-1 text-sm text-gray-500">
+                                                {{ $motivoCita['descripcion'] }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </label>
+                                @endforeach
+                            </div>
 
-                        @if ($tieneMotivoHistorico)
-                        <p class="mt-2 text-xs text-amber-700">
-                            Este motivo pertenece a un registro anterior.
-                            Puedes conservarlo o cambiarlo por una categoría nueva.
-                        </p>
-                        @endif
-
-                        @error('motivo')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
+                            @error('motivo')
+                            <p class="mt-2 text-sm text-red-600">
+                                {{ $message }}
+                            </p>
+                            @enderror
+                        </fieldset>
                     </div>
-
                     {{-- Notas --}}
                     <div>
                         <label
@@ -541,4 +652,465 @@
             </form>
         </div>
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const medico =
+            document.getElementById('medico_id');
+
+        const fecha =
+            document.getElementById('fecha');
+
+        const hora =
+            document.getElementById('hora');
+
+        const duracion =
+            document.getElementById(
+                'duracion_minutos'
+            );
+
+        const mensajeHorarios =
+            document.getElementById(
+                'mensaje_horarios'
+            );
+
+        const mensajeDuracion =
+            document.getElementById(
+                'mensaje_duracion'
+            );
+
+        let bloquesHorarios = [];
+        let solicitudHorarios;
+
+        /**
+         * Calcula y formatea la hora final.
+         */
+        function formatearHoraFinal(
+            horaInicio,
+            duracionMinutos
+        ) {
+            const [horas, minutos] =
+                horaInicio
+                    .split(':')
+                    .map(Number);
+
+            const fechaHora = new Date();
+
+            fechaHora.setHours(
+                horas,
+                minutos + duracionMinutos,
+                0,
+                0
+            );
+
+            return fechaHora.toLocaleTimeString(
+                'es-MX',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true,
+                }
+            );
+        }
+
+        /**
+         * Genera las duraciones que caben antes
+         * del siguiente bloque ocupado.
+         */
+        function generarOpcionesDuracion() {
+            duracion.innerHTML = '';
+
+            if (
+                !hora.value
+                || bloquesHorarios.length === 0
+            ) {
+                duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">'
+                    + 'Selecciona primero la hora de inicio'
+                    + '</option>';
+
+                mensajeDuracion.textContent =
+                    'La duración puede ser de '
+                    + '15 minutos hasta 2 horas.';
+
+                return;
+            }
+
+            const indiceInicio =
+                bloquesHorarios.findIndex(
+                    bloque =>
+                        bloque.hora === hora.value
+                );
+
+            if (indiceInicio === -1) {
+                duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">'
+                    + 'Horario de inicio no disponible'
+                    + '</option>';
+
+                return;
+            }
+
+            const valorAnterior =
+                Number(
+                    duracion.dataset.valorAnterior
+                    || 15
+                );
+
+            const duracionesPermitidas = [
+                15,
+                30,
+                45,
+                60,
+                75,
+                90,
+                105,
+                120,
+            ];
+
+            let primeraOpcion = null;
+
+            duracionesPermitidas.forEach(
+                duracionMinutos => {
+                    const bloquesNecesarios =
+                        duracionMinutos / 15;
+
+                    const bloquesRequeridos =
+                        bloquesHorarios.slice(
+                            indiceInicio,
+                            indiceInicio
+                                + bloquesNecesarios
+                        );
+
+                    const estaDisponible =
+                        bloquesRequeridos.length
+                            === bloquesNecesarios
+                        && bloquesRequeridos.every(
+                            bloque =>
+                                bloque.disponible
+                        );
+
+                    if (!estaDisponible) {
+                        return;
+                    }
+
+                    const opcion =
+                        document.createElement(
+                            'option'
+                        );
+
+                    opcion.value =
+                        String(duracionMinutos);
+
+                    const horaFinal =
+                        formatearHoraFinal(
+                            hora.value,
+                            duracionMinutos
+                        );
+
+                    opcion.textContent =
+                        `${horaFinal} — `
+                        + `${duracionMinutos} minutos`;
+
+                    if (
+                        duracionMinutos
+                        === valorAnterior
+                    ) {
+                        opcion.selected = true;
+                    }
+
+                    primeraOpcion ??= opcion;
+
+                    duracion.appendChild(opcion);
+                }
+            );
+
+            if (duracion.options.length === 0) {
+                duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">'
+                    + 'No hay una duración disponible'
+                    + '</option>';
+
+                mensajeDuracion.textContent =
+                    'El siguiente horario se encuentra ocupado.';
+
+                return;
+            }
+
+            /*
+             * Si la duración guardada dejó de estar
+             * disponible, seleccionamos la primera.
+             */
+            if (
+                !duracion.value
+                && primeraOpcion
+            ) {
+                primeraOpcion.selected = true;
+            }
+
+            duracion.disabled = false;
+
+            mensajeDuracion.textContent =
+                'La cita terminará a las '
+                + formatearHoraFinal(
+                    hora.value,
+                    Number(duracion.value)
+                )
+                + '.';
+        }
+
+        /**
+         * Consulta los bloques disponibles.
+         */
+        async function cargarHorarios() {
+            if (
+                !medico.value
+                || !fecha.value
+            ) {
+                hora.disabled = true;
+
+                hora.innerHTML =
+                    '<option value="">'
+                    + 'Selecciona primero médico y fecha'
+                    + '</option>';
+
+                mensajeHorarios.textContent =
+                    'Selecciona un médico y una fecha.';
+
+                bloquesHorarios = [];
+
+                generarOpcionesDuracion();
+
+                return;
+            }
+
+            solicitudHorarios?.abort();
+
+            solicitudHorarios =
+                new AbortController();
+
+            hora.disabled = true;
+
+            hora.innerHTML =
+                '<option value="">'
+                + 'Consultando horarios...'
+                + '</option>';
+
+            mensajeHorarios.textContent =
+                'Consultando la agenda del médico...';
+
+            try {
+                const url = new URL(
+                    "{{ route('citas.horarios-disponibles', [], false) }}",
+                    window.location.origin
+                );
+
+                url.searchParams.set(
+                    'medico_id',
+                    medico.value
+                );
+
+                url.searchParams.set(
+                    'fecha',
+                    fecha.value
+                );
+
+                /*
+                 * Ignoramos la propia cita para que
+                 * conserve disponibles sus bloques.
+                 */
+                url.searchParams.set(
+                    'ignorar_cita',
+                    "{{ $cita->id }}"
+                );
+
+                const respuesta =
+                    await fetch(
+                        url,
+                        {
+                            headers: {
+                                Accept:
+                                    'application/json',
+
+                                'X-Requested-With':
+                                    'XMLHttpRequest',
+                            },
+
+                            signal:
+                                solicitudHorarios.signal,
+                        }
+                    );
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        'No se pudieron consultar '
+                        + 'los horarios.'
+                    );
+                }
+
+                const datos =
+                    await respuesta.json();
+
+                bloquesHorarios =
+                    datos.horarios;
+
+                const horariosDisponibles =
+                    bloquesHorarios.filter(
+                        bloque =>
+                            bloque.disponible
+                    );
+
+                hora.innerHTML = '';
+
+                if (
+                    horariosDisponibles.length === 0
+                ) {
+                    hora.innerHTML =
+                        '<option value="">'
+                        + 'No hay horarios disponibles'
+                        + '</option>';
+
+                    mensajeHorarios.textContent =
+                        'La agenda del médico está '
+                        + 'llena para esta fecha.';
+
+                    generarOpcionesDuracion();
+
+                    return;
+                }
+
+                const valorAnterior =
+                    hora.dataset.valorAnterior;
+
+                const opcionInicial =
+                    document.createElement(
+                        'option'
+                    );
+
+                opcionInicial.value = '';
+
+                opcionInicial.textContent =
+                    'Selecciona un horario';
+
+                hora.appendChild(
+                    opcionInicial
+                );
+
+                horariosDisponibles.forEach(
+                    bloque => {
+                        const opcion =
+                            document.createElement(
+                                'option'
+                            );
+
+                        opcion.value =
+                            bloque.hora;
+
+                        opcion.textContent =
+                            bloque.texto;
+
+                        if (
+                            valorAnterior ===
+                            bloque.hora
+                        ) {
+                            opcion.selected = true;
+                        }
+
+                        hora.appendChild(
+                            opcion
+                        );
+                    }
+                );
+
+                hora.disabled = false;
+
+                const opcionSeleccionada =
+                    hora.options[
+                        hora.selectedIndex
+                    ]?.text;
+
+                mensajeHorarios.textContent =
+                    opcionSeleccionada
+                        ? 'Horario seleccionado: '
+                            + opcionSeleccionada
+                            + '.'
+                        : 'Selecciona uno de los '
+                            + 'horarios disponibles.';
+
+                generarOpcionesDuracion();
+            } catch (error) {
+                if (
+                    error.name === 'AbortError'
+                ) {
+                    return;
+                }
+
+                bloquesHorarios = [];
+
+                hora.disabled = true;
+
+                hora.innerHTML =
+                    '<option value="">'
+                    + 'No se pudieron cargar los horarios'
+                    + '</option>';
+
+                mensajeHorarios.textContent =
+                    'Ocurrió un error al consultar '
+                    + 'la disponibilidad.';
+
+                generarOpcionesDuracion();
+            }
+        }
+
+        hora.addEventListener(
+            'change',
+            () => {
+                hora.dataset.valorAnterior =
+                    hora.value;
+
+                generarOpcionesDuracion();
+            }
+        );
+
+        duracion.addEventListener(
+            'change',
+            () => {
+                duracion.dataset.valorAnterior =
+                    duracion.value;
+
+                if (
+                    !hora.value
+                    || !duracion.value
+                ) {
+                    return;
+                }
+
+                mensajeDuracion.textContent =
+                    'La cita terminará a las '
+                    + formatearHoraFinal(
+                        hora.value,
+                        Number(duracion.value)
+                    )
+                    + '.';
+            }
+        );
+
+        medico.addEventListener(
+            'change',
+            cargarHorarios
+        );
+
+        fecha.addEventListener(
+            'change',
+            cargarHorarios
+        );
+
+        cargarHorarios();
+    });
+</script>
 </x-app-layout>
