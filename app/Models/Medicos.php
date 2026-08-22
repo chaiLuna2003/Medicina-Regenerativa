@@ -19,7 +19,7 @@ class Medicos extends Model
     'consultorio',
     'direccion',
     'telefono',
-    'correo',
+    
     'status',
 ];
 

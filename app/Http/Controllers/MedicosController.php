@@ -31,83 +31,114 @@ class MedicosController extends Controller
             ->get();
 
         $universidades = Universidad::query()
-    ->where('status', true)
-    ->orderBy('nombre')
-    ->get();
+            ->where('status', true)
+            ->orderBy('nombre')
+            ->get();
 
         return view('medicos.create', compact(
-    'usuariosMedicos',
-    'universidades'
-));
+            'usuariosMedicos',
+            'universidades'
+        ));
     }
 
     public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id')->where(
-                    fn ($query) => $query->where('role', 'medico')
-                ),
-                Rule::unique('medicos', 'user_id'),
-            ],
-            'nombre' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[\pL\s]+$/u',
-            ],
-            'apellido_paterno' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[\pL\s]+$/u',
-            ],
+{
+    $validated = $request->validate([
+        'user_id' => [
+            'required',
+            'integer',
 
-            'universidad_id' => [
-    'required',
-    'integer',
-    Rule::exists('universidades', 'id')
-        ->where(
-            fn ($query) =>
-                $query->where('status', true)
-        ),
-],
-'direccion' => [
-    'nullable',
-    'string',
-    'max:500',
-],
+            Rule::exists('users', 'id')->where(
+                fn ($query) =>
+                    $query
+                        ->where('role', 'medico')
+                        ->where('status', true)
+            ),
 
-            'apellido_materno' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^[\pL\s]+$/u',
-            ],
-            'especialidad' => ['required', 'string', 'max:255'],
-  'cedula' => [
-    'required',
-    'string',
-    'max:20',
-    'regex:/^\d{7,10}$/',
-    Rule::unique('medicos', 'cedula'),
-],
-            'telefono' => ['required', 'string', 'max:20'],
-            'correo' => ['required', 'email', 'max:255'],
-            'consultorio' => ['required', 'string', 'max:100'],
-            'status' => ['nullable', 'boolean'],
-        ]);
+            Rule::unique('medicos', 'user_id'), 
+        ],
 
-        $validated['status'] = $request->boolean('status');
+        'especialidad' => [
+            'required',
+            'string',
+            'max:255',
+        ],
 
-        Medicos::create($validated);
+        'cedula' => [
+            'required',
+            'string',
+            'max:20',
+            'regex:/^\d{7,10}$/',
+            Rule::unique('medicos', 'cedula'),
+        ],
 
-        return redirect()
-            ->route('medicos.index')
-            ->with('success', 'Médico registrado y vinculado correctamente.');
-    }
+        'universidad_id' => [
+            'required',
+            'integer',
+
+            Rule::exists('universidades', 'id')->where(
+                fn ($query) =>
+                    $query->where('status', true)
+            ),
+        ],
+
+        'consultorio' => [
+            'required',
+            'string',
+            'max:100',
+        ],
+
+        'direccion' => [
+            'nullable',
+            'string',
+            'max:500',
+        ],
+
+        'telefono' => [
+            'required',
+            'string',
+            'max:20',
+        ],
+
+        'status' => [
+            'nullable',
+            'boolean',
+        ],
+    ]);
+
+    /*
+     * Obtenemos la cuenta seleccionada.
+     * Nombre y correo tendrán una sola fuente:
+     * la tabla users.
+     */
+    $usuario = User::query()
+        ->whereKey($validated['user_id'])
+        ->where('role', 'medico')
+        ->where('status', true)
+        ->firstOrFail();
+
+    /*
+     * Estos campos todavía existen en medicos,
+     * pero sus valores provienen automáticamente
+     * de la cuenta vinculada.
+     */
+    $validated['nombre'] = $usuario->name;
+    $validated['apellido_paterno'] = null;
+    $validated['apellido_materno'] = null;
+    
+
+    $validated['status'] =
+        $request->boolean('status');
+
+    Medicos::create($validated);
+
+    return redirect()
+        ->route('medicos.index')
+        ->with(
+            'success',
+            'Médico registrado y vinculado correctamente.'
+        );
+}
 
     public function show(Medicos $medicos): View
     {
@@ -116,93 +147,85 @@ class MedicosController extends Controller
         return view('medicos.show', compact('medicos'));
     }
 
-public function edit(Medicos $medicos): View
-{
-    $universidades = Universidad::query()
-    ->where('status', true)
-    ->orWhere('id', $medicos->universidad_id)
-    ->orderBy('nombre')
-    ->get();
+    public function edit(Medicos $medicos): View
+    {
+        $universidades = Universidad::query()
+            ->where('status', true)
+            ->orWhere('id', $medicos->universidad_id)
+            ->orderBy('nombre')
+            ->get();
 
-    $medicos->load('user');
+        $medicos->load('user');
 
-    $usuariosMedicos = User::query()
-        ->where('role', 'medico')
-        ->where(function ($query) use ($medicos) {
-            $query
-                ->whereDoesntHave('medico')
-                ->orWhere('id', $medicos->user_id);
-        })
-        ->orderBy('name')
-        ->get();
+        $usuariosMedicos = User::query()
+            ->where('role', 'medico')
+            ->where(function ($query) use ($medicos) {
+                $query
+                    ->whereDoesntHave('medico')
+                    ->orWhere('id', $medicos->user_id);
+            })
+            ->orderBy('name')
+            ->get();
 
-   return view('medicos.edit', compact(
-    'medicos',
-    'usuariosMedicos',
-    'universidades'
-));
-}
+        return view('medicos.edit', compact(
+            'medicos',
+            'usuariosMedicos',
+            'universidades'
+        ));
+    }
 
     public function update(
         Request $request,
         Medicos $medicos
     ): RedirectResponse {
         $validated = $request->validate([
-            'user_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id')->where(
-                    fn ($query) => $query->where('role', 'medico')
-                ),
-                Rule::unique('medicos', 'user_id')
-                    ->ignore($medicos->id),
-            ],
-            'nombre' => [
+            'especialidad' => [
                 'required',
                 'string',
                 'max:255',
-                'regex:/^[\pL\s]+$/u',
+            ],
+
+            'cedula' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^\d{7,10}$/',
+                Rule::unique('medicos', 'cedula')
+                    ->ignore($medicos->id),
             ],
 
             'universidad_id' => [
-    'required',
-    'integer',
-    Rule::exists('universidades', 'id')
-        ->where(
-            fn ($query) =>
-                $query->where('status', true)
-        ),
-],
-'direccion' => [
-    'nullable',
-    'string',
-    'max:500',
-],
+                'required',
+                'integer',
+                Rule::exists('universidades', 'id')
+                    ->where(
+                        fn($query) =>
+                        $query->where('status', true)
+                    ),
+            ],
 
-            'apellido_paterno' => [
+            'consultorio' => [
                 'required',
                 'string',
-                'max:255',
-                'regex:/^[\pL\s]+$/u',
+                'max:100',
             ],
-            'apellido_materno' => [
+
+            'direccion' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
+            'telefono' => [
                 'required',
                 'string',
-                'max:255',
-                'regex:/^[\pL\s]+$/u',
+                'max:20',
             ],
-            'especialidad' => ['required', 'string', 'max:255'],
-  'cedula' => [
-    'required',
-    'string',
-    'max:20',
-    'regex:/^\d{7,10}$/',
-    Rule::unique('medicos', 'cedula')->ignore($medicos->id),
-],
-            'telefono' => ['required', 'string', 'max:20'],
-            'correo' => ['required', 'email', 'max:255'],
-            'consultorio' => ['required', 'string', 'max:100'],
-            'status' => ['nullable', 'boolean'],
+
+            'status' => [
+                'nullable',
+                'boolean',
+            ],
         ]);
 
         $validated['status'] = $request->boolean('status');

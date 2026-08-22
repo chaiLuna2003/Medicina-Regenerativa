@@ -474,11 +474,13 @@
         {{ $medico->telefono }}
         @endif
 
-        @if ($medico?->correo)
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        Correo:
-        {{ $medico->correo }}
-        @endif
+        @if ($medico?->user?->email)
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+
+    Correo:
+
+    {{ $medico->user->email }}
+@endif
     </div>
 
     {{-- Pie de página --}}

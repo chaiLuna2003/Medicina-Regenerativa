@@ -39,7 +39,7 @@ class GoogleCalendarService
 
         $correos = collect([
             $cita->paciente?->email,
-            $cita->medico?->correo,
+            $cita->medico?->user?->email,
         ])
             ->filter(
                 fn(?string $correo) =>
@@ -236,7 +236,7 @@ class GoogleCalendarService
 
         $correos = collect([
             $cita->paciente?->email,
-            $cita->medico?->correo,
+            $cita->medico?->user?->email,
         ])
             ->filter(
                 fn(?string $correo) =>

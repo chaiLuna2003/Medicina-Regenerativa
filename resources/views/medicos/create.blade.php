@@ -15,7 +15,10 @@
             <form action="{{ route('medicos.store') }}" method="POST"
                   class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
                 @csrf
-                @include('medicos._form')
+                @include('medicos._form', [
+    'usuariosMedicos' => $usuariosMedicos,
+    'universidades' => $universidades,
+])
 
                 <div class="flex gap-3">
                     <button type="submit"

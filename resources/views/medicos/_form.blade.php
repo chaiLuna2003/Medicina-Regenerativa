@@ -1,3 +1,4 @@
+{{-- Datos personales --}}
 <h3
     class="mb-3 text-sm font-semibold uppercase
            tracking-wide text-gray-500"
@@ -7,35 +8,7 @@
 
 <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
     @if (isset($medicos))
-        {{-- Edición: conservar la cuenta vinculada --}}
-        <input
-            type="hidden"
-            name="user_id"
-            value="{{ $medicos->user_id }}"
-        >
-
-        {{--
-            Campos heredados temporalmente.
-            El controlador todavía los valida.
-        --}}
-        <input
-            type="hidden"
-            name="nombre"
-            value="{{ $medicos->nombre }}"
-        >
-
-        <input
-            type="hidden"
-            name="apellido_paterno"
-            value="{{ $medicos->apellido_paterno }}"
-        >
-
-        <input
-            type="hidden"
-            name="apellido_materno"
-            value="{{ $medicos->apellido_materno }}"
-        >
-
+        {{-- Edición: información obtenida de users --}}
         <div>
             <label
                 class="mb-1 block text-sm font-medium
@@ -74,7 +47,7 @@
             >
         </div>
     @else
-        {{-- Creación: seleccionar una cuenta médica --}}
+        {{-- Creación: selección de cuenta --}}
         <div class="sm:col-span-2">
             <label
                 for="user_id"
@@ -93,13 +66,19 @@
                        focus:border-[#0D3B7F]
                        focus:ring-[#0D3B7F]"
             >
-                <option value="">
+                <option
+                    value=""
+                    data-nombre=""
+                    data-correo=""
+                >
                     Selecciona una cuenta con rol médico
                 </option>
 
                 @foreach ($usuariosMedicos as $usuario)
                     <option
                         value="{{ $usuario->id }}"
+                        data-nombre="{{ $usuario->name }}"
+                        data-correo="{{ $usuario->email }}"
                         @selected(
                             old('user_id') == $usuario->id
                         )
@@ -125,73 +104,62 @@
             @endif
         </div>
 
-        {{-- Se conservan mientras ajustamos store() --}}
-        <div>
-            <label
-                class="mb-1 block text-sm font-medium
-                       text-gray-700"
+        {{-- Datos automáticos de la cuenta seleccionada --}}
+        <div
+            id="datos-cuenta-medica"
+            class="hidden sm:col-span-2"
+        >
+            <div
+                class="grid grid-cols-1 gap-4 rounded-xl
+                       border border-blue-100 bg-blue-50
+                       p-4 sm:grid-cols-2"
             >
-                Nombre
-            </label>
+                <div>
+                    <p
+                        class="text-xs font-semibold uppercase
+                               tracking-wide text-blue-600"
+                    >
+                        Nombre completo
+                    </p>
 
-            <input
-                type="text"
-                name="nombre"
-                value="{{ old('nombre') }}"
-                required
-                class="w-full rounded-lg border-gray-300
-                       shadow-sm focus:border-emerald-500
-                       focus:ring-emerald-500"
-            >
+                    <p
+                        id="nombre-cuenta-medica"
+                        class="mt-1 font-semibold text-gray-900"
+                    ></p>
+                </div>
 
-            @error('nombre')
-                <p class="mt-1 text-sm text-red-600">
-                    {{ $message }}
-                </p>
-            @enderror
-        </div>
+                <div>
+                    <p
+                        class="text-xs font-semibold uppercase
+                               tracking-wide text-blue-600"
+                    >
+                        Correo de acceso
+                    </p>
 
-        <div>
-            <label
-                class="mb-1 block text-sm font-medium
-                       text-gray-700"
-            >
-                Apellido paterno
-            </label>
-
-            <input
-                type="text"
-                name="apellido_paterno"
-                value="{{ old('apellido_paterno') }}"
-                required
-                class="w-full rounded-lg border-gray-300
-                       shadow-sm focus:border-emerald-500
-                       focus:ring-emerald-500"
-            >
-        </div>
-
-        <div>
-            <label
-                class="mb-1 block text-sm font-medium
-                       text-gray-700"
-            >
-                Apellido materno
-            </label>
-
-            <input
-                type="text"
-                name="apellido_materno"
-                value="{{ old('apellido_materno') }}"
-                required
-                class="w-full rounded-lg border-gray-300
-                       shadow-sm focus:border-emerald-500
-                       focus:ring-emerald-500"
-            >
+                    <p
+                        id="correo-cuenta-medica"
+                        class="mt-1 break-all font-semibold
+                               text-gray-900"
+                    ></p>
+                </div>
+            </div>
         </div>
     @endif
+</div>
 
-    <div class="sm:col-span-2">
+{{-- Datos profesionales --}}
+<h3
+    class="mb-3 text-sm font-semibold uppercase
+           tracking-wide text-gray-500"
+>
+    Datos profesionales
+</h3>
+
+<div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    {{-- Especialidad --}}
+    <div>
         <label
+            for="especialidad"
             class="mb-1 block text-sm font-medium
                    text-gray-700"
         >
@@ -199,6 +167,7 @@
         </label>
 
         <input
+            id="especialidad"
             type="text"
             name="especialidad"
             value="{{ old(
@@ -217,129 +186,302 @@
             </p>
         @enderror
     </div>
-</div>
-<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Datos profesionales</h3>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+
+    {{-- Cédula --}}
     <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Cédula profesional</label>
-        <input type="text" name="cedula" value="{{ old('cedula', $medicos->cedula ?? '') }}"
-               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-        @error('cedula') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+        <label
+            for="cedula"
+            class="mb-1 block text-sm font-medium
+                   text-gray-700"
+        >
+            Cédula profesional
+        </label>
+
+        <input
+            id="cedula"
+            type="text"
+            name="cedula"
+            value="{{ old(
+                'cedula',
+                $medicos->cedula ?? ''
+            ) }}"
+            required
+            inputmode="numeric"
+            autocomplete="off"
+            class="w-full rounded-lg border-gray-300
+                   shadow-sm focus:border-emerald-500
+                   focus:ring-emerald-500"
+        >
+
+        @error('cedula')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
     </div>
 
+    {{-- Universidad --}}
     <div>
-    <label
-        for="universidad_id"
-        class="mb-1 block text-sm font-medium
-               text-gray-700"
-    >
-        Universidad de procedencia
-    </label>
+        <label
+            for="universidad_id"
+            class="mb-1 block text-sm font-medium
+                   text-gray-700"
+        >
+            Universidad de procedencia
+        </label>
 
-    <select
-        id="universidad_id"
-        name="universidad_id"
-        required
-        class="w-full rounded-lg border-gray-300
-               shadow-sm focus:border-emerald-500
-               focus:ring-emerald-500"
-    >
-        <option value="">
-            Selecciona una universidad
-        </option>
-
-        @foreach ($universidades as $universidad)
-            <option
-                value="{{ $universidad->id }}"
-                @selected(
-                    old(
-                        'universidad_id',
-                        $medicos->universidad_id ?? ''
-                    ) == $universidad->id
-                )
-            >
-                {{ $universidad->nombre }}
-
-                @if ($universidad->abreviatura)
-                    ({{ $universidad->abreviatura }})
-                @endif
+        <select
+            id="universidad_id"
+            name="universidad_id"
+            required
+            class="w-full rounded-lg border-gray-300
+                   shadow-sm focus:border-emerald-500
+                   focus:ring-emerald-500"
+        >
+            <option value="">
+                Selecciona una universidad
             </option>
-        @endforeach
-    </select>
 
-    @error('universidad_id')
-        <p class="mt-1 text-sm text-red-600">
-            {{ $message }}
-        </p>
-    @enderror
+            @foreach ($universidades as $universidad)
+                <option
+                    value="{{ $universidad->id }}"
+                    @selected(
+                        old(
+                            'universidad_id',
+                            $medicos->universidad_id ?? ''
+                        ) == $universidad->id
+                    )
+                >
+                    {{ $universidad->nombre }}
 
-    @if ($universidades->isEmpty())
-        <p class="mt-2 text-sm text-amber-600">
-            No hay universidades activas registradas.
-        </p>
-    @endif
-</div>
+                    @if ($universidad->abreviatura)
+                        ({{ $universidad->abreviatura }})
+                    @endif
+                </option>
+            @endforeach
+        </select>
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Consultorio</label>
-        <input type="text" name="consultorio" value="{{ old('consultorio', $medicos->consultorio ?? '') }}"
-               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-        @error('consultorio') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
+        @error('universidad_id')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+
+        @if ($universidades->isEmpty())
+            <p class="mt-2 text-sm text-amber-600">
+                No hay universidades activas registradas.
+            </p>
+        @endif
     </div>
 
+    {{-- Consultorio --}}
+    <div>
+        <label
+            for="consultorio"
+            class="mb-1 block text-sm font-medium
+                   text-gray-700"
+        >
+            Consultorio
+        </label>
+
+        <input
+            id="consultorio"
+            type="text"
+            name="consultorio"
+            value="{{ old(
+                'consultorio',
+                $medicos->consultorio ?? ''
+            ) }}"
+            required
+            class="w-full rounded-lg border-gray-300
+                   shadow-sm focus:border-emerald-500
+                   focus:ring-emerald-500"
+        >
+
+        @error('consultorio')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+    </div>
+
+    {{-- Dirección --}}
     <div class="sm:col-span-2">
-    <label
-        for="direccion"
-        class="mb-1 block text-sm font-medium
-               text-gray-700"
+        <label
+            for="direccion"
+            class="mb-1 block text-sm font-medium
+                   text-gray-700"
+        >
+            Dirección profesional
+        </label>
+
+        <textarea
+            id="direccion"
+            name="direccion"
+            rows="3"
+            class="w-full resize-y rounded-lg
+                   border-gray-300 shadow-sm
+                   focus:border-emerald-500
+                   focus:ring-emerald-500"
+            placeholder="Calle, número, colonia, municipio y estado"
+        >{{ old(
+            'direccion',
+            $medicos->direccion ?? ''
+        ) }}</textarea>
+
+        @error('direccion')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+    </div>
+</div>
+
+{{-- Contacto --}}
+<h3
+    class="mb-3 text-sm font-semibold uppercase
+           tracking-wide text-gray-500"
+>
+    Contacto
+</h3>
+
+<div class="mb-6 grid grid-cols-1 gap-4">
+    <div>
+        <label
+            for="telefono"
+            class="mb-1 block text-sm font-medium
+                   text-gray-700"
+        >
+            Teléfono profesional
+        </label>
+
+        <input
+            id="telefono"
+            type="text"
+            name="telefono"
+            value="{{ old(
+                'telefono',
+                $medicos->telefono ?? ''
+            ) }}"
+            required
+            inputmode="tel"
+            autocomplete="tel"
+            class="w-full rounded-lg border-gray-300
+                   shadow-sm focus:border-emerald-500
+                   focus:ring-emerald-500"
+        >
+
+        @error('telefono')
+            <p class="mt-1 text-sm text-red-600">
+                {{ $message }}
+            </p>
+        @enderror
+    </div>
+</div>
+
+{{-- Estado --}}
+<div
+    class="mb-6 flex items-center gap-3 rounded-lg
+           bg-gray-50 px-4 py-3"
+>
+    <input
+        type="hidden"
+        name="status"
+        value="0"
     >
-        Dirección profesional
-    </label>
 
-    <textarea
-        id="direccion"
-        name="direccion"
-        rows="3"
-        class="w-full rounded-lg border-gray-300
-               shadow-sm focus:border-emerald-500
+    <input
+        id="status"
+        type="checkbox"
+        name="status"
+        value="1"
+        @checked(
+            old(
+                'status',
+                $medicos->status ?? true
+            )
+        )
+        class="rounded border-gray-300
+               text-emerald-600
                focus:ring-emerald-500"
-        placeholder="Calle, número, colonia, municipio y estado"
-    >{{ old(
-        'direccion',
-        $medicos->direccion ?? ''
-    ) }}</textarea>
+    >
 
-    @error('direccion')
-        <p class="mt-1 text-sm text-red-600">
-            {{ $message }}
-        </p>
-    @enderror
-</div>
+    <label
+        for="status"
+        class="text-sm font-medium text-gray-700"
+    >
+        Médico activo
+    </label>
 </div>
 
+{{-- Vista previa de la cuenta durante la creación --}}
+@if (! isset($medicos))
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            () => {
+                const selector =
+                    document.getElementById('user_id');
 
+                const contenedor =
+                    document.getElementById(
+                        'datos-cuenta-medica'
+                    );
 
-<h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Contacto</h3>
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-        <input type="text" name="telefono" value="{{ old('telefono', $medicos->telefono ?? '') }}"
-               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-        @error('telefono') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-    </div>
+                const nombre =
+                    document.getElementById(
+                        'nombre-cuenta-medica'
+                    );
 
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Correo</label>
-        <input type="email" name="correo" value="{{ old('correo', $medicos->correo ?? '') }}"
-               class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-emerald-500 focus:border-emerald-500">
-        @error('correo') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
-    </div>
-</div>
+                const correo =
+                    document.getElementById(
+                        'correo-cuenta-medica'
+                    );
 
-<div class="mb-6 flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
-    <input type="hidden" name="status" value="0">
-    <input type="checkbox" id="status" name="status" value="1"
-           {{ old('status', $medicos->status ?? true) ? 'checked' : '' }}
-           class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-    <label for="status" class="text-sm font-medium text-gray-700">Médico activo</label>
-</div>
+                if (
+                    !selector
+                    || !contenedor
+                    || !nombre
+                    || !correo
+                ) {
+                    return;
+                }
+
+                function actualizarCuenta() {
+                    const opcion =
+                        selector.options[
+                            selector.selectedIndex
+                        ];
+
+                    if (!opcion || !opcion.value) {
+                        nombre.textContent = '';
+                        correo.textContent = '';
+
+                        contenedor.classList.add(
+                            'hidden'
+                        );
+
+                        return;
+                    }
+
+                    nombre.textContent =
+                        opcion.dataset.nombre ?? '';
+
+                    correo.textContent =
+                        opcion.dataset.correo ?? '';
+
+                    contenedor.classList.remove(
+                        'hidden'
+                    );
+                }
+
+                selector.addEventListener(
+                    'change',
+                    actualizarCuenta
+                );
+
+                actualizarCuenta();
+            }
+        );
+    </script>
+@endif

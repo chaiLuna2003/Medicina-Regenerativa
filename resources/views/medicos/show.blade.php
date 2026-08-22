@@ -57,7 +57,8 @@
                     </div>
                     <div>
                         <dt class="text-gray-400">Correo</dt>
-                        <dd class="text-gray-800 font-medium">{{ $medicos->correo }}</dd>
+                        <dd class="text-gray-800 font-medium">{{ $medicos->user?->email
+    ?? 'Correo no disponible' }}</dd>
                     </div>
                 </dl>
             </div>
