@@ -8,6 +8,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use App\Models\Universidad;
 
 class MedicosController extends Controller
 {
@@ -29,7 +30,15 @@ class MedicosController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('medicos.create', compact('usuariosMedicos'));
+        $universidades = Universidad::query()
+    ->where('status', true)
+    ->orderBy('nombre')
+    ->get();
+
+        return view('medicos.create', compact(
+    'usuariosMedicos',
+    'universidades'
+));
     }
 
     public function store(Request $request): RedirectResponse
@@ -55,6 +64,22 @@ class MedicosController extends Controller
                 'max:255',
                 'regex:/^[\pL\s]+$/u',
             ],
+
+            'universidad_id' => [
+    'required',
+    'integer',
+    Rule::exists('universidades', 'id')
+        ->where(
+            fn ($query) =>
+                $query->where('status', true)
+        ),
+],
+'direccion' => [
+    'nullable',
+    'string',
+    'max:500',
+],
+
             'apellido_materno' => [
                 'required',
                 'string',
@@ -91,23 +116,32 @@ class MedicosController extends Controller
         return view('medicos.show', compact('medicos'));
     }
 
-    public function edit(Medicos $medicos): View
-    {
-        $usuariosMedicos = User::query()
-            ->where('role', 'medico')
-            ->where(function ($query) use ($medicos) {
-                $query
-                    ->whereDoesntHave('medico')
-                    ->orWhere('id', $medicos->user_id);
-            })
-            ->orderBy('name')
-            ->get();
+public function edit(Medicos $medicos): View
+{
+    $universidades = Universidad::query()
+    ->where('status', true)
+    ->orWhere('id', $medicos->universidad_id)
+    ->orderBy('nombre')
+    ->get();
 
-        return view('medicos.edit', compact(
-            'medicos',
-            'usuariosMedicos'
-        ));
-    }
+    $medicos->load('user');
+
+    $usuariosMedicos = User::query()
+        ->where('role', 'medico')
+        ->where(function ($query) use ($medicos) {
+            $query
+                ->whereDoesntHave('medico')
+                ->orWhere('id', $medicos->user_id);
+        })
+        ->orderBy('name')
+        ->get();
+
+   return view('medicos.edit', compact(
+    'medicos',
+    'usuariosMedicos',
+    'universidades'
+));
+}
 
     public function update(
         Request $request,
@@ -129,6 +163,22 @@ class MedicosController extends Controller
                 'max:255',
                 'regex:/^[\pL\s]+$/u',
             ],
+
+            'universidad_id' => [
+    'required',
+    'integer',
+    Rule::exists('universidades', 'id')
+        ->where(
+            fn ($query) =>
+                $query->where('status', true)
+        ),
+],
+'direccion' => [
+    'nullable',
+    'string',
+    'max:500',
+],
+
             'apellido_paterno' => [
                 'required',
                 'string',
