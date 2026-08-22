@@ -371,8 +371,21 @@
                                                 {{ $cita->fecha->format('d/m/Y') }}
                                             </p>
 
-                                            <p class="mt-1 text-sm text-gray-500">
-                                                {{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}
+                                            <p class="mt-1 text-sm font-medium text-gray-600">
+                                                {{ \Carbon\Carbon::parse(
+                                                 $cita->hora
+                                                    )->format('h:i A') }}
+
+                                                <span class="mx-1 text-gray-400">
+                                                    –
+                                                </span>
+
+                                                {{ $cita->hora_fin->format('h:i A') }}
+                                            </p>
+
+                                            <p class="mt-1 text-xs text-gray-400">
+                                                {{ $cita->duracion_minutos ?? 15 }}
+                                                minutos
                                             </p>
 
                                             <p

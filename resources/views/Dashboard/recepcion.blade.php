@@ -387,12 +387,20 @@
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {{-- Hora --}}
                                 <div class="flex w-24 shrink-0 items-center gap-2 sm:block">
-                                    <p class="text-lg font-bold text-gray-900">
-                                        {{ \Carbon\Carbon::parse($cita->hora)->format('h:i') }}
+                                    <p class="text-base font-bold text-gray-900">
+                                        {{ \Carbon\Carbon::parse(
+                                            $cita->hora
+                                        )->format('h:i A') }}
                                     </p>
 
-                                    <p class="text-xs font-semibold uppercase text-gray-400">
-                                        {{ \Carbon\Carbon::parse($cita->hora)->format('A') }}
+                                    <p class="mt-1 text-xs font-semibold text-gray-500">
+                                        hasta
+                                        {{ $cita->hora_fin->format('h:i A') }}
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-gray-400">
+                                        {{ $cita->duracion_minutos ?? 15 }}
+                                        minutos
                                     </p>
                                 </div>
 
@@ -549,13 +557,14 @@
                                 Hora
                             </div>
 
+
                             {{-- Encabezados de médicos --}}
                             @foreach ($medicosAgenda as $medico)
                             <div
                                 class="sticky top-0 z-20 flex h-14
-                               items-center justify-center border-b
-                               border-r border-gray-200 bg-slate-100
-                               px-3 text-center">
+               items-center justify-center border-b
+               border-r border-gray-200 bg-slate-100
+               px-3 text-center">
                                 <div class="min-w-0">
                                     <p class="truncate text-sm font-bold text-gray-800">
                                         Dr. {{ $medico->nombre }}
@@ -564,104 +573,194 @@
 
                                     <p class="mt-0.5 truncate text-[11px] text-gray-500">
                                         {{ $medico->especialidad
-                                    ?: 'Medicina general' }}
+                    ?: 'Medicina general' }}
                                     </p>
                                 </div>
                             </div>
                             @endforeach
+
                             {{-- Filas de horarios --}}
-@foreach ($horasAgenda as $horaAgenda)
-    {{-- Columna de hora --}}
-    <div
-        class="sticky left-0 z-10 flex h-12
+                            @foreach ($horasAgenda as $horaAgenda)
+                            {{-- Columna de hora --}}
+                            <div
+                                class="sticky left-0 z-10 flex h-12
                items-center justify-center border-b
                border-r border-gray-100 bg-white
-               text-xs font-semibold text-gray-500"
-    >
-        {{ \Carbon\Carbon::createFromFormat(
+               text-xs font-semibold text-gray-500">
+                                {{ \Carbon\Carbon::createFromFormat(
             'H:i',
             $horaAgenda
         )->format('h:i A') }}
-    </div>
+                            </div>
 
-    {{-- Espacio de cada médico --}}
-    @foreach ($medicosAgenda as $medico)
-        @php
-            $llaveAgenda =
-                $medico->id . '|' . $horaAgenda;
+                            {{-- Celdas de médicos para este horario --}}
+                            @foreach ($medicosAgenda as $medico)
+                            @php
+                            $llaveAgenda =
+                            $medico->id
+                            . '|'
+                            . $horaAgenda;
 
-            $citaAgenda =
-                $citasAgenda->get($llaveAgenda);
+                            $bloqueAgenda =
+                            $citasAgenda->get(
+                            $llaveAgenda
+                            );
 
-            $colorCitaAgenda = match (
-                $citaAgenda?->estado_actual
-            ) {
-                'confirmada' =>
-                    'border-emerald-500 bg-emerald-500 text-white',
+                            $citaAgenda =
+                            $bloqueAgenda['cita']
+                            ?? null;
 
-                'en_espera' =>
-                    'border-amber-400 bg-amber-400 text-white',
+                            $esInicioAgenda =
+                            $bloqueAgenda['es_inicio']
+                            ?? false;
 
-                'en_curso', 'en_consulta' =>
-                    'border-blue-500 bg-blue-500 text-white',
+                            $esFinalAgenda =
+                            $bloqueAgenda['es_final']
+                            ?? false;
 
-                'finalizada' =>
-                    'border-slate-400 bg-slate-400 text-white',
+                            $colorCitaAgenda = match (
+                            $citaAgenda?->estado_actual
+                            ) {
+                            'confirmada' =>
+                            'border-emerald-500 bg-emerald-500 text-white',
 
-                'cancelada' =>
-                    'border-red-200 bg-red-50 text-red-600 line-through',
+                            'en_espera' =>
+                            'border-amber-400 bg-amber-400 text-white',
 
-                default =>
-                    'border-indigo-500 bg-indigo-500 text-white',
-            };
+                            'en_curso', 'en_consulta' =>
+                            'border-blue-500 bg-blue-500 text-white',
 
-            $pacienteAgenda = $citaAgenda
-                ? trim(
-                    ($citaAgenda->paciente?->nombre ?? '')
-                    . ' '
-                    . ($citaAgenda->paciente?->apellido ?? '')
-                )
-                : null;
-        @endphp
+                            'finalizada' =>
+                            'border-slate-400 bg-slate-400 text-white',
 
-        <div
-            class="h-12 border-b border-r
-                   border-gray-100 bg-white p-1"
-        >
-            @if ($citaAgenda)
-                <a
-                    href="{{ route(
-                        'citas.show',
-                        $citaAgenda
-                    ) }}"
-                    title="{{ $pacienteAgenda
-                        ?: 'Paciente no disponible' }}"
-                    class="flex h-full items-center gap-2
-                           overflow-hidden rounded-md border
-                           px-2 text-xs font-semibold shadow-sm
-                           transition hover:brightness-95
-                           {{ $colorCitaAgenda }}"
-                >
-                    <span
-                        class="shrink-0 rounded bg-white/20
-                               px-1.5 py-0.5 text-[9px]
-                               font-bold uppercase"
-                    >
-                        {{ $citaAgenda->modalidad ===
-                            'videoconsulta'
-                            ? 'Video'
-                            : 'Pres.' }}
-                    </span>
+                            'cancelada' =>
+                            'border-red-200 bg-red-50 text-red-600',
 
-                    <span class="truncate">
-                        {{ $pacienteAgenda
-                            ?: 'Paciente no disponible' }}
-                    </span>
-                </a>
-            @endif
-        </div>
-    @endforeach
-@endforeach
+                            default =>
+                            'border-indigo-500 bg-indigo-500 text-white',
+                            };
+
+                            $bordesCitaAgenda =
+                            $esInicioAgenda && $esFinalAgenda
+                            ? 'rounded-md'
+                            : (
+                            $esInicioAgenda
+                            ? 'rounded-t-md border-b-0'
+                            : (
+                            $esFinalAgenda
+                            ? 'rounded-b-md border-t-0'
+                            : 'rounded-none border-y-0'
+                            )
+                            );
+
+                            $espaciadoCeldaAgenda =
+                            $esInicioAgenda && $esFinalAgenda
+                            ? 'p-1'
+                            : (
+                            $esInicioAgenda
+                            ? 'px-1 pt-1'
+                            : (
+                            $esFinalAgenda
+                            ? 'px-1 pb-1'
+                            : 'px-1'
+                            )
+                            );
+
+                            $pacienteAgenda = $citaAgenda
+                            ? trim(
+                            ($citaAgenda->paciente?->nombre ?? '')
+                            . ' '
+                            . ($citaAgenda->paciente?->apellido ?? '')
+                            )
+                            : null;
+                            @endphp
+
+                            <div
+                                class="h-12 border-b border-r
+                                  border-gray-100 bg-white
+                                  {{ $espaciadoCeldaAgenda }}">
+                                @if ($citaAgenda)
+                                <a
+                                    href="{{ route(
+            'citas.show',
+            $citaAgenda
+        ) }}"
+                                    title="{{ $pacienteAgenda
+            ?: 'Paciente no disponible' }}
+            · {{ $citaAgenda->duracion_minutos ?? 15 }}
+            minutos"
+                                    class="flex h-full items-center gap-2
+               overflow-hidden border px-2
+               text-xs font-semibold shadow-sm
+               transition hover:brightness-95
+               {{ $colorCitaAgenda }}
+               {{ $bordesCitaAgenda }}">
+                                    @if ($esInicioAgenda)
+                                    <span
+                                        class="shrink-0 rounded bg-white/20
+                       px-1.5 py-0.5 text-[9px]
+                       font-bold uppercase">
+                                        {{ $citaAgenda->modalidad ===
+                    'videoconsulta'
+                    ? 'Video'
+                    : 'Cita' }}
+                                    </span>
+
+                                    <span class="truncate">
+                                        {{ $pacienteAgenda
+                    ?: 'Paciente no disponible' }}
+
+                                        ·
+
+                                        {{ $citaAgenda->duracion_minutos
+                    ?? 15 }} min
+                                    </span>
+                                    @else
+                                    <span
+                                        class="h-1.5 w-full rounded-full
+                       bg-white/25"></span>
+                                    @endif
+                                </a>
+                                @else
+                                @php
+                                $fechaHoraBloque =
+                                \Carbon\Carbon::parse(
+                                $fechaSeleccionada->format('Y-m-d')
+                                . ' '
+                                . $horaAgenda
+                                );
+
+                                $puedeCrearCita =
+                                $fechaHoraBloque->gt(now());
+                                @endphp
+
+                                @if ($puedeCrearCita)
+                                <button
+                                    type="button"
+                                    class="abrir-modal-cita group flex h-full
+                   w-full items-center justify-center
+                   rounded-md border border-transparent
+                   text-gray-300 transition
+                   hover:border-blue-200 hover:bg-blue-50
+                   hover:text-[#0D3B7F]"
+                                    data-medico-id="{{ $medico->id }}"
+                                    data-medico-nombre="Dr. {{ $medico->nombre }}
+                {{ $medico->apellido_paterno }}"
+                                    data-fecha="{{ $fechaSeleccionada->format('Y-m-d') }}"
+                                    data-hora="{{ $horaAgenda }}"
+                                    title="Crear cita en este horario">
+                                    <span
+                                        class="text-lg opacity-0 transition
+                       group-hover:opacity-100">
+                                        +
+                                    </span>
+                                </button>
+                                @endif
+                                @endif
+                            </div>
+                            @endforeach
+                            @endforeach
+
                         </div>
                         @endif
                     </div>
@@ -921,4 +1020,284 @@
             </section>
         </div>
     </div>
+    {{-- Modal para crear cita desde la agenda --}}
+    <div
+        id="modal-crear-cita"
+        class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-gray-950/60 p-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-cita">
+        <div
+            class="flex max-h-[90vh] w-full max-w-4xl
+               flex-col overflow-hidden rounded-2xl
+               bg-white shadow-2xl">
+            {{-- Encabezado --}}
+            <div
+                class="flex items-start justify-between gap-4
+                   border-b border-gray-200 px-6 py-5">
+                <div>
+                    <p
+                        class="text-xs font-semibold uppercase
+                           tracking-wider text-emerald-600">
+                        Agenda de recepción
+                    </p>
+
+                    <h3
+                        id="titulo-modal-cita"
+                        class="mt-1 text-xl font-bold text-gray-900">
+                        Crear nueva cita
+                    </h3>
+
+                    <p class="mt-2 text-sm text-gray-500">
+                        <span id="modal-medico-texto"></span>
+                        <span class="mx-2">·</span>
+                        <span id="modal-fecha-texto"></span>
+                        <span class="mx-2">·</span>
+                        <span id="modal-hora-texto"></span>
+                    </p>
+                </div>
+
+                <button
+                    id="cerrar-modal-cita"
+                    type="button"
+                    class="flex h-10 w-10 shrink-0
+                       items-center justify-center rounded-xl
+                       border border-gray-200 text-xl
+                       text-gray-500 transition
+                       hover:bg-gray-100"
+                    aria-label="Cerrar">
+                    &times;
+                </button>
+            </div>
+
+            {{-- Aquí colocaremos el formulario --}}
+            {{-- Formulario reutilizable --}}
+<div class="overflow-y-auto p-6">
+    @include('citas._form', [
+        'medicos' => $medicosFiltro,
+
+        'datosPrecargados' => [],
+    ])
+</div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal =
+                document.getElementById(
+                    'modal-crear-cita'
+                );
+
+            const botonCerrar =
+                document.getElementById(
+                    'cerrar-modal-cita'
+                );
+
+            const medicoTexto =
+                document.getElementById(
+                    'modal-medico-texto'
+                );
+
+            const fechaTexto =
+                document.getElementById(
+                    'modal-fecha-texto'
+                );
+
+            const horaTexto =
+                document.getElementById(
+                    'modal-hora-texto'
+                );
+
+            const botonesAbrir =
+                document.querySelectorAll(
+                    '.abrir-modal-cita'
+                );
+
+
+                const medicoFormulario =
+    document.getElementById(
+        'medico_id'
+    );
+
+const fechaFormulario =
+    document.getElementById(
+        'fecha'
+    );
+
+const horaFormulario =
+    document.getElementById(
+        'hora'
+    );
+
+const duracionFormulario =
+    document.getElementById(
+        'duracion_minutos'
+    );
+
+            /**
+             * Formatea la fecha sin modificarla
+             * por diferencias de zona horaria.
+             */
+            function formatearFecha(fecha) {
+                const fechaLocal =
+                    new Date(
+                        `${fecha}T00:00:00`
+                    );
+
+                return fechaLocal.toLocaleDateString(
+                    'es-MX', {
+                        weekday: 'long',
+                        day: '2-digit',
+                        month: 'long',
+                        year: 'numeric',
+                    }
+                );
+            }
+
+            /**
+             * Formatea una hora de 24 horas.
+             */
+            function formatearHora(hora) {
+                const [horas, minutos] =
+                hora
+                    .split(':')
+                    .map(Number);
+
+                const fechaHora = new Date();
+
+                fechaHora.setHours(
+                    horas,
+                    minutos,
+                    0,
+                    0
+                );
+
+                return fechaHora.toLocaleTimeString(
+                    'es-MX', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                    }
+                );
+            }
+
+            function abrirModal(boton) {
+    const medicoId =
+        boton.dataset.medicoId;
+
+    const fechaSeleccionada =
+        boton.dataset.fecha;
+
+    const horaSeleccionada =
+        boton.dataset.hora;
+
+    /*
+     * Encabezado del modal.
+     */
+    medicoTexto.textContent =
+        boton.dataset.medicoNombre;
+
+    fechaTexto.textContent =
+        formatearFecha(
+            fechaSeleccionada
+        );
+
+    horaTexto.textContent =
+        formatearHora(
+            horaSeleccionada
+        );
+
+    /*
+     * Precargamos médico y fecha.
+     */
+    medicoFormulario.value =
+        medicoId;
+
+    fechaFormulario.value =
+        fechaSeleccionada;
+
+    /*
+     * Al disparar change, el script reutilizable
+     * consulta los horarios disponibles.
+     */
+    medicoFormulario.dispatchEvent(
+        new Event(
+            'change',
+            {
+                bubbles: true,
+            }
+        )
+    );
+
+    /*
+     * El listener del formulario limpia primero
+     * el valor anterior. Por eso asignamos la hora
+     * después de disparar el evento.
+     */
+    horaFormulario.dataset.valorAnterior =
+        horaSeleccionada;
+
+    duracionFormulario.dataset.valorAnterior =
+        '15';
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    document.body.classList.add(
+        'overflow-hidden'
+    );
+}
+
+            function cerrarModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+
+                document.body.classList.remove(
+                    'overflow-hidden'
+                );
+            }
+
+            botonesAbrir.forEach(boton => {
+                boton.addEventListener(
+                    'click',
+                    () => abrirModal(boton)
+                );
+            });
+
+            botonCerrar.addEventListener(
+                'click',
+                cerrarModal
+            );
+
+            /*
+             * Cerrar al presionar el fondo oscuro.
+             */
+            modal.addEventListener(
+                'click',
+                event => {
+                    if (event.target === modal) {
+                        cerrarModal();
+                    }
+                }
+            );
+
+            /*
+             * Cerrar con Escape.
+             */
+            document.addEventListener(
+                'keydown',
+                event => {
+                    if (
+                        event.key === 'Escape' &&
+                        !modal.classList
+                        .contains('hidden')
+                    ) {
+                        cerrarModal();
+                    }
+                }
+            );
+        });
+    </script>
 </x-app-layout>

@@ -384,11 +384,20 @@
 
                 <td style="width: 20%;">
                     <span class="label">
-                        Hora
+                        Horario
                     </span>
 
                     <span class="value">
                         {{ $horaConsulta }}
+                        -
+                        {{ $cita->hora_fin->format('h:i A') }}
+                    </span>
+
+                    <br>
+
+                    <span class="muted">
+                        {{ $cita->duracion_minutos ?? 15 }}
+                        minutos
                     </span>
                 </td>
 

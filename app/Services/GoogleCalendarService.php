@@ -11,7 +11,7 @@ use RuntimeException;
 
 class GoogleCalendarService
 {
-    private const DURACION_CITA = 15;
+    
 
     /**
      * Crea un evento de Google Calendar y solicita
@@ -83,7 +83,7 @@ class GoogleCalendarService
                     $inicio
                         ->copy()
                         ->addMinutes(
-                            self::DURACION_CITA
+                            $cita->duracion_minutos ?? 15
                         )
                         ->toRfc3339String(),
 
@@ -284,7 +284,7 @@ class GoogleCalendarService
                         $inicio
                             ->copy()
                             ->addMinutes(
-                                self::DURACION_CITA
+                                $cita->duracion_minutos ?? 15
                             )
                             ->toRfc3339String(),
 

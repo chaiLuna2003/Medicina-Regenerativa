@@ -248,15 +248,62 @@ class DashboardController extends Controller
             : $medicosFiltro->values();
 
         /*
-        * Organiza las citas utilizando el médico y la hora
-        * como llave, por ejemplo: "3|09:15".
-        */
-        $citasAgenda = $citasSeleccionadas
-            ->keyBy(function (Citas $cita) {
-                return $cita->medico_id
+ * Distribuye cada cita entre todos los bloques
+ * de 15 minutos que ocupa.
+ *
+ * Ejemplo:
+ * 09:00 con duración de 60 minutos ocupará:
+ * 09:00, 09:15, 09:30 y 09:45.
+ */
+        $citasAgenda = collect();
+
+        foreach ($citasSeleccionadas as $cita) {
+            $inicioCita = Carbon::parse(
+                $cita->hora
+            );
+
+            $duracionCita =
+                $cita->duracion_minutos ?? 15;
+
+            $cantidadBloques = max(
+                1,
+                (int) ceil(
+                    $duracionCita / 15
+                )
+            );
+
+            for (
+                $indice = 0;
+                $indice < $cantidadBloques;
+                $indice++
+            ) {
+                $horaBloque = $inicioCita
+                    ->copy()
+                    ->addMinutes(
+                        $indice * 15
+                    )
+                    ->format('H:i');
+
+                $llaveBloque =
+                    $cita->medico_id
                     . '|'
-                    . Carbon::parse($cita->hora)->format('H:i');
-            });
+                    . $horaBloque;
+
+                $citasAgenda->put(
+                    $llaveBloque,
+                    [
+                        'cita' => $cita,
+                        'es_inicio' => $indice === 0,
+                        'es_final' =>
+                        $indice ===
+                            $cantidadBloques - 1,
+                        'indice' => $indice,
+                        'total_bloques' =>
+                        $cantidadBloques,
+                    ]
+                );
+            }
+        }
 
         /*
      * Todas las citas del mes para marcar los días
@@ -469,8 +516,12 @@ class DashboardController extends Controller
                     $fechaHoraFinal = Carbon::parse(
                         $cita->fecha->format('Y-m-d')
                             . ' '
-                            . Carbon::parse($cita->hora)->format('H:i:s')
-                    )->addMinutes(15);
+                            . Carbon::parse(
+                                $cita->hora
+                            )->format('H:i:s')
+                    )->addMinutes(
+                        $cita->duracion_minutos ?? 15
+                    );
 
                     return $cita->estado !== 'finalizada'
                         && $fechaHoraFinal->gte(now());

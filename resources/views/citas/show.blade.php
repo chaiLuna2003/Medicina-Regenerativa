@@ -375,12 +375,37 @@
                         </div>
 
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                                Hora
+                            <p
+                                class="text-xs font-semibold uppercase
+               tracking-wide text-gray-400">
+                                Horario
                             </p>
 
                             <p class="mt-2 font-semibold text-gray-900">
-                                {{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}
+                                {{ \Carbon\Carbon::parse(
+            $cita->hora
+        )->format('h:i A') }}
+
+                                <span class="mx-1 text-gray-400">
+                                    –
+                                </span>
+
+                                {{ $cita->hora_fin->format('h:i A') }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p
+                                class="text-xs font-semibold uppercase
+               tracking-wide text-gray-400">
+                                Duración
+                            </p>
+
+                            <p class="mt-2 font-semibold text-gray-900">
+                                {{ $cita->duracion_minutos ?? 15 }}
+                                {{ ($cita->duracion_minutos ?? 15) === 1
+                                ? 'minuto'
+                                : 'minutos' }}
                             </p>
                         </div>
 
