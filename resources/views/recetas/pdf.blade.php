@@ -266,6 +266,15 @@
     default => 'No especificada',
     };
 
+    $motivo = match ($cita->motivo) {
+    'consulta_inicial' => 'Consulta inicial',
+    'consulta_subsecuente' => 'Consulta subsecuente',
+    'consulta_emergencia' => 'Consulta de emergencia',
+    default => $cita->motivo
+    ? ucfirst(str_replace('_', ' ', $cita->motivo))
+    : 'No especificado',
+    };
+
     $folio = 'REC-'
     . str_pad(
     (string) $receta->id,
@@ -283,6 +292,30 @@
     ? 'data:image/png;base64,'
     . base64_encode(
     file_get_contents($logoPath)
+    )
+    : null;
+
+    $universidad = $medico?->universidad;
+
+    $universidadLogoRelativo =
+    $universidad?->logo_path
+    ?: 'images/universidades/default.png';
+
+    $universidadLogoPath = public_path(
+    $universidadLogoRelativo
+    );
+
+    if (! file_exists($universidadLogoPath)) {
+    $universidadLogoPath = public_path(
+    'images/universidades/default.png'
+    );
+    }
+
+    $universidadLogoBase64 =
+    file_exists($universidadLogoPath)
+    ? 'data:image/png;base64,'
+    . base64_encode(
+    file_get_contents($universidadLogoPath)
     )
     : null;
     @endphp
@@ -417,7 +450,7 @@
                     </span>
 
                     <span class="value">
-                        {{ $cita->motivo_texto }}
+                        {{ $motivo }}
                     </span>
                 </td>
             </tr>
@@ -442,7 +475,22 @@
     </section>
 
     {{-- Firma del médico --}}
+    {{-- Firma del médico --}}
     <div class="signature-wrapper">
+
+        @if ($universidadLogoBase64)
+        <img
+            src="{{ $universidadLogoBase64 }}"
+            alt="{{ $universidad?->nombre ?? 'Universidad' }}"
+            style="
+                display: block;
+                width: 70px;
+                max-height: 70px;
+                margin: 0 auto 12px;
+                object-fit: contain;
+            ">
+        @endif
+
         <div class="signature-line"></div>
 
         <p class="signature-name">
@@ -451,13 +499,18 @@
 
         <p class="signature-detail">
             {{ $medico?->especialidad
-                ?: 'Especialidad no registrada' }}
+            ?: 'Especialidad no registrada' }}
         </p>
 
         <p class="signature-detail">
             Cédula profesional:
             {{ $medico?->cedula
-                ?: 'No registrada' }}
+            ?: 'No registrada' }}
+        </p>
+
+        <p class="signature-detail">
+            {{ $universidad?->nombre
+            ?: 'Universidad no registrada' }}
         </p>
     </div>
 
@@ -475,19 +528,28 @@
         @endif
 
         @if ($medico?->user?->email)
-    &nbsp;&nbsp;|&nbsp;&nbsp;
+        &nbsp;&nbsp;|&nbsp;&nbsp;
 
-    Correo:
+        Correo:
 
-    {{ $medico->user->email }}
-@endif
+        {{ $medico->user->email }}
+        @endif
     </div>
 
     {{-- Pie de página --}}
     <div class="footer">
-        Documento generado electrónicamente por el sistema
-        de Medicina Regenerativa.
-        Verifique que los datos correspondan al paciente indicado.
+        <strong>
+            Av. León de los Aldama #3475, Col. San Felipe de Jesús,
+            Alc. G.A.M., CDMX, C.P. 07510
+        </strong>
+
+        <br>
+
+        Tel. 55 6645 0302
+
+        <br>
+
+        Horario de atención de Lunes a Viernes de 9:00 a 18:00 hrs.
     </div>
 </body>
 

@@ -93,9 +93,10 @@ public function historial(
         Receta $receta
     ): Response {
         $receta->load([
-            'cita.paciente',
-            'cita.medico.user',
-        ]);
+    'cita.paciente',
+    'cita.medico.user',
+    'cita.medico.universidad',
+]);
 
         /*
      * Una receta debe permanecer asociada
