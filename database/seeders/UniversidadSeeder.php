@@ -11,15 +11,17 @@ class UniversidadSeeder extends Seeder
     {
         $universidades = [
             [
-                'nombre' =>
-                    'Universidad Nacional Autónoma de México',
-                'abreviatura' => 'UNAM',
-            ],
-            [
-                'nombre' =>
-                    'Instituto Politécnico Nacional',
-                'abreviatura' => 'IPN',
-            ],
+    'nombre' =>
+        'Universidad Nacional Autónoma de México',
+    'abreviatura' => 'UNAM',
+    'logo_path' => 'images/universidades/unam.png',
+],
+           [
+    'nombre' =>
+        'Instituto Politécnico Nacional',
+    'abreviatura' => 'IPN',
+    'logo_path' => 'images/universidades/ipn.png',
+],
             [
                 'nombre' =>
                     'Universidad Autónoma de Nuevo León',
@@ -76,8 +78,9 @@ class UniversidadSeeder extends Seeder
                     'abreviatura' =>
                         $universidad['abreviatura'],
 
-                    'logo_path' => null,
-                    'status' => true,
+                'logo_path' =>
+    $universidad['logo_path']
+        ?? 'images/universidades/default.png',
                 ]
             );
         }
