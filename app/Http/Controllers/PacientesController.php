@@ -53,10 +53,54 @@ class PacientesController extends Controller
             ->with('success', 'Paciente creado correctamente.');
     }
 
-    public function show(Pacientes $pacientes)
-    {
-        return view('pacientes.show', compact('pacientes'));
-    }
+   public function show(Pacientes $pacientes)
+{
+    $pacientes->load([
+        'citas' => function ($query) {
+            $query
+                ->with([
+                    'medico.user',
+                    'receta',
+                    'estudios',
+                    'signoVital',
+                ])
+                ->orderByDesc('fecha')
+                ->orderByDesc('hora');
+        },
+
+        'estudios' => function ($query) {
+            $query
+                ->with([
+                    'cita.medico.user',
+                    'subidoPor',
+                ])
+                ->orderByDesc('fecha_estudio')
+                ->orderByDesc('id');
+        },
+
+        'recetas' => function ($query) {
+            $query
+                ->with([
+                    'cita.medico.user',
+                ])
+                ->orderByDesc('fecha_expedicion')
+                ->orderByDesc('id');
+        },
+
+        'signosVitales' => function ($query) {
+            $query
+                ->with([
+                    'cita.medico.user',
+                ])
+                ->orderByDesc('created_at');
+        },
+    ]);
+
+    return view(
+        'pacientes.show',
+        compact('pacientes')
+    );
+}
 
     public function edit(Pacientes $pacientes)
     {
