@@ -57,6 +57,194 @@
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
 
+            {{-- ================================================= --}}
+            {{-- CUMPLEAÑOS DE PACIENTES --}}
+            {{-- ================================================= --}}
+            <section
+                class="overflow-hidden rounded-2xl
+           border border-slate-200
+           bg-white shadow-sm">
+                <div
+                    class="flex items-center justify-between
+               border-b border-slate-100
+               px-6 py-5">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex h-10 w-10 items-center
+                       justify-center rounded-xl
+                       bg-pink-50 text-pink-600">
+                            🎂
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold text-slate-900">
+                                Cumpleaños de pacientes
+                            </h3>
+
+                            <p class="text-xs text-slate-400">
+                                Hoy y próximos 7 días
+                            </p>
+                        </div>
+                    </div>
+
+                    <span
+                        class="rounded-full bg-pink-50
+                   px-2.5 py-1 text-xs
+                   font-semibold text-pink-700">
+                        {{ $cumpleanosPacientes->count() }}
+                    </span>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+
+                    @forelse ($cumpleanosPacientes as $paciente)
+
+                    @php
+                    $esHoy =
+                    $paciente->dias_para_cumpleanos === 0;
+
+                    $telefono =
+                    preg_replace(
+                    '/\D+/',
+                    '',
+                    (string) $paciente->telefono
+                    );
+
+                    if (strlen($telefono) === 10) {
+                    $telefono = '52' . $telefono;
+                    }
+
+                    $mensaje = rawurlencode(
+                    "¡Hola {$paciente->nombre}! 🎉 "
+                    . "De parte de todo el equipo de la clínica "
+                    . "te deseamos un feliz cumpleaños. "
+                    . "Esperamos que tengas un excelente día."
+                    );
+                    @endphp
+
+                    <div
+                        class="flex flex-col gap-4
+                       px-6 py-5
+                       sm:flex-row
+                       sm:items-center
+                       sm:justify-between">
+                        <div class="flex items-center gap-4">
+
+                            <img
+                                src="{{ $paciente->fotoUrl() }}"
+                                alt="Foto de {{ $paciente->nombre }}"
+                                class="h-12 w-12 rounded-xl
+                               border border-slate-200
+                               object-cover">
+
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p
+                                        class="font-semibold text-slate-900">
+                                        {{ $paciente->nombre }}
+                                        {{ $paciente->apellido }}
+                                    </p>
+
+                                    @if ($esHoy)
+                                    <span
+                                        class="rounded-full
+                                           bg-pink-100
+                                           px-2 py-0.5
+                                           text-[11px]
+                                           font-bold
+                                           text-pink-700">
+                                        Hoy
+                                    </span>
+                                    @endif
+                                </div>
+
+                                <p
+                                    class="mt-1 text-sm
+                                   text-slate-500">
+                                    {{ $paciente
+                                ->proximo_cumpleanos
+                                ->format('d/m/Y') }}
+                                </p>
+
+                                <p
+                                    class="mt-1 text-xs
+                                   text-slate-400">
+                                    Cumple
+                                    {{ $paciente->edad_cumpleanos }}
+                                    años
+
+                                    @unless ($esHoy)
+                                    · En
+                                    {{ $paciente->dias_para_cumpleanos }}
+                                    {{ $paciente->dias_para_cumpleanos === 1
+                                    ? 'día'
+                                    : 'días' }}
+                                    @endunless
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            class="flex flex-wrap
+                           items-center gap-2">
+                            <a
+                                href="{{ route(
+                            'pacientes.show',
+                            $paciente
+                        ) }}"
+                                class="inline-flex items-center
+                               rounded-lg border
+                               border-slate-200
+                               bg-white px-3 py-2
+                               text-xs font-semibold
+                               text-slate-700
+                               transition
+                               hover:bg-slate-50">
+                                Ver paciente
+                            </a>
+
+                            @if ($telefono)
+                            <a
+                                href="https://wa.me/{{ $telefono }}?text={{ $mensaje }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center
+                                   rounded-lg
+                                   bg-green-600
+                                   px-3 py-2
+                                   text-xs font-semibold
+                                   text-white transition
+                                   hover:bg-green-700">
+                                Felicitar por WhatsApp
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    @empty
+
+                    <div
+                        class="px-6 py-10
+                       text-center">
+                        <p
+                            class="text-sm font-medium
+                           text-slate-600">
+                            No hay cumpleaños próximos.
+                        </p>
+
+                        <p
+                            class="mt-1 text-xs
+                           text-slate-400">
+                            Aquí aparecerán los pacientes
+                            que cumplan años en los próximos 7 días.
+                        </p>
+                    </div>
+
+                    @endforelse
+
+                </div>
+            </section>
+
             {{-- Indicadores generales de hoy --}}
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 @php
@@ -1074,13 +1262,13 @@
 
             {{-- Aquí colocaremos el formulario --}}
             {{-- Formulario reutilizable --}}
-<div class="overflow-y-auto p-6">
-    @include('citas._form', [
-        'medicos' => $medicosFiltro,
+            <div class="overflow-y-auto p-6">
+                @include('citas._form', [
+                'medicos' => $medicosFiltro,
 
-        'datosPrecargados' => [],
-    ])
-</div>
+                'datosPrecargados' => [],
+                ])
+            </div>
         </div>
     </div>
     <script>
@@ -1116,25 +1304,25 @@
                 );
 
 
-                const medicoFormulario =
-    document.getElementById(
-        'medico_id'
-    );
+            const medicoFormulario =
+                document.getElementById(
+                    'medico_id'
+                );
 
-const fechaFormulario =
-    document.getElementById(
-        'fecha'
-    );
+            const fechaFormulario =
+                document.getElementById(
+                    'fecha'
+                );
 
-const horaFormulario =
-    document.getElementById(
-        'hora'
-    );
+            const horaFormulario =
+                document.getElementById(
+                    'hora'
+                );
 
-const duracionFormulario =
-    document.getElementById(
-        'duracion_minutos'
-    );
+            const duracionFormulario =
+                document.getElementById(
+                    'duracion_minutos'
+                );
 
             /**
              * Formatea la fecha sin modificarla
@@ -1184,71 +1372,70 @@ const duracionFormulario =
             }
 
             function abrirModal(boton) {
-    const medicoId =
-        boton.dataset.medicoId;
+                const medicoId =
+                    boton.dataset.medicoId;
 
-    const fechaSeleccionada =
-        boton.dataset.fecha;
+                const fechaSeleccionada =
+                    boton.dataset.fecha;
 
-    const horaSeleccionada =
-        boton.dataset.hora;
+                const horaSeleccionada =
+                    boton.dataset.hora;
 
-    /*
-     * Encabezado del modal.
-     */
-    medicoTexto.textContent =
-        boton.dataset.medicoNombre;
+                /*
+                 * Encabezado del modal.
+                 */
+                medicoTexto.textContent =
+                    boton.dataset.medicoNombre;
 
-    fechaTexto.textContent =
-        formatearFecha(
-            fechaSeleccionada
-        );
+                fechaTexto.textContent =
+                    formatearFecha(
+                        fechaSeleccionada
+                    );
 
-    horaTexto.textContent =
-        formatearHora(
-            horaSeleccionada
-        );
+                horaTexto.textContent =
+                    formatearHora(
+                        horaSeleccionada
+                    );
 
-    /*
-     * Precargamos médico y fecha.
-     */
-    medicoFormulario.value =
-        medicoId;
+                /*
+                 * Precargamos médico y fecha.
+                 */
+                medicoFormulario.value =
+                    medicoId;
 
-    fechaFormulario.value =
-        fechaSeleccionada;
+                fechaFormulario.value =
+                    fechaSeleccionada;
 
-    /*
-     * Al disparar change, el script reutilizable
-     * consulta los horarios disponibles.
-     */
-    medicoFormulario.dispatchEvent(
-        new Event(
-            'change',
-            {
-                bubbles: true,
+                /*
+                 * Al disparar change, el script reutilizable
+                 * consulta los horarios disponibles.
+                 */
+                medicoFormulario.dispatchEvent(
+                    new Event(
+                        'change', {
+                            bubbles: true,
+                        }
+                    )
+                );
+
+                /*
+                 * El listener del formulario limpia primero
+                 * el valor anterior. Por eso asignamos la hora
+                 * después de disparar el evento.
+                 */
+                horaFormulario.dataset.valorAnterior =
+                    horaSeleccionada;
+
+                duracionFormulario.dataset.valorAnterior =
+                    '15';
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+                document.body.classList.add(
+                    'overflow-hidden'
+                );
             }
-        )
-    );
-
-    /*
-     * El listener del formulario limpia primero
-     * el valor anterior. Por eso asignamos la hora
-     * después de disparar el evento.
-     */
-    horaFormulario.dataset.valorAnterior =
-        horaSeleccionada;
-
-    duracionFormulario.dataset.valorAnterior =
-        '15';
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    document.body.classList.add(
-        'overflow-hidden'
-    );
-}
 
             function cerrarModal() {
                 modal.classList.add('hidden');
