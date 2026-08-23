@@ -2,15 +2,15 @@
 
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EstudiosController;
 use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecetasController;
 use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RecetasController;
-use App\Http\Controllers\EstudiosController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +28,10 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/dashboard', [DashboardController::class, 'index'])
+Route::get(
+    '/dashboard',
+    [DashboardController::class, 'index']
+)
     ->middleware([
         'auth',
         'active',
@@ -56,28 +59,38 @@ Route::middleware([
     |--------------------------------------------------------------------------
     */
 
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
+    Route::get(
+        '/profile',
+        [ProfileController::class, 'edit']
+    )->name('profile.edit');
 
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
+    Route::patch(
+        '/profile',
+        [ProfileController::class, 'update']
+    )->name('profile.update');
 
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    Route::delete(
+        '/profile',
+        [ProfileController::class, 'destroy']
+    )->name('profile.destroy');
 
     /*
     |--------------------------------------------------------------------------
     | Pacientes
     |--------------------------------------------------------------------------
     |
-    | Solamente administración y recepción pueden acceder al módulo.
-    | El médico no recibe ninguna ruta pacientes.*.
+    | Administración y recepción pueden acceder al módulo de pacientes.
+    | La eliminación queda reservada para administración.
     |
     */
 
     Route::middleware('role:admin,recepcionista')
         ->group(function () {
-            Route::resource('pacientes', PacientesController::class)
+
+            Route::resource(
+                'pacientes',
+                PacientesController::class
+            )
                 ->except(['destroy'])
                 ->parameters([
                     'pacientes' => 'pacientes',
@@ -89,15 +102,13 @@ Route::middleware([
     | Gestión de citas
     |--------------------------------------------------------------------------
     |
-    | Solamente administración y recepción pueden:
-    | crear, guardar, editar, actualizar o eliminar citas.
-    |
-    | Estas rutas especiales se declaran antes de /citas/{cita}.
+    | Administración y recepción pueden crear, modificar y gestionar citas.
     |
     */
 
     Route::middleware('role:admin,recepcionista')
         ->group(function () {
+
             Route::get(
                 '/citas/horarios-disponibles',
                 [CitasController::class, 'horariosDisponibles']
@@ -108,17 +119,24 @@ Route::middleware([
                 [CitasController::class, 'buscarPacientes']
             )->name('pacientes.buscar');
 
-            Route::resource('citas', CitasController::class)
-                ->except(['index', 'show'])
+            Route::resource(
+                'citas',
+                CitasController::class
+            )
+                ->except([
+                    'index',
+                    'show',
+                ])
                 ->parameters([
                     'citas' => 'cita',
                 ]);
+
+            /*
+             * Generar enlace de Google Meet.
+             */
             Route::post(
                 '/citas/{cita}/generar-meet',
-                [
-                    CitasController::class,
-                    'generarMeet',
-                ]
+                [CitasController::class, 'generarMeet']
             )->name('citas.generar-meet');
         });
 
@@ -127,17 +145,15 @@ Route::middleware([
     | Consulta de citas
     |--------------------------------------------------------------------------
     |
-    | El médico solamente puede consultar:
-    | - Su propia agenda.
-    | - El detalle de una cita que tenga asignada.
-    |
-    | El filtro y la validación de pertenencia también deben permanecer
-    | dentro de CitasController.
+    | Administración y recepción pueden consultar todas las citas.
+    | El médico solamente debe poder consultar las citas autorizadas
+    | por CitasController.
     |
     */
 
     Route::middleware('role:admin,medico,recepcionista')
         ->group(function () {
+
             Route::get(
                 '/citas',
                 [CitasController::class, 'index']
@@ -150,74 +166,62 @@ Route::middleware([
         });
 
     /*
-|--------------------------------------------------------------------------
-| Recetas médicas
-|--------------------------------------------------------------------------
-|
-| El médico puede consultar el historial completo de un paciente cuando
-| tenga al menos una cita asignada con él.
-|
-| Solamente puede crear y modificar la receta de una cita propia.
-| El administrador únicamente tiene acceso de consulta.
-|
-*/
+    |--------------------------------------------------------------------------
+    | Recetas médicas - Consulta
+    |--------------------------------------------------------------------------
+    |
+    | Administración y médicos pueden consultar recetas.
+    | El controlador mantiene las reglas de relación clínica.
+    |
+    */
 
     Route::middleware('role:admin,medico')
         ->group(function () {
-            /*
-         * Historial de recetas de un paciente.
-         */
+
             Route::get(
                 '/pacientes/{paciente}/recetas',
                 [RecetasController::class, 'historial']
             )->name('pacientes.recetas.index');
 
-            /*
-         * Detalle de una receta.
-         */
             Route::get(
                 '/recetas/{receta}',
                 [RecetasController::class, 'show']
             )->name('recetas.show');
 
-            /*
- * Descargar una receta médica en PDF.
- */
             Route::get(
                 '/recetas/{receta}/pdf',
                 [RecetasController::class, 'pdf']
             )->name('recetas.pdf');
         });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Recetas médicas - Gestión
+    |--------------------------------------------------------------------------
+    |
+    | Solamente el médico puede elaborar o modificar recetas.
+    | RecetasController verifica además que la cita le pertenezca.
+    |
+    */
+
     Route::middleware('role:medico')
         ->group(function () {
-            /*
-         * Formulario para elaborar una receta.
-         */
+
             Route::get(
                 '/citas/{cita}/receta/crear',
                 [RecetasController::class, 'create']
             )->name('citas.receta.create');
 
-            /*
-         * Guardar la receta.
-         */
             Route::post(
                 '/citas/{cita}/receta',
                 [RecetasController::class, 'store']
             )->name('citas.receta.store');
 
-            /*
-         * Formulario para editar una receta.
-         */
             Route::get(
                 '/recetas/{receta}/editar',
                 [RecetasController::class, 'edit']
             )->name('recetas.edit');
 
-            /*
-         * Actualizar la receta.
-         */
             Route::put(
                 '/recetas/{receta}',
                 [RecetasController::class, 'update']
@@ -226,17 +230,16 @@ Route::middleware([
 
     /*
     |--------------------------------------------------------------------------
-    | Historial general de signos vitales
+    | Signos vitales - Consulta
     |--------------------------------------------------------------------------
     |
-    | El médico no puede abrir el historial general.
-    | Sus signos vitales se muestran únicamente dentro del detalle
-    | de la cita que tiene asignada.
+    | Administración y enfermería pueden consultar el historial general.
     |
     */
 
     Route::middleware('role:admin,enfermero')
         ->group(function () {
+
             Route::get(
                 '/signos-vitales',
                 [SignosVitalesController::class, 'index']
@@ -250,7 +253,7 @@ Route::middleware([
 
     /*
     |--------------------------------------------------------------------------
-    | Registro de signos vitales
+    | Signos vitales - Registro
     |--------------------------------------------------------------------------
     |
     | Solamente enfermería puede capturar signos vitales.
@@ -259,6 +262,7 @@ Route::middleware([
 
     Route::middleware('role:enfermero')
         ->group(function () {
+
             Route::get(
                 '/citas/{cita}/signos-vitales/crear',
                 [SignosVitalesController::class, 'create']
@@ -271,14 +275,14 @@ Route::middleware([
         });
 
     /*
-|--------------------------------------------------------------------------
-| Estudios clínicos
-|--------------------------------------------------------------------------
-|
-| Administración y recepción pueden cargar estudios asociados
-| directamente a una cita.
-|
-*/
+    |--------------------------------------------------------------------------
+    | Estudios clínicos - Registro
+    |--------------------------------------------------------------------------
+    |
+    | Administración y recepción pueden cargar estudios asociados
+    | directamente a una cita.
+    |
+    */
 
     Route::middleware('role:admin,recepcionista')
         ->group(function () {
@@ -287,26 +291,17 @@ Route::middleware([
                 '/citas/{cita}/estudios',
                 [EstudiosController::class, 'store']
             )->name('estudios.store');
-
-            Route::post(
-                '/citas/{cita}/generar-meet',
-                [
-                    CitasController::class,
-                    'generarMeet',
-                ]
-            )->name('citas.generar-meet');
         });
 
     /*
-|--------------------------------------------------------------------------
-| Consulta de estudios clínicos
-|--------------------------------------------------------------------------
-|
-| Administración, médicos y recepción pueden consultar documentos.
-| Después reforzaremos en el controlador que un médico solamente pueda
-| consultar pacientes con los que tenga relación clínica.
-|
-*/
+    |--------------------------------------------------------------------------
+    | Estudios clínicos - Consulta
+    |--------------------------------------------------------------------------
+    |
+    | Administración, médicos y recepción pueden consultar documentos.
+    | EstudiosController aplica las restricciones clínicas adicionales.
+    |
+    */
 
     Route::middleware('role:admin,medico,recepcionista')
         ->group(function () {
@@ -332,27 +327,32 @@ Route::middleware([
     | Administración
     |--------------------------------------------------------------------------
     |
-    | Solamente el administrador puede:
-    | - Eliminar pacientes.
-    | - Gestionar médicos.
-    | - Gestionar usuarios.
+    | Operaciones exclusivas del administrador.
     |
     */
 
     Route::middleware('role:admin')
         ->group(function () {
+
             Route::delete(
                 '/pacientes/{pacientes}',
                 [PacientesController::class, 'destroy']
             )->name('pacientes.destroy');
 
-            Route::resource('medicos', MedicosController::class)
-                ->parameters([
-                    'medicos' => 'medicos',
-                ]);
+            Route::resource(
+                'medicos',
+                MedicosController::class
+            )->parameters([
+                'medicos' => 'medicos',
+            ]);
 
-            Route::resource('usuarios', UsuarioController::class)
-                ->except(['show', 'destroy']);
+            Route::resource(
+                'usuarios',
+                UsuarioController::class
+            )->except([
+                'show',
+                'destroy',
+            ]);
         });
 });
 

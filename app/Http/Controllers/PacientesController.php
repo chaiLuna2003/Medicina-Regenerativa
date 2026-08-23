@@ -15,7 +15,7 @@ class PacientesController extends Controller
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
                     $q->where('nombre', 'like', "%{$search}%")
-                      ->orWhere('apellido', 'like', "%{$search}%");
+                        ->orWhere('apellido', 'like', "%{$search}%");
                 });
             })
             ->latest()
@@ -33,14 +33,52 @@ class PacientesController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
-            'fecha_nacimiento' => ['required', 'date', 'before_or_equal:today'],
-            'edad' => 'nullable|integer|min:0|max:120',
-            'telefono' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'notas' => 'nullable|string',
-            'foto' => 'nullable|image|max:4096',
+            'nombre' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'apellido' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'fecha_nacimiento' => [
+                'required',
+                'date',
+                'before_or_equal:today',
+            ],
+
+            'telefono' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+
+            'notas' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
+            'foto' => [
+                'nullable',
+                'image',
+                'max:4096',
+            ],
+
+            'status' => [
+                'required',
+                'boolean',
+            ],
         ]);
 
         if ($request->hasFile('foto')) {
@@ -53,54 +91,134 @@ class PacientesController extends Controller
             ->with('success', 'Paciente creado correctamente.');
     }
 
-   public function show(Pacientes $pacientes)
-{
-    $pacientes->load([
-        'citas' => function ($query) {
-            $query
-                ->with([
-                    'medico.user',
-                    'receta',
-                    'estudios',
-                    'signoVital',
-                ])
-                ->orderByDesc('fecha')
-                ->orderByDesc('hora');
-        },
+    public function show(Pacientes $pacientes)
+    {
+        $pacientes->load([
+            'citas' => function ($query) {
+                $query
+                    ->with([
+                        'medico.user',
+                        'receta',
+                        'estudios',
+                        'signoVital',
+                    ])
+                    ->orderByDesc('fecha')
+                    ->orderByDesc('hora');
+            },
 
-        'estudios' => function ($query) {
-            $query
-                ->with([
-                    'cita.medico.user',
-                    'subidoPor',
-                ])
-                ->orderByDesc('fecha_estudio')
-                ->orderByDesc('id');
-        },
+            'estudios' => function ($query) {
+                $query
+                    ->with([
+                        'cita.medico.user',
+                        'subidoPor',
+                    ])
+                    ->orderByDesc('fecha_estudio')
+                    ->orderByDesc('id');
+            },
 
-        'recetas' => function ($query) {
-            $query
-                ->with([
-                    'cita.medico.user',
-                ])
-                ->orderByDesc('fecha_expedicion')
-                ->orderByDesc('id');
-        },
+            'recetas' => function ($query) {
+                $query
+                    ->with([
+                        'cita.medico.user',
+                    ])
+                    ->orderByDesc('fecha_expedicion')
+                    ->orderByDesc('id');
+            },
 
-        'signosVitales' => function ($query) {
-            $query
-                ->with([
-                    'cita.medico.user',
-                ])
-                ->orderByDesc('created_at');
-        },
-    ]);
+            'signosVitales' => function ($query) {
+                $query
+                    ->with([
+                        'cita.medico.user',
+                    ])
+                    ->orderByDesc('created_at');
+            },
+        ]);
 
-    return view(
-        'pacientes.show',
-        compact('pacientes')
-    );
-}
+        /*
+|--------------------------------------------------------------------------
+| Última actividad clínica del paciente
+|--------------------------------------------------------------------------
+*/
+
+        $actividades = collect();
+
+        /*
+ * Citas
+ */
+        foreach ($pacientes->citas as $cita) {
+            if ($cita->fecha) {
+                $fechaCita = \Carbon\Carbon::parse(
+                    $cita->fecha->format('Y-m-d')
+                        . ' '
+                        . ($cita->hora ?? '00:00:00')
+                );
+
+                $actividades->push([
+                    'tipo' => 'cita',
+                    'titulo' => 'Cita médica',
+                    'fecha' => $fechaCita,
+                ]);
+            }
+        }
+
+        /*
+ * Estudios clínicos
+ */
+        foreach ($pacientes->estudios as $estudio) {
+            if ($estudio->fecha_estudio) {
+                $actividades->push([
+                    'tipo' => 'estudio',
+                    'titulo' => 'Estudio clínico',
+                    'fecha' => \Carbon\Carbon::parse(
+                        $estudio->fecha_estudio
+                    ),
+                ]);
+            }
+        }
+
+        /*
+ * Recetas
+ */
+        foreach ($pacientes->recetas as $receta) {
+            if ($receta->fecha_expedicion) {
+                $actividades->push([
+                    'tipo' => 'receta',
+                    'titulo' => 'Receta médica',
+                    'fecha' => \Carbon\Carbon::parse(
+                        $receta->fecha_expedicion
+                    ),
+                ]);
+            }
+        }
+
+        /*
+ * Signos vitales
+ */
+        foreach ($pacientes->signosVitales as $signo) {
+            if ($signo->created_at) {
+                $actividades->push([
+                    'tipo' => 'signos_vitales',
+                    'titulo' => 'Signos vitales',
+                    'fecha' => $signo->created_at,
+                ]);
+            }
+        }
+
+        /*
+ * Seleccionamos la actividad más reciente.
+ */
+        $ultimaActividad = $actividades
+            ->sortByDesc('fecha')
+            ->first();
+
+        return view(
+            'pacientes.show',
+            compact(
+                'pacientes',
+                'ultimaActividad'
+            )
+        );
+    }
 
     public function edit(Pacientes $pacientes)
     {
@@ -112,51 +230,219 @@ class PacientesController extends Controller
         return view('pacientes.edit', compact('pacientes'));
     }
 
-    public function update(Request $request, Pacientes $pacientes)
-    {
+    public function update(
+        Request $request,
+        Pacientes $pacientes
+    ) {
         abort_unless(
-            $request->user()->isAdmin() || $request->user()->isRecepcionista(),
+            $request->user()->isAdmin()
+                || $request->user()->isRecepcionista(),
             403
         );
 
-        if ($request->user()->isRecepcionista()) {
+        /*
+    |--------------------------------------------------------------------------
+    | Actualizar información de contacto
+    |--------------------------------------------------------------------------
+    */
+        if ($request->input('seccion') === 'contacto') {
             $validated = $request->validate([
-                'telefono' => ['nullable', 'string', 'max:20'],
-                'email' => ['nullable', 'email', 'max:255'],
+                'telefono' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                ],
+                'email' => [
+                    'nullable',
+                    'email',
+                    'max:255',
+                ],
+
+
             ]);
 
             $pacientes->update($validated);
 
-            return redirect()->route('pacientes.index')
-                ->with('success', 'Datos de contacto actualizados correctamente.');
+            return redirect()
+                ->route('pacientes.show', $pacientes)
+                ->with(
+                    'success',
+                    'Información de contacto actualizada correctamente.'
+                );
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | Actualizar notas
+    |--------------------------------------------------------------------------
+    */
+        if ($request->input('seccion') === 'notas') {
+            abort_unless(
+                $request->user()->isAdmin(),
+                403
+            );
+
+            $validated = $request->validate([
+                'notas' => [
+                    'nullable',
+                    'string',
+                    'max:5000',
+                ],
+            ]);
+
+            $pacientes->update($validated);
+
+            return redirect()
+                ->route('pacientes.show', $pacientes)
+                ->with(
+                    'success',
+                    'Notas actualizadas correctamente.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Actualizar datos generales desde el modal
+    |--------------------------------------------------------------------------
+    */
+        if ($request->input('seccion') === 'generales') {
+            abort_unless(
+                $request->user()->isAdmin(),
+                403
+            );
+
+            $validated = $request->validate([
+                'nombre' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+                'apellido' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+                'fecha_nacimiento' => [
+                    'required',
+                    'date',
+                    'before_or_equal:today',
+                ],
+                'status' => [
+                    'required',
+                    'boolean',
+                ],
+            ]);
+
+            $pacientes->update($validated);
+
+            return redirect()
+                ->route('pacientes.show', $pacientes)
+                ->with(
+                    'success',
+                    'Datos generales actualizados correctamente.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Edición tradicional para recepción
+    |--------------------------------------------------------------------------
+    */
+        if ($request->user()->isRecepcionista()) {
+            $validated = $request->validate([
+                'telefono' => [
+                    'nullable',
+                    'string',
+                    'max:20',
+                ],
+                'email' => [
+                    'nullable',
+                    'email',
+                    'max:255',
+                ],
+            ]);
+
+            $pacientes->update($validated);
+
+            return redirect()
+                ->route('pacientes.show', $pacientes)
+                ->with(
+                    'success',
+                    'Datos de contacto actualizados correctamente.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Edición completa para administrador
+    |--------------------------------------------------------------------------
+    */
         $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'apellido' => 'required|string|max:255',
+            'nombre' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+            'apellido' => [
+                'required',
+                'string',
+                'max:255',
+            ],
             'fecha_nacimiento' => [
-    'required',
-    'date',
-    'before_or_equal:today',
-],
-            'edad' => 'nullable|integer|min:0|max:120',
-            'telefono' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'notas' => 'nullable|string',
-            'foto' => 'nullable|image|max:4096',
+                'required',
+                'date',
+                'before_or_equal:today',
+            ],
+            'edad' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:120',
+            ],
+            'telefono' => [
+                'nullable',
+                'string',
+                'max:20',
+            ],
+            'email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
+            'notas' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+            'foto' => [
+                'nullable',
+                'image',
+                'max:4096',
+            ],
         ]);
 
         if ($request->hasFile('foto')) {
             if ($pacientes->foto) {
-                Storage::disk('public')->delete($pacientes->foto);
+                Storage::disk('public')
+                    ->delete($pacientes->foto);
             }
-            $validated['foto'] = $request->file('foto')->store('pacientes', 'public');
+
+            $validated['foto'] = $request
+                ->file('foto')
+                ->store(
+                    'pacientes',
+                    'public'
+                );
         }
 
         $pacientes->update($validated);
 
-        return redirect()->route('pacientes.index')
-            ->with('success', 'Paciente actualizado correctamente.');
+        return redirect()
+            ->route('pacientes.show', $pacientes)
+            ->with(
+                'success',
+                'Paciente actualizado correctamente.'
+            );
     }
 
     public function destroy(Pacientes $pacientes)
