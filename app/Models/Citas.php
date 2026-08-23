@@ -95,27 +95,32 @@ class Citas extends Model
     /**
      * Nombre visible de la modalidad de atención.
      */
-    protected function modalidadTexto(): Attribute
-    {
-        return Attribute::make(
-            get: fn(): string => match ($this->modalidad) {
-                'presencial' =>
-                'Consultorio u oficina',
+    protected function motivoTexto(): Attribute
+{
+    return Attribute::make(
+        get: fn(): string => match ($this->motivo) {
+            'consulta_inicial' =>
+                'Consulta inicial',
 
-                'telefonica' =>
-                'Telefónica',
+            'consulta_subsecuente' =>
+                'Consulta subsecuente',
 
-                'videoconsulta' =>
-                'Videollamada',
+            'consulta_emergencia' =>
+                'Consulta de emergencia',
 
-                'fuera_instalaciones' =>
-                'Fuera de las instalaciones',
-
-                default =>
-                'Sin especificar',
-            }
-        );
-    }
+            default =>
+                $this->motivo
+                    ? ucfirst(
+                        str_replace(
+                            '_',
+                            ' ',
+                            $this->motivo
+                        )
+                    )
+                    : 'No especificado',
+        }
+    );
+}
 
     public function paciente(): BelongsTo
     {
