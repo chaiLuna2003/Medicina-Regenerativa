@@ -9,19 +9,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Medicos extends Model
 {
     protected $fillable = [
-    'user_id',
-    'nombre',
-    'apellido_paterno',
-    'apellido_materno',
-    'especialidad',
-    'cedula',
-    'universidad_id',
-    'consultorio',
-    'direccion',
-    'telefono',
-    
-    'status',
-];
+        'user_id',
+        'nombre',
+        'apellido_paterno',
+        'apellido_materno',
+        'especialidad',
+        'cedula',
+        'universidad_id',
+        'consultorio',
+        'direccion',
+        'telefono',
+
+        'status',
+    ];
 
     protected $casts = [
         'status' => 'boolean',
@@ -37,11 +37,19 @@ class Medicos extends Model
         return $this->hasMany(Citas::class, 'medico_id');
     }
 
+    public function exploracionesFisicas(): HasMany
+    {
+        return $this->hasMany(
+            ExploracionFisica::class,
+            'medico_id'
+        );
+    }
+
     public function universidad(): BelongsTo
-{
-    return $this->belongsTo(
-        Universidad::class,
-        'universidad_id'
-    );
-}
+    {
+        return $this->belongsTo(
+            Universidad::class,
+            'universidad_id'
+        );
+    }
 }

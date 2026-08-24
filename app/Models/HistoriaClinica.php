@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class HistoriaClinica extends Model
 {
@@ -54,6 +55,14 @@ class HistoriaClinica extends Model
     {
         return $this->hasOne(
             HabitoAlimenticio::class,
+            'historia_clinica_id'
+        );
+    }
+
+    public function exploracionesFisicas(): HasMany
+    {
+        return $this->hasMany(
+            ExploracionFisica::class,
             'historia_clinica_id'
         );
     }

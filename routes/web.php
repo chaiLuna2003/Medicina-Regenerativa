@@ -10,6 +10,7 @@ use App\Http\Controllers\RecetasController;
 use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\HistoriaClinicaController;
+use App\Http\Controllers\ExploracionesFisicasController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
@@ -188,20 +189,20 @@ Route::middleware([
 |
 */
 
-Route::middleware('role:admin,medico')
-    ->group(function () {
-        Route::put(
-            '/pacientes/{paciente}/historia-clinica/'
-                . 'habitos-alimenticios',
-            [
-                HistoriaClinicaController::class,
-                'updateHabitosAlimenticios',
-            ]
-        )->name(
-            'pacientes.historia-clinica.'
-                . 'habitos-alimenticios.update'
-        );
-    });
+    Route::middleware('role:admin,medico')
+        ->group(function () {
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica/'
+                    . 'habitos-alimenticios',
+                [
+                    HistoriaClinicaController::class,
+                    'updateHabitosAlimenticios',
+                ]
+            )->name(
+                'pacientes.historia-clinica.'
+                    . 'habitos-alimenticios.update'
+            );
+        });
 
     /*
     |--------------------------------------------------------------------------
@@ -332,6 +333,29 @@ Route::middleware('role:admin,medico')
                 '/recetas/{receta}',
                 [RecetasController::class, 'update']
             )->name('recetas.update');
+        });
+
+    /*
+|--------------------------------------------------------------------------
+| Exploración física
+|--------------------------------------------------------------------------
+|
+| Solamente el médico asignado a la cita puede crear o actualizar
+| la exploración. El controlador vuelve a comprobar la autorización.
+|
+*/
+
+    Route::middleware('role:medico')
+        ->group(function () {
+            Route::put(
+                '/citas/{cita}/exploracion-fisica',
+                [
+                    ExploracionesFisicasController::class,
+                    'update',
+                ]
+            )->name(
+                'citas.exploracion-fisica.update'
+            );
         });
 
     /*

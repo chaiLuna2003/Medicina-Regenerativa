@@ -96,19 +96,19 @@ class Citas extends Model
      * Nombre visible de la modalidad de atención.
      */
     protected function motivoTexto(): Attribute
-{
-    return Attribute::make(
-        get: fn(): string => match ($this->motivo) {
-            'consulta_inicial' =>
+    {
+        return Attribute::make(
+            get: fn(): string => match ($this->motivo) {
+                'consulta_inicial' =>
                 'Consulta inicial',
 
-            'consulta_subsecuente' =>
+                'consulta_subsecuente' =>
                 'Consulta subsecuente',
 
-            'consulta_emergencia' =>
+                'consulta_emergencia' =>
                 'Consulta de emergencia',
 
-            default =>
+                default =>
                 $this->motivo
                     ? ucfirst(
                         str_replace(
@@ -118,9 +118,9 @@ class Citas extends Model
                         )
                     )
                     : 'No especificado',
-        }
-    );
-}
+            }
+        );
+    }
 
     public function paciente(): BelongsTo
     {
@@ -140,6 +140,14 @@ class Citas extends Model
     public function signoVital(): HasOne
     {
         return $this->hasOne(SignoVital::class, 'cita_id');
+    }
+
+    public function exploracionFisica(): HasOne
+    {
+        return $this->hasOne(
+            ExploracionFisica::class,
+            'cita_id'
+        );
     }
 
     /**
