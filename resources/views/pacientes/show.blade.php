@@ -1067,6 +1067,188 @@
                         </div>
                     </details>
 
+                    @php
+                    $habitoAlimenticio = $pacientes
+                    ->historiaClinica
+                    ?->habitoAlimenticio;
+
+                    $comidasRegistradas =
+                    $habitoAlimenticio?->comidas ?? [];
+
+                    $alimentosRegistrados =
+                    $habitoAlimenticio?->alimentos ?? [];
+                    @endphp
+
+                    {{-- ========================================================= --}}
+                    {{-- HÁBITOS ALIMENTICIOS --}}
+                    {{-- ========================================================= --}}
+
+                    <details
+                        class="group overflow-hidden rounded-2xl
+           border border-slate-200
+           bg-white shadow-sm">
+
+                        <summary
+                            class="flex cursor-pointer list-none
+               items-center justify-between
+               gap-4 px-6 py-5">
+
+                            <div>
+                                <h3 class="font-semibold text-slate-900">
+                                    Hábitos alimenticios
+                                </h3>
+
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Comidas habituales, alimentos,
+                                    frecuencia y cantidad de consumo
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+
+                                @if (
+                                request()->user()->isAdmin()
+                                || request()->user()->isMedico()
+                                )
+                                <button
+                                    type="button"
+                                    onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
+                        abrirModalHabitosAlimenticios();
+                    "
+                                    class="inline-flex items-center
+                           justify-center rounded-xl
+                           bg-indigo-600 px-4 py-2
+                           text-xs font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-indigo-700">
+
+                                    {{ $habitoAlimenticio
+                        ? 'Editar'
+                        : 'Registrar' }}
+                                </button>
+                                @endif
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-slate-400
+                       transition duration-200
+                       group-open:rotate-180"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-slate-100">
+
+                            @if ($habitoAlimenticio)
+
+                            {{-- Comidas realizadas --}}
+                            <div class="border-b border-slate-100 p-5">
+
+                                <p
+                                    class="mb-3 text-xs font-semibold
+                           uppercase tracking-wide
+                           text-slate-400">
+                                    Comidas realizadas habitualmente
+                                </p>
+
+                                <div class="flex flex-wrap gap-2">
+
+                                    @foreach (
+                                    $comidasHabitosAlimenticios
+                                    as $clave => $etiqueta
+                                    )
+                                    @php
+                                    $realizaComida = (bool) data_get(
+                                    $comidasRegistradas,
+                                    $clave,
+                                    false
+                                    );
+                                    @endphp
+
+                                    <span
+                                        @class([ 'inline-flex items-center rounded-full px-3 py-1' , 'text-xs font-semibold' , 'bg-emerald-50 text-emerald-700'=>
+                                        $realizaComida,
+                                        'bg-slate-100 text-slate-400' =>
+                                        ! $realizaComida,
+                                        ])>
+
+                                        {{ $etiqueta }}:
+                                        {{ $realizaComida ? 'Sí' : 'No' }}
+                                    </span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- Frecuencia de alimentos --}}
+                            <div
+                                class="grid grid-cols-1 gap-0
+                       sm:grid-cols-2
+                       lg:grid-cols-3
+                       xl:grid-cols-4">
+
+                                @foreach (
+                                $camposHabitosAlimenticios
+                                as $clave => $etiqueta
+                                )
+                                @php
+                                $valor = data_get(
+                                $alimentosRegistrados,
+                                $clave
+                                );
+                                @endphp
+
+                                <div
+                                    class="border-b border-r
+                               border-slate-100 p-4">
+
+                                    <p
+                                        class="text-xs font-medium
+                                   text-slate-400">
+                                        {{ $etiqueta }}
+                                    </p>
+
+                                    <p
+                                        class="mt-1 whitespace-pre-line
+                                   text-sm font-semibold
+                                   text-slate-800">
+
+                                        {{ filled($valor)
+                                ? $valor
+                                : 'No registrado' }}
+                                    </p>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            @else
+
+                            <div class="px-6 py-10 text-center">
+
+                                <p class="text-sm font-semibold text-slate-700">
+                                    Sin hábitos alimenticios registrados
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Registra las comidas habituales y la frecuencia
+                                    de consumo de alimentos.
+                                </p>
+                            </div>
+
+                            @endif
+                        </div>
+                    </details>
+
                     {{-- Resumen --}}
                     <section
                         class="rounded-2xl border
@@ -3929,6 +4111,274 @@
 
     @endif
 
+    @if (
+    request()->user()->isAdmin()
+    || request()->user()->isMedico()
+    )
+    <div
+        id="modal-habitos-alimenticios"
+        class="fixed inset-0 z-50 hidden
+               items-center justify-center
+               bg-slate-950/60 p-4"
+        aria-hidden="true"
+        onclick="
+            if (event.target === this) {
+                cerrarModalHabitosAlimenticios();
+            }
+        ">
+
+        <div
+            class="flex max-h-[90vh] w-full
+                   max-w-6xl flex-col
+                   overflow-hidden rounded-2xl
+                   bg-white shadow-2xl">
+
+            {{-- Encabezado --}}
+            <div
+                class="flex items-center justify-between
+                       border-b border-slate-200
+                       px-6 py-5">
+
+                <div>
+                    <h2
+                        class="text-lg font-semibold
+                               text-slate-900">
+                        Hábitos alimenticios
+                    </h2>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Registra las comidas habituales y la
+                        frecuencia o cantidad de consumo.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="cerrarModalHabitosAlimenticios()"
+                    class="rounded-lg p-2 text-slate-400
+                           transition hover:bg-slate-100
+                           hover:text-slate-700"
+                    aria-label="Cerrar">
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor">
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form
+                method="POST"
+                action="{{ route(
+                    'pacientes.historia-clinica.'
+                    . 'habitos-alimenticios.update',
+                    $pacientes
+                ) }}"
+                class="flex min-h-0 flex-1 flex-col">
+
+                @csrf
+                @method('PUT')
+
+                <div class="flex-1 overflow-y-auto p-6">
+
+                    {{-- Errores generales --}}
+                    @if (
+                    $errors->habitosAlimenticios->any()
+                    )
+                    <div
+                        class="mb-6 rounded-xl border
+                                   border-red-200 bg-red-50
+                                   px-4 py-3 text-sm text-red-700">
+
+                        <p class="font-semibold">
+                            Revisa los campos señalados.
+                        </p>
+
+                        <ul class="mt-2 list-disc pl-5">
+                            @foreach (
+                            $errors->habitosAlimenticios->all()
+                            as $error
+                            )
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+
+                    {{-- Comidas --}}
+                    <section>
+                        <h3
+                            class="text-sm font-semibold
+                                   text-slate-900">
+                            Comidas realizadas habitualmente
+                        </h3>
+
+                        <div
+                            class="mt-4 grid grid-cols-2 gap-3
+                                   sm:grid-cols-3
+                                   lg:grid-cols-5">
+
+                            @foreach (
+                            $comidasHabitosAlimenticios
+                            as $clave => $etiqueta
+                            )
+                            @php
+                            $seleccionada = old(
+                            "comidas.{$clave}",
+                            data_get(
+                            $comidasRegistradas,
+                            $clave,
+                            false
+                            )
+                            );
+                            @endphp
+
+                            <label
+                                class="flex cursor-pointer
+                                           items-center gap-3
+                                           rounded-xl border
+                                           border-slate-200
+                                           bg-slate-50 p-4
+                                           transition
+                                           hover:border-indigo-300
+                                           hover:bg-indigo-50">
+
+                                <input
+                                    id="habito_comida_{{ $clave }}"
+                                    type="checkbox"
+                                    name="comidas[{{ $clave }}]"
+                                    value="1"
+                                    @checked($seleccionada)
+                                    class="h-4 w-4 rounded
+                                               border-slate-300
+                                               text-indigo-600
+                                               focus:ring-indigo-500">
+
+                                <span
+                                    class="text-sm font-medium
+                                               text-slate-700">
+                                    {{ $etiqueta }}
+                                </span>
+                            </label>
+                            @endforeach
+                        </div>
+                    </section>
+
+                    {{-- Alimentos --}}
+                    <section class="mt-8">
+
+                        <div>
+                            <h3
+                                class="text-sm font-semibold
+                                       text-slate-900">
+                                Frecuencia o cantidad de alimentos
+                            </h3>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                Ejemplos: diario, ocasional,
+                                2 veces por semana, 1.5 litros.
+                            </p>
+                        </div>
+
+                        <div
+                            class="mt-4 grid grid-cols-1 gap-4
+                                   sm:grid-cols-2
+                                   lg:grid-cols-3">
+
+                            @foreach (
+                            $camposHabitosAlimenticios
+                            as $clave => $etiqueta
+                            )
+                            <div>
+                                <label
+                                    for="habito_alimento_{{ $clave }}"
+                                    class="mb-1.5 block
+                                               text-xs font-semibold
+                                               text-slate-600">
+
+                                    {{ $etiqueta }}
+                                </label>
+
+                                <input
+                                    id="habito_alimento_{{ $clave }}"
+                                    type="text"
+                                    name="alimentos[{{ $clave }}]"
+                                    value="{{ old(
+                                            "alimentos.{$clave}",
+                                            data_get(
+                                                $alimentosRegistrados,
+                                                $clave
+                                            )
+                                        ) }}"
+                                    maxlength="500"
+                                    placeholder="Frecuencia o cantidad"
+                                    class="w-full rounded-xl
+                                               border-slate-300
+                                               text-sm shadow-sm
+                                               focus:border-indigo-500
+                                               focus:ring-indigo-500">
+
+                                @error(
+                                "alimentos.{$clave}",
+                                'habitosAlimenticios'
+                                )
+                                <p
+                                    class="mt-1 text-xs
+                                                   text-red-600">
+                                    {{ $message }}
+                                </p>
+                                @enderror
+                            </div>
+                            @endforeach
+                        </div>
+                    </section>
+                </div>
+
+                {{-- Acciones --}}
+                <div
+                    class="flex justify-end gap-3
+                           border-t border-slate-200
+                           bg-slate-50 px-6 py-4">
+
+                    <button
+                        type="button"
+                        onclick="
+                            cerrarModalHabitosAlimenticios()
+                        "
+                        class="rounded-xl border
+                               border-slate-300 bg-white
+                               px-5 py-2.5 text-sm
+                               font-semibold text-slate-700
+                               transition hover:bg-slate-100">
+
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-indigo-600
+                               px-5 py-2.5 text-sm
+                               font-semibold text-white
+                               shadow-sm transition
+                               hover:bg-indigo-700">
+
+                        Guardar hábitos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
     <div
         id="estado-validacion-historia"
         data-tiene-errores="{{ $errors->hasAny([
@@ -3945,6 +4395,19 @@
         data-tiene-errores="{{ (
         $errors->heredofamiliares->has('numero_hermanos')
         || $errors->heredofamiliares->has('antecedentes.*')
+    ) ? 'true' : 'false' }}"
+        hidden>
+    </div>
+
+    <div
+        id="estado-validacion-habitos-alimenticios"
+        data-tiene-errores="{{ (
+        $errors
+            ->habitosAlimenticios
+            ->has('comidas.*')
+        || $errors
+            ->habitosAlimenticios
+            ->has('alimentos.*')
     ) ? 'true' : 'false' }}"
         hidden>
     </div>
@@ -3975,6 +4438,17 @@
     | Funciones generales para modales
     |--------------------------------------------------------------------------
     */
+
+        function abrirModalHabitosAlimenticios() {
+            abrirModal(
+                'modal-habitos-alimenticios',
+                'habito_comida_desayuno'
+            );
+        }
+
+        function cerrarModalHabitosAlimenticios() {
+            cerrarModal('modal-habitos-alimenticios');
+        }
 
         function abrirModalPersonalesNoPatologicos() {
             abrirModal(
@@ -4131,6 +4605,7 @@
                 cerrarModalHeredofamiliares();
                 cerrarModalPersonalesPatologicos();
                 cerrarModalPersonalesNoPatologicos();
+                cerrarModalHabitosAlimenticios();
             }
         );
 
@@ -4167,6 +4642,10 @@
             {
                 id: 'modal-personales-no-patologicos',
                 cerrar: cerrarModalPersonalesNoPatologicos,
+            },
+            {
+                id: 'modal-habitos-alimenticios',
+                cerrar: cerrarModalHabitosAlimenticios,
             },
         ];
 
@@ -4232,6 +4711,19 @@
                 const tieneErroresPersonalesNoPatologicos =
                     estadoPersonalesNoPatologicos
                     ?.dataset.tieneErrores === 'true';
+
+                const estadoHabitosAlimenticios =
+                    document.getElementById(
+                        'estado-validacion-habitos-alimenticios'
+                    );
+
+                const tieneErroresHabitosAlimenticios =
+                    estadoHabitosAlimenticios
+                    ?.dataset.tieneErrores === 'true';
+
+                if (tieneErroresHabitosAlimenticios) {
+                    abrirModalHabitosAlimenticios();
+                }
 
                 if (tieneErroresPersonalesNoPatologicos) {
                     abrirModalPersonalesNoPatologicos();

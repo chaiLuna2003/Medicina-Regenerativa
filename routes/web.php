@@ -166,16 +166,42 @@ Route::middleware([
     );
 
     Route::put(
-    '/pacientes/{paciente}/historia-clinica/'
-        . 'antecedentes-personales-no-patologicos',
-    [
-        HistoriaClinicaController::class,
-        'updatePersonalesNoPatologicos',
-    ]
-)->name(
-    'pacientes.historia-clinica.'
-        . 'personales-no-patologicos.update'
-);
+        '/pacientes/{paciente}/historia-clinica/'
+            . 'antecedentes-personales-no-patologicos',
+        [
+            HistoriaClinicaController::class,
+            'updatePersonalesNoPatologicos',
+        ]
+    )->name(
+        'pacientes.historia-clinica.'
+            . 'personales-no-patologicos.update'
+    );
+
+    /*
+|--------------------------------------------------------------------------
+| Hábitos alimenticios
+|--------------------------------------------------------------------------
+|
+| Administración y médicos autorizados pueden registrar o actualizar
+| los hábitos alimenticios. El controlador comprueba además la relación
+| clínica del médico con el paciente.
+|
+*/
+
+Route::middleware('role:admin,medico')
+    ->group(function () {
+        Route::put(
+            '/pacientes/{paciente}/historia-clinica/'
+                . 'habitos-alimenticios',
+            [
+                HistoriaClinicaController::class,
+                'updateHabitosAlimenticios',
+            ]
+        )->name(
+            'pacientes.historia-clinica.'
+                . 'habitos-alimenticios.update'
+        );
+    });
 
     /*
     |--------------------------------------------------------------------------

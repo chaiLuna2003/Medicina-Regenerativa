@@ -49,4 +49,12 @@ class HistoriaClinica extends Model
             'historia_clinica_id'
         );
     }
+
+    public function habitoAlimenticio(): HasOne
+    {
+        return $this->hasOne(
+            HabitoAlimenticio::class,
+            'historia_clinica_id'
+        );
+    }
 }

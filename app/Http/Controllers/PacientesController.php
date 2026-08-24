@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\AntecedenteHeredofamiliar;
 use App\Models\AntecedentePersonalPatologico;
 use App\Models\AntecedentePersonalNoPatologico;
+use App\Models\HabitoAlimenticio;
 
 class PacientesController extends Controller
 {
@@ -136,6 +137,7 @@ class PacientesController extends Controller
             'historiaClinica.antecedentesHeredofamiliares',
             'historiaClinica.antecedentesPersonalesPatologicos',
             'historiaClinica.antecedentesPersonalesNoPatologicos',
+            'historiaClinica.habitoAlimenticio',
 
             'citas' => function ($query) {
                 $query
@@ -261,7 +263,13 @@ class PacientesController extends Controller
             AntecedentePersonalPatologico::CAMPOS;
 
         $camposPersonalesNoPatologicos =
-    AntecedentePersonalNoPatologico::CAMPOS;
+            AntecedentePersonalNoPatologico::CAMPOS;
+
+        $comidasHabitosAlimenticios =
+            HabitoAlimenticio::COMIDAS;
+
+        $camposHabitosAlimenticios =
+            HabitoAlimenticio::ALIMENTOS;
 
         return view(
             'pacientes.show',
@@ -270,7 +278,9 @@ class PacientesController extends Controller
                 'ultimaActividad',
                 'camposHeredofamiliares',
                 'camposPersonalesPatologicos',
-                        'camposPersonalesNoPatologicos'
+                'camposPersonalesNoPatologicos',
+                'comidasHabitosAlimenticios',
+                'camposHabitosAlimenticios'
             )
         );
     }

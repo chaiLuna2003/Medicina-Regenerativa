@@ -8,6 +8,7 @@ use App\Models\AntecedentePersonalPatologico;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use App\Models\AntecedentePersonalNoPatologico;
+use App\Models\HabitoAlimenticio;
 
 class HistoriaClinicaController extends Controller
 {
@@ -292,110 +293,247 @@ class HistoriaClinicaController extends Controller
     }
 
     /**
- * Crea o actualiza los antecedentes personales no patológicos.
- */
-public function updatePersonalesNoPatologicos(
-    Request $request,
-    Pacientes $paciente
-): RedirectResponse {
-    $this->autorizarEdicionClinica(
-        $request,
-        $paciente
-    );
+     * Crea o actualiza los antecedentes personales no patológicos.
+     */
+    public function updatePersonalesNoPatologicos(
+        Request $request,
+        Pacientes $paciente
+    ): RedirectResponse {
+        $this->autorizarEdicionClinica(
+            $request,
+            $paciente
+        );
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Validación
     |--------------------------------------------------------------------------
     */
 
-    $rules = [
-        'antecedentes' => [
-            'nullable',
-            'array',
-        ],
-    ];
-
-    foreach (
-        array_keys(
-            AntecedentePersonalNoPatologico::CAMPOS
-        ) as $campo
-    ) {
-        $rules["antecedentes.{$campo}"] = [
-            'nullable',
-            'string',
-            'max:1000',
+        $rules = [
+            'antecedentes' => [
+                'nullable',
+                'array',
+            ],
         ];
-    }
 
-    $validated = $request->validateWithBag(
-        'personalesNoPatologicos',
-        $rules
-    );
+        foreach (
+            array_keys(
+                AntecedentePersonalNoPatologico::CAMPOS
+            ) as $campo
+        ) {
+            $rules["antecedentes.{$campo}"] = [
+                'nullable',
+                'string',
+                'max:1000',
+            ];
+        }
 
-    /*
+        $validated = $request->validateWithBag(
+            'personalesNoPatologicos',
+            $rules
+        );
+
+        /*
     |--------------------------------------------------------------------------
     | Normalización
     |--------------------------------------------------------------------------
     */
 
-    $antecedentes = [];
+        $antecedentes = [];
 
-    foreach (
-        array_keys(
-            AntecedentePersonalNoPatologico::CAMPOS
-        ) as $campo
-    ) {
-        $valor = trim(
-            (string) data_get(
-                $validated,
-                "antecedentes.{$campo}",
-                ''
-            )
-        );
+        foreach (
+            array_keys(
+                AntecedentePersonalNoPatologico::CAMPOS
+            ) as $campo
+        ) {
+            $valor = trim(
+                (string) data_get(
+                    $validated,
+                    "antecedentes.{$campo}",
+                    ''
+                )
+            );
 
-        $antecedentes[$campo] = $valor !== ''
-            ? $valor
-            : null;
-    }
+            $antecedentes[$campo] = $valor !== ''
+                ? $valor
+                : null;
+        }
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Historia clínica
     |--------------------------------------------------------------------------
     */
 
-    $historiaClinica = $paciente
-        ->historiaClinica()
-        ->firstOrCreate([
-            'paciente_id' => $paciente->id,
-        ]);
+        $historiaClinica = $paciente
+            ->historiaClinica()
+            ->firstOrCreate([
+                'paciente_id' => $paciente->id,
+            ]);
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Crear o actualizar antecedentes
     |--------------------------------------------------------------------------
     */
 
-    $historiaClinica
-        ->antecedentesPersonalesNoPatologicos()
-        ->updateOrCreate(
-            [
-                'historia_clinica_id' =>
+        $historiaClinica
+            ->antecedentesPersonalesNoPatologicos()
+            ->updateOrCreate(
+                [
+                    'historia_clinica_id' =>
                     $historiaClinica->id,
-            ],
-            [
-                'antecedentes' => $antecedentes,
-            ]
+                ],
+                [
+                    'antecedentes' => $antecedentes,
+                ]
+            );
+
+        return redirect()
+            ->route('pacientes.show', $paciente)
+            ->with(
+                'success',
+                'Antecedentes personales no patológicos actualizados correctamente.'
+            );
+    }
+
+    /**
+     * Crea o actualiza los hábitos alimenticios.
+     */
+    public function updateHabitosAlimenticios(
+        Request $request,
+        Pacientes $paciente
+    ): RedirectResponse {
+        $this->autorizarEdicionClinica(
+            $request,
+            $paciente
         );
 
-    return redirect()
-        ->route('pacientes.show', $paciente)
-        ->with(
-            'success',
-            'Antecedentes personales no patológicos actualizados correctamente.'
+        /*
+    |--------------------------------------------------------------------------
+    | Validación
+    |--------------------------------------------------------------------------
+    */
+
+        $rules = [
+            'comidas' => [
+                'nullable',
+                'array',
+            ],
+
+            'alimentos' => [
+                'nullable',
+                'array',
+            ],
+        ];
+
+        foreach (
+            array_keys(HabitoAlimenticio::COMIDAS)
+            as $campo
+        ) {
+            $rules["comidas.{$campo}"] = [
+                'nullable',
+                'boolean',
+            ];
+        }
+
+        foreach (
+            array_keys(HabitoAlimenticio::ALIMENTOS)
+            as $campo
+        ) {
+            $rules["alimentos.{$campo}"] = [
+                'nullable',
+                'string',
+                'max:500',
+            ];
+        }
+
+        $validated = $request->validateWithBag(
+            'habitosAlimenticios',
+            $rules
         );
-}
+
+        /*
+    |--------------------------------------------------------------------------
+    | Normalizar comidas
+    |--------------------------------------------------------------------------
+    */
+
+        $comidas = [];
+
+        foreach (
+            array_keys(HabitoAlimenticio::COMIDAS)
+            as $campo
+        ) {
+            $comidas[$campo] = $request->boolean(
+                "comidas.{$campo}"
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Normalizar alimentos
+    |--------------------------------------------------------------------------
+    */
+
+        $alimentos = [];
+
+        foreach (
+            array_keys(HabitoAlimenticio::ALIMENTOS)
+            as $campo
+        ) {
+            $valor = trim(
+                (string) data_get(
+                    $validated,
+                    "alimentos.{$campo}",
+                    ''
+                )
+            );
+
+            $alimentos[$campo] = $valor !== ''
+                ? $valor
+                : null;
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Obtener o crear la historia clínica
+    |--------------------------------------------------------------------------
+    */
+
+        $historiaClinica = $paciente
+            ->historiaClinica()
+            ->firstOrCreate([
+                'paciente_id' => $paciente->id,
+            ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Crear o actualizar hábitos alimenticios
+    |--------------------------------------------------------------------------
+    */
+
+        $historiaClinica
+            ->habitoAlimenticio()
+            ->updateOrCreate(
+                [
+                    'historia_clinica_id' =>
+                    $historiaClinica->id,
+                ],
+                [
+                    'comidas' => $comidas,
+                    'alimentos' => $alimentos,
+                ]
+            );
+
+        return redirect()
+            ->route('pacientes.show', $paciente)
+            ->with(
+                'success',
+                'Hábitos alimenticios actualizados correctamente.'
+            );
+    }
 
     /**
      * Verifica que el usuario pueda editar información clínica.
