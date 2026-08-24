@@ -4,7 +4,9 @@
         <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <a
-                    href="{{ route('pacientes.index') }}"
+                    href="{{ request()->user()->isMedico()
+    ? route('citas.index')
+    : route('pacientes.index') }}"
                     class="text-slate-400 transition hover:text-slate-700">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -281,7 +283,7 @@
                                 </dd>
                             </div>
 
-                            
+
 
                             <div>
                                 <dt
@@ -300,6 +302,8 @@
 
                         </dl>
                     </section>
+
+                    @unless (request()->user()->isMedico())
 
                     {{-- Contacto --}}
                     <section
@@ -373,6 +377,10 @@
                         </dl>
                     </section>
 
+                    @endunless
+
+
+
                     {{-- Notas --}}
                     <section
                         class="overflow-hidden rounded-2xl
@@ -414,12 +422,513 @@
                         </div>
                     </section>
 
+
+
                 </aside>
 
                 {{-- ========================================================= --}}
                 {{-- COLUMNA DERECHA --}}
                 {{-- ========================================================= --}}
+
                 <main class="space-y-4 lg:col-span-8">
+
+                    {{-- ========================================================= --}}
+                    {{-- HISTORIA CLÍNICA PRINCIPAL --}}
+                    {{-- ========================================================= --}}
+
+                    <details
+                        class="group overflow-hidden rounded-2xl
+               border border-slate-200
+               bg-white shadow-sm">
+
+                        <summary
+                            class="flex cursor-pointer list-none
+                   items-center justify-between
+                   gap-4 px-6 py-5">
+
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="flex h-10 w-10 items-center
+                           justify-center rounded-xl
+                           bg-cyan-50 text-cyan-700">
+
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="h-5 w-5"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2">
+
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M9 12h6m-6 4h6M7 3h7l4 4v14H7z" />
+                                    </svg>
+                                </div>
+
+                                <div>
+                                    <h3 class="font-semibold text-slate-900">
+                                        Historia clínica
+                                    </h3>
+
+                                    <p class="text-xs text-slate-400">
+                                        Resumen clínico principal del paciente
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+
+                                @if (
+                                request()->user()->isAdmin()
+                                || request()->user()->isMedico()
+                                )
+                                <button
+                                    type="button"
+                                    onclick="
+                            event.preventDefault();
+                            event.stopPropagation();
+                            abrirModalHistoriaClinica();
+                        "
+                                    class="inline-flex items-center
+                               justify-center rounded-xl
+                               bg-cyan-600 px-4 py-2
+                               text-xs font-semibold
+                               text-white shadow-sm
+                               transition hover:bg-cyan-700">
+
+                                    {{ $pacientes->historiaClinica
+                            ? 'Editar'
+                            : 'Registrar' }}
+                                </button>
+                                @endif
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-slate-400
+                           transition duration-200
+                           group-open:rotate-180"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-slate-100">
+
+                            @if ($pacientes->historiaClinica)
+
+                            <div class="grid grid-cols-1 gap-0 lg:grid-cols-2">
+
+                                {{-- Patología base --}}
+                                <article
+                                    class="border-b border-slate-100
+                               p-6 lg:border-r">
+
+                                    <p
+                                        class="text-xs font-semibold
+                                   uppercase tracking-wide
+                                   text-cyan-700">
+                                        Patología base
+                                    </p>
+
+                                    <div
+                                        class="mt-3 whitespace-pre-line
+                                   text-sm leading-6
+                                   text-slate-700">{{ $pacientes->historiaClinica->patologia_base
+                                ?: 'Sin información registrada.' }}</div>
+                                </article>
+
+                                {{-- Padecimiento actual --}}
+                                <article class="border-b border-slate-100 p-6">
+
+                                    <p
+                                        class="text-xs font-semibold
+                                   uppercase tracking-wide
+                                   text-cyan-700">
+                                        Padecimiento actual
+                                    </p>
+
+                                    <div
+                                        class="mt-3 whitespace-pre-line
+                                   text-sm leading-6
+                                   text-slate-700">{{ $pacientes->historiaClinica->padecimiento_actual
+                                ?: 'Sin información registrada.' }}</div>
+                                </article>
+
+                                {{-- Tratamientos actuales --}}
+                                <article
+                                    class="border-b border-slate-100
+                               p-6 lg:border-b-0 lg:border-r">
+
+                                    <p
+                                        class="text-xs font-semibold
+                                   uppercase tracking-wide
+                                   text-cyan-700">
+                                        Tratamientos actuales
+                                    </p>
+
+                                    <div
+                                        class="mt-3 whitespace-pre-line
+                                   text-sm leading-6
+                                   text-slate-700">{{ $pacientes->historiaClinica->tratamientos_actuales
+                                ?: 'Sin información registrada.' }}</div>
+                                </article>
+
+                                {{-- Prioridad y análisis --}}
+                                <article class="p-6">
+
+                                    <p
+                                        class="text-xs font-semibold
+                                   uppercase tracking-wide
+                                   text-cyan-700">
+                                        Prioridad y análisis médico
+                                    </p>
+
+                                    <div
+                                        class="mt-3 whitespace-pre-line
+                                   text-sm leading-6
+                                   text-slate-700">{{ $pacientes->historiaClinica->prioridad_analisis_medico
+                                ?: 'Sin información registrada.' }}</div>
+                                </article>
+                            </div>
+
+                            @else
+
+                            <div class="px-6 py-12 text-center">
+
+                                <div
+                                    class="mx-auto flex h-12 w-12
+                               items-center justify-center
+                               rounded-2xl bg-slate-100
+                               text-slate-400">
+
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="h-6 w-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2">
+
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M9 12h6m-6 4h6M7 3h7l4 4v14H7z" />
+                                    </svg>
+                                </div>
+
+                                <p class="mt-4 text-sm font-semibold text-slate-700">
+                                    Sin historia clínica registrada
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Registra el primer resumen clínico del paciente.
+                                </p>
+                            </div>
+
+                            @endif
+
+                        </div>
+                    </details>
+
+                    @php
+                    $heredofamiliares = $pacientes
+                    ->historiaClinica
+                    ?->antecedentesHeredofamiliares;
+
+                    $valoresHeredofamiliares =
+                    $heredofamiliares?->antecedentes ?? [];
+                    @endphp
+
+                    {{-- ========================================================= --}}
+                    {{-- ANTECEDENTES HEREDOFAMILIARES --}}
+                    {{-- ========================================================= --}}
+
+                    <details
+                        class="group overflow-hidden rounded-2xl
+               border border-slate-200
+               bg-white shadow-sm">
+
+                        <summary
+                            class="flex cursor-pointer list-none
+                   items-center justify-between
+                   gap-4 px-6 py-5">
+
+                            <div>
+                                <h3 class="font-semibold text-slate-900">
+                                    Antecedentes heredofamiliares
+                                </h3>
+
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Enfermedades y condiciones presentes en la familia
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+
+                                @if (
+                                request()->user()->isAdmin()
+                                || request()->user()->isMedico()
+                                )
+                                <button
+                                    type="button"
+                                    onclick="
+                            event.preventDefault();
+                            event.stopPropagation();
+                            abrirModalHeredofamiliares();
+                        "
+                                    class="inline-flex items-center
+                               justify-center rounded-xl
+                               bg-emerald-600 px-4 py-2
+                               text-xs font-semibold
+                               text-white shadow-sm
+                               transition hover:bg-emerald-700">
+
+                                    {{ $heredofamiliares
+                            ? 'Editar'
+                            : 'Registrar' }}
+                                </button>
+                                @endif
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-slate-400
+                           transition duration-200
+                           group-open:rotate-180"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-slate-100">
+
+                            @if ($heredofamiliares)
+
+                            <div
+                                class="grid grid-cols-1 gap-0
+                           sm:grid-cols-2
+                           lg:grid-cols-3
+                           xl:grid-cols-4">
+
+                                <div
+                                    class="border-b border-r
+                               border-slate-100 p-4">
+
+                                    <p class="text-xs font-medium text-slate-400">
+                                        Hermanos
+                                    </p>
+
+                                    <p class="mt-1 text-sm font-semibold text-slate-800">
+                                        {{ $heredofamiliares->numero_hermanos
+                                ?? 'No registrado' }}
+                                    </p>
+                                </div>
+
+                                @foreach (
+                                $camposHeredofamiliares
+                                as $clave => $etiqueta
+                                )
+
+                                @php
+                                $valor = data_get(
+                                $valoresHeredofamiliares,
+                                $clave
+                                );
+                                @endphp
+
+                                <div
+                                    class="border-b border-r
+                                   border-slate-100 p-4">
+
+                                    <p class="text-xs font-medium text-slate-400">
+                                        {{ $etiqueta }}
+                                    </p>
+
+                                    <p
+                                        class="mt-1 whitespace-pre-line
+                                       text-sm font-semibold
+                                       text-slate-800">
+                                        {{ filled($valor)
+                                    ? $valor
+                                    : 'No registrado' }}
+                                    </p>
+                                </div>
+
+                                @endforeach
+                            </div>
+
+                            @else
+
+                            <div class="px-6 py-10 text-center">
+
+                                <p class="text-sm font-semibold text-slate-700">
+                                    Sin antecedentes heredofamiliares
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Registra las enfermedades y condiciones familiares.
+                                </p>
+                            </div>
+
+                            @endif
+
+                        </div>
+                    </details>
+
+                    @php
+                    $personalesPatologicos = $pacientes
+                    ->historiaClinica
+                    ?->antecedentesPersonalesPatologicos;
+
+                    $valoresPersonalesPatologicos =
+                    $personalesPatologicos?->antecedentes ?? [];
+                    @endphp
+
+                    {{-- ========================================================= --}}
+                    {{-- ANTECEDENTES PERSONALES PATOLÓGICOS --}}
+                    {{-- ========================================================= --}}
+
+                    <details
+                        class="group overflow-hidden rounded-2xl
+           border border-slate-200
+           bg-white shadow-sm">
+
+                        <summary
+                            class="flex cursor-pointer list-none
+               items-center justify-between
+               gap-4 px-6 py-5">
+
+                            <div>
+                                <h3 class="font-semibold text-slate-900">
+                                    Antecedentes personales patológicos
+                                </h3>
+
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Enfermedades y eventos médicos previos del paciente
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+
+                                @if (
+                                request()->user()->isAdmin()
+                                || request()->user()->isMedico()
+                                )
+                                <button
+                                    type="button"
+                                    onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
+                        abrirModalPersonalesPatologicos();
+                    "
+                                    class="inline-flex items-center
+                           justify-center rounded-xl
+                           bg-amber-600 px-4 py-2
+                           text-xs font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-amber-700">
+
+                                    {{ $personalesPatologicos
+                        ? 'Editar'
+                        : 'Registrar' }}
+                                </button>
+                                @endif
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-slate-400
+                       transition duration-200
+                       group-open:rotate-180"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-slate-100">
+
+                            @if ($personalesPatologicos)
+
+                            <div
+                                class="grid grid-cols-1 gap-0
+                       sm:grid-cols-2
+                       lg:grid-cols-3
+                       xl:grid-cols-4">
+
+                                @foreach (
+                                $camposPersonalesPatologicos
+                                as $clave => $etiqueta
+                                )
+
+                                @php
+                                $valor = data_get(
+                                $valoresPersonalesPatologicos,
+                                $clave
+                                );
+                                @endphp
+
+                                <div
+                                    class="border-b border-r
+                               border-slate-100 p-4">
+
+                                    <p class="text-xs font-medium text-slate-400">
+                                        {{ $etiqueta }}
+                                    </p>
+
+                                    <p
+                                        class="mt-1 whitespace-pre-line
+                                   text-sm font-semibold
+                                   text-slate-800">
+                                        {{ filled($valor)
+                                ? $valor
+                                : 'No registrado' }}
+                                    </p>
+                                </div>
+
+                                @endforeach
+                            </div>
+
+                            @else
+
+                            <div class="px-6 py-10 text-center">
+
+                                <p class="text-sm font-semibold text-slate-700">
+                                    Sin antecedentes personales patológicos
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Registra las enfermedades y eventos médicos previos.
+                                </p>
+                            </div>
+
+                            @endif
+
+                        </div>
+                    </details>
 
                     {{-- Resumen --}}
                     <section
@@ -2294,48 +2803,46 @@
                     </div>
 
                     <div>
-    <label
-        for="modal_status"
-        class="mb-1.5 block text-sm font-medium text-slate-700"
-    >
-        Estado del paciente
-    </label>
+                        <label
+                            for="modal_status"
+                            class="mb-1.5 block text-sm font-medium text-slate-700">
+                            Estado del paciente
+                        </label>
 
-    <select
-        id="modal_status"
-        name="status"
-        class="block w-full rounded-xl
+                        <select
+                            id="modal_status"
+                            name="status"
+                            class="block w-full rounded-xl
                border-slate-300 text-sm
                shadow-sm
                focus:border-blue-500
-               focus:ring-blue-500"
-    >
-        <option
-            value="1"
-            @selected(old('status', $pacientes->status) == 1)
-        >
-            Activo
-        </option>
+               focus:ring-blue-500">
+                            <option
+                                value="1"
+                                @selected(old('status', $pacientes->status) == 1)
+                                >
+                                Activo
+                            </option>
 
-        <option
-            value="0"
-            @selected(old('status', $pacientes->status) == 0)
-        >
-            Inactivo
-        </option>
-    </select>
+                            <option
+                                value="0"
+                                @selected(old('status', $pacientes->status) == 0)
+                                >
+                                Inactivo
+                            </option>
+                        </select>
 
-    @error('status')
-        <p class="mt-1.5 text-xs text-red-600">
-            {{ $message }}
-        </p>
-    @enderror
+                        @error('status')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
 
-    <p class="mt-1.5 text-xs text-slate-400">
-        Los pacientes inactivos permanecen registrados
-        en el sistema y conservan su historial clínico.
-    </p>
-</div>
+                        <p class="mt-1.5 text-xs text-slate-400">
+                            Los pacientes inactivos permanecen registrados
+                            en el sistema y conservan su historial clínico.
+                        </p>
+                    </div>
 
                     <div
                         class="rounded-xl border border-blue-100
@@ -2525,12 +3032,667 @@
 
     @endif
 
+    @if (
+    request()->user()->isAdmin()
+    || request()->user()->isMedico()
+    )
+
+    <div
+        id="modal-historia-clinica"
+        class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-slate-950/50 p-4"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-historia-clinica">
+
+        <div
+            class="max-h-[90vh] w-full max-w-4xl
+               overflow-y-auto rounded-2xl
+               bg-white shadow-2xl">
+
+            {{-- Encabezado --}}
+            <div
+                class="sticky top-0 z-10
+                   flex items-start justify-between
+                   border-b border-slate-100
+                   bg-white px-6 py-5">
+
+                <div>
+                    <h3
+                        id="titulo-modal-historia-clinica"
+                        class="text-lg font-semibold text-slate-900">
+
+                        {{ $pacientes->historiaClinica
+                        ? 'Editar historia clínica'
+                        : 'Registrar historia clínica' }}
+                    </h3>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Registra el resumen clínico principal del paciente.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="cerrarModalHistoriaClinica()"
+                    class="flex h-9 w-9 items-center
+                       justify-center rounded-lg
+                       text-slate-400 transition
+                       hover:bg-slate-100
+                       hover:text-slate-700"
+                    aria-label="Cerrar modal">
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form
+                method="POST"
+                action="{{ route(
+                'pacientes.historia-clinica.update',
+                $pacientes
+            ) }}">
+
+                @csrf
+                @method('PUT')
+
+                <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2">
+
+                    {{-- Patología base --}}
+                    <div>
+                        <label
+                            for="patologia_base"
+                            class="mb-1.5 block
+                               text-sm font-semibold
+                               text-slate-700">
+                            Patología base
+                        </label>
+
+                        <textarea
+                            id="patologia_base"
+                            name="patologia_base"
+                            rows="6"
+                            maxlength="20000"
+                            placeholder="Describe las enfermedades o condiciones principales..."
+                            class="block w-full resize-y
+                               rounded-xl border-slate-300
+                               text-sm shadow-sm
+                               focus:border-cyan-500
+                               focus:ring-cyan-500">{{ old(
+                            'patologia_base',
+                            $pacientes->historiaClinica?->patologia_base
+                        ) }}</textarea>
+
+                        @error('patologia_base')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    {{-- Padecimiento actual --}}
+                    <div>
+                        <label
+                            for="padecimiento_actual"
+                            class="mb-1.5 block
+                               text-sm font-semibold
+                               text-slate-700">
+                            Padecimiento actual
+                        </label>
+
+                        <textarea
+                            id="padecimiento_actual"
+                            name="padecimiento_actual"
+                            rows="6"
+                            maxlength="20000"
+                            placeholder="Describe síntomas, evolución y motivo de atención..."
+                            class="block w-full resize-y
+                               rounded-xl border-slate-300
+                               text-sm shadow-sm
+                               focus:border-cyan-500
+                               focus:ring-cyan-500">{{ old(
+                            'padecimiento_actual',
+                            $pacientes->historiaClinica?->padecimiento_actual
+                        ) }}</textarea>
+
+                        @error('padecimiento_actual')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    {{-- Tratamientos actuales --}}
+                    <div>
+                        <label
+                            for="tratamientos_actuales"
+                            class="mb-1.5 block
+                               text-sm font-semibold
+                               text-slate-700">
+                            Tratamientos actuales
+                        </label>
+
+                        <textarea
+                            id="tratamientos_actuales"
+                            name="tratamientos_actuales"
+                            rows="6"
+                            maxlength="20000"
+                            placeholder="Medicamentos, terapias, dosis y frecuencia..."
+                            class="block w-full resize-y
+                               rounded-xl border-slate-300
+                               text-sm shadow-sm
+                               focus:border-cyan-500
+                               focus:ring-cyan-500">{{ old(
+                            'tratamientos_actuales',
+                            $pacientes->historiaClinica?->tratamientos_actuales
+                        ) }}</textarea>
+
+                        @error('tratamientos_actuales')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    {{-- Prioridad y análisis --}}
+                    <div>
+                        <label
+                            for="prioridad_analisis_medico"
+                            class="mb-1.5 block
+                               text-sm font-semibold
+                               text-slate-700">
+                            Prioridad y análisis médico
+                        </label>
+
+                        <textarea
+                            id="prioridad_analisis_medico"
+                            name="prioridad_analisis_medico"
+                            rows="6"
+                            maxlength="20000"
+                            placeholder="Registra prioridades, valoración y análisis clínico..."
+                            class="block w-full resize-y
+                               rounded-xl border-slate-300
+                               text-sm shadow-sm
+                               focus:border-cyan-500
+                               focus:ring-cyan-500">{{ old(
+                            'prioridad_analisis_medico',
+                            $pacientes->historiaClinica?->prioridad_analisis_medico
+                        ) }}</textarea>
+
+                        @error('prioridad_analisis_medico')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                </div>
+
+                {{-- Acciones --}}
+                <div
+                    class="sticky bottom-0
+                       flex items-center justify-end gap-3
+                       border-t border-slate-100
+                       bg-slate-50 px-6 py-4">
+
+                    <button
+                        type="button"
+                        onclick="cerrarModalHistoriaClinica()"
+                        class="rounded-xl border
+                           border-slate-300 bg-white
+                           px-4 py-2.5
+                           text-sm font-semibold
+                           text-slate-700 transition
+                           hover:bg-slate-50">
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-cyan-600
+                           px-5 py-2.5
+                           text-sm font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-cyan-700">
+                        Guardar historia clínica
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (
+    request()->user()->isAdmin()
+    || request()->user()->isMedico()
+    )
+
+    <div
+        id="modal-heredofamiliares"
+        class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-slate-950/50 p-4"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-heredofamiliares">
+
+        <div
+            class="max-h-[90vh] w-full max-w-5xl
+               overflow-y-auto rounded-2xl
+               bg-white shadow-2xl">
+
+            <div
+                class="sticky top-0 z-10
+                   flex items-start justify-between
+                   border-b border-slate-100
+                   bg-white px-6 py-5">
+
+                <div>
+                    <h3
+                        id="titulo-modal-heredofamiliares"
+                        class="text-lg font-semibold text-slate-900">
+                        Antecedentes heredofamiliares
+                    </h3>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Escribe “negado” o especifica quién presentó
+                        el padecimiento.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="cerrarModalHeredofamiliares()"
+                    class="flex h-9 w-9 items-center
+                       justify-center rounded-lg
+                       text-slate-400 transition
+                       hover:bg-slate-100
+                       hover:text-slate-700"
+                    aria-label="Cerrar modal">
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form
+                method="POST"
+                action="{{ route(
+                'pacientes.historia-clinica.'
+                . 'heredofamiliares.update',
+                $pacientes
+            ) }}">
+
+                @csrf
+                @method('PUT')
+
+                <div
+                    class="grid grid-cols-1 gap-4 p-6
+                       sm:grid-cols-2
+                       lg:grid-cols-3
+                       xl:grid-cols-4">
+
+                    {{-- Número de hermanos --}}
+                    <div>
+                        <label
+                            for="numero_hermanos"
+                            class="mb-1.5 block
+                               text-sm font-medium
+                               text-slate-700">
+                            Hermanos
+                        </label>
+
+                        <input
+                            id="numero_hermanos"
+                            name="numero_hermanos"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value="{{ old(
+                            'numero_hermanos',
+                            $heredofamiliares?->numero_hermanos
+                        ) }}"
+                            class="block w-full rounded-xl
+                               border-slate-300 text-sm
+                               shadow-sm
+                               focus:border-emerald-500
+                               focus:ring-emerald-500">
+
+                        @error('numero_hermanos', 'heredofamiliares')
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    {{-- Antecedentes --}}
+                    @foreach ($camposHeredofamiliares as $clave => $etiqueta)
+
+                    <div>
+                        <label
+                            for="antecedente_{{ $clave }}"
+                            class="mb-1.5 block
+                                   text-sm font-medium
+                                   text-slate-700">
+                            {{ $etiqueta }}
+                        </label>
+
+                        <input
+                            id="antecedente_{{ $clave }}"
+                            name="antecedentes[{{ $clave }}]"
+                            type="text"
+                            maxlength="1000"
+                            value="{{ old(
+                                "antecedentes.{$clave}",
+                                data_get(
+                                    $valoresHeredofamiliares,
+                                    $clave
+                                )
+                            ) }}"
+                            placeholder="Negado o especifique"
+                            class="block w-full rounded-xl
+                                   border-slate-300 text-sm
+                                   shadow-sm
+                                   focus:border-emerald-500
+                                   focus:ring-emerald-500">
+
+                        @error(
+                        "antecedentes.{$clave}",
+                        'heredofamiliares'
+                        )
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    @endforeach
+                </div>
+
+                <div
+                    class="sticky bottom-0
+                       flex items-center justify-end gap-3
+                       border-t border-slate-100
+                       bg-slate-50 px-6 py-4">
+
+                    <button
+                        type="button"
+                        onclick="cerrarModalHeredofamiliares()"
+                        class="rounded-xl border
+                           border-slate-300 bg-white
+                           px-4 py-2.5
+                           text-sm font-semibold
+                           text-slate-700 transition
+                           hover:bg-slate-50">
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-emerald-600
+                           px-5 py-2.5
+                           text-sm font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-emerald-700">
+                        Guardar antecedentes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @endif
+
+    @endif
+
+    @if (
+    request()->user()->isAdmin()
+    || request()->user()->isMedico()
+)
+
+<div
+    id="modal-personales-patologicos"
+    class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-slate-950/50 p-4"
+    aria-hidden="true"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="titulo-modal-personales-patologicos">
+
+    <div
+        class="max-h-[90vh] w-full max-w-5xl
+               overflow-y-auto rounded-2xl
+               bg-white shadow-2xl">
+
+        <div
+            class="sticky top-0 z-10
+                   flex items-start justify-between
+                   border-b border-slate-100
+                   bg-white px-6 py-5">
+
+            <div>
+                <h3
+                    id="titulo-modal-personales-patologicos"
+                    class="text-lg font-semibold text-slate-900">
+                    Antecedentes personales patológicos
+                </h3>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    Escribe “negado” o especifica el antecedente.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                onclick="cerrarModalPersonalesPatologicos()"
+                class="flex h-9 w-9 items-center
+                       justify-center rounded-lg
+                       text-slate-400 transition
+                       hover:bg-slate-100
+                       hover:text-slate-700"
+                aria-label="Cerrar modal">
+
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ route(
+                'pacientes.historia-clinica.'
+                . 'personales-patologicos.update',
+                $pacientes
+            ) }}">
+
+            @csrf
+            @method('PUT')
+
+            <div
+                class="grid grid-cols-1 gap-4 p-6
+                       sm:grid-cols-2
+                       lg:grid-cols-3
+                       xl:grid-cols-4">
+
+                @foreach (
+                    $camposPersonalesPatologicos
+                    as $clave => $etiqueta
+                )
+
+                    <div>
+                        <label
+                            for="personal_patologico_{{ $clave }}"
+                            class="mb-1.5 block
+                                   text-sm font-medium
+                                   text-slate-700">
+                            {{ $etiqueta }}
+                        </label>
+
+                        <input
+                            id="personal_patologico_{{ $clave }}"
+                            name="antecedentes[{{ $clave }}]"
+                            type="text"
+                            maxlength="1000"
+                            value="{{ old(
+                                "antecedentes.{$clave}",
+                                data_get(
+                                    $valoresPersonalesPatologicos,
+                                    $clave
+                                ),
+                                'personalesPatologicos'
+                            ) }}"
+                            placeholder="Negado o especifique"
+                            class="block w-full rounded-xl
+                                   border-slate-300 text-sm
+                                   shadow-sm
+                                   focus:border-amber-500
+                                   focus:ring-amber-500">
+
+                        @error(
+                            "antecedentes.{$clave}",
+                            'personalesPatologicos'
+                        )
+                            <p class="mt-1 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                @endforeach
+            </div>
+
+            <div
+                class="sticky bottom-0
+                       flex items-center justify-end gap-3
+                       border-t border-slate-100
+                       bg-slate-50 px-6 py-4">
+
+                <button
+                    type="button"
+                    onclick="cerrarModalPersonalesPatologicos()"
+                    class="rounded-xl border
+                           border-slate-300 bg-white
+                           px-4 py-2.5
+                           text-sm font-semibold
+                           text-slate-700 transition
+                           hover:bg-slate-50">
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="rounded-xl bg-amber-600
+                           px-5 py-2.5
+                           text-sm font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-amber-700">
+                    Guardar antecedentes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@endif
+
+    <div
+        id="estado-validacion-historia"
+        data-tiene-errores="{{ $errors->hasAny([
+        'patologia_base',
+        'padecimiento_actual',
+        'tratamientos_actuales',
+        'prioridad_analisis_medico',
+    ]) ? 'true' : 'false' }}"
+        hidden>
+    </div>
+
+    <div
+        id="estado-validacion-heredofamiliares"
+        data-tiene-errores="{{ (
+        $errors->heredofamiliares->has('numero_hermanos')
+        || $errors->heredofamiliares->has('antecedentes.*')
+    ) ? 'true' : 'false' }}"
+        hidden>
+    </div>
+
+    <div
+    id="estado-validacion-personales-patologicos"
+    data-tiene-errores="{{ (
+        $errors
+            ->personalesPatologicos
+            ->has('antecedentes.*')
+    ) ? 'true' : 'false' }}"
+    hidden>
+</div>
+
     <script>
-        function abrirModalDatosGenerales() {
-            const modal =
-                document.getElementById(
-                    'modal-datos-generales'
-                );
+        /*
+    |--------------------------------------------------------------------------
+    | Funciones generales para modales
+    |--------------------------------------------------------------------------
+    */
+
+    function abrirModalPersonalesPatologicos() {
+    abrirModal(
+        'modal-personales-patologicos',
+        'personal_patologico_enfermedades_infancia'
+    );
+}
+
+function cerrarModalPersonalesPatologicos() {
+    cerrarModal('modal-personales-patologicos');
+}
+
+        function abrirModalHeredofamiliares() {
+            abrirModal(
+                'modal-heredofamiliares',
+                'numero_hermanos'
+            );
+        }
+
+        function cerrarModalHeredofamiliares() {
+            cerrarModal('modal-heredofamiliares');
+        }
+
+        function abrirModal(idModal, idPrimerCampo = null) {
+            const modal = document.getElementById(idModal);
 
             if (!modal) {
                 return;
@@ -2538,25 +3700,19 @@
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-
-            modal.setAttribute(
-                'aria-hidden',
-                'false'
-            );
+            modal.setAttribute('aria-hidden', 'false');
 
             document.body.style.overflow = 'hidden';
 
-            const primerCampo =
-                document.getElementById('modal_nombre');
-
-            primerCampo?.focus();
+            if (idPrimerCampo) {
+                document
+                    .getElementById(idPrimerCampo)
+                    ?.focus();
+            }
         }
 
-        function cerrarModalDatosGenerales() {
-            const modal =
-                document.getElementById(
-                    'modal-datos-generales'
-                );
+        function cerrarModal(idModal) {
+            const modal = document.getElementById(idModal);
 
             if (!modal) {
                 return;
@@ -2564,108 +3720,202 @@
 
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-
-            modal.setAttribute(
-                'aria-hidden',
-                'true'
-            );
+            modal.setAttribute('aria-hidden', 'true');
 
             document.body.style.overflow = '';
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Modal de datos generales
+        |--------------------------------------------------------------------------
+        */
+
+        function abrirModalDatosGenerales() {
+            abrirModal(
+                'modal-datos-generales',
+                'modal_nombre'
+            );
+        }
+
+        function cerrarModalDatosGenerales() {
+            cerrarModal('modal-datos-generales');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Modal de contacto
+        |--------------------------------------------------------------------------
+        */
+
+        function abrirModalContacto() {
+            abrirModal(
+                'modal-contacto',
+                'modal_telefono'
+            );
+        }
+
+        function cerrarModalContacto() {
+            cerrarModal('modal-contacto');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Modal de notas
+        |--------------------------------------------------------------------------
+        */
+
+        function abrirModalNotas() {
+            abrirModal(
+                'modal-notas',
+                'modal_notas'
+            );
+        }
+
+        function cerrarModalNotas() {
+            cerrarModal('modal-notas');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Modal de historia clínica
+        |--------------------------------------------------------------------------
+        */
+
+        function abrirModalHistoriaClinica() {
+            abrirModal(
+                'modal-historia-clinica',
+                'patologia_base'
+            );
+        }
+
+        function cerrarModalHistoriaClinica() {
+            cerrarModal('modal-historia-clinica');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Cerrar modales al presionar Escape
+        |--------------------------------------------------------------------------
+        */
 
         document.addEventListener(
             'keydown',
             function(event) {
-                if (event.key === 'Escape') {
-                    cerrarModalDatosGenerales();
-                    cerrarModalContacto();
-                    cerraModalNotas();
+                if (event.key !== 'Escape') {
+                    return;
                 }
+
+                cerrarModalDatosGenerales();
+                cerrarModalContacto();
+                cerrarModalNotas();
+                cerrarModalHistoriaClinica();
+                cerrarModalHeredofamiliares();
+                cerrarModalPersonalesPatologicos();
             }
         );
 
-        document
-            .getElementById('modal-datos-generales')
-            ?.addEventListener(
-                'click',
-                function(event) {
-                    if (event.target === this) {
-                        cerrarModalDatosGenerales();
+        /*
+        |--------------------------------------------------------------------------
+        | Cerrar al hacer clic sobre el fondo
+        |--------------------------------------------------------------------------
+        */
+
+        const modales = [{
+                id: 'modal-datos-generales',
+                cerrar: cerrarModalDatosGenerales,
+            },
+            {
+                id: 'modal-contacto',
+                cerrar: cerrarModalContacto,
+            },
+            {
+                id: 'modal-notas',
+                cerrar: cerrarModalNotas,
+            },
+            {
+                id: 'modal-historia-clinica',
+                cerrar: cerrarModalHistoriaClinica,
+            },
+            {
+                id: 'modal-heredofamiliares',
+                cerrar: cerrarModalHeredofamiliares,
+            },
+            {
+    id: 'modal-personales-patologicos',
+    cerrar: cerrarModalPersonalesPatologicos,
+},
+        ];
+
+        modales.forEach(function(configuracion) {
+            document
+                .getElementById(configuracion.id)
+                ?.addEventListener(
+                    'click',
+                    function(event) {
+                        if (event.target === this) {
+                            configuracion.cerrar();
+                        }
                     }
+                );
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reabrir Historia Clínica si falla la validación
+        |--------------------------------------------------------------------------
+        */
+
+        /*
+|--------------------------------------------------------------------------
+| Reabrir Historia Clínica si falla la validación
+|--------------------------------------------------------------------------
+*/
+
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
+                const estadoValidacion =
+                    document.getElementById(
+                        'estado-validacion-historia'
+                    );
+
+                const tieneErrores =
+                    estadoValidacion?.dataset.tieneErrores === 'true';
+
+                const estadoHeredofamiliares =
+                    document.getElementById(
+                        'estado-validacion-heredofamiliares'
+                    );
+
+                const tieneErroresHeredofamiliares =
+                    estadoHeredofamiliares
+                    ?.dataset.tieneErrores === 'true';
+
+                    const estadoPersonalesPatologicos =
+    document.getElementById(
+        'estado-validacion-personales-patologicos'
+    );
+
+const tieneErroresPersonalesPatologicos =
+    estadoPersonalesPatologicos
+        ?.dataset.tieneErrores === 'true';
+
+if (tieneErroresPersonalesPatologicos) {
+    abrirModalPersonalesPatologicos();
+}
+
+
+                if (tieneErroresHeredofamiliares) {
+                    abrirModalHeredofamiliares();
                 }
-            );
 
-
-        function abrirModalContacto() {
-            const modal =
-                document.getElementById('modal-contacto');
-
-            if (!modal) {
-                return;
+                if (tieneErrores) {
+                    abrirModalHistoriaClinica();
+                }
             }
 
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
 
-            modal.setAttribute('aria-hidden', 'false');
-
-            document.body.style.overflow = 'hidden';
-
-            document
-                .getElementById('modal_telefono')
-                ?.focus();
-        }
-
-        function cerrarModalContacto() {
-            const modal =
-                document.getElementById('modal-contacto');
-
-            if (!modal) {
-                return;
-            }
-
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-
-            modal.setAttribute('aria-hidden', 'true');
-
-            document.body.style.overflow = '';
-        }
-
-        function abrirModalNotas() {
-            const modal =
-                document.getElementById('modal-notas');
-
-            if (!modal) {
-                return;
-            }
-
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-
-            modal.setAttribute('aria-hidden', 'false');
-
-            document.body.style.overflow = 'hidden';
-
-            document
-                .getElementById('modal_notas')
-                ?.focus();
-        }
-
-        function cerrarModalNotas() {
-            const modal =
-                document.getElementById('modal-notas');
-
-            if (!modal) {
-                return;
-            }
-
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-
-            modal.setAttribute('aria-hidden', 'true');
-
-            document.body.style.overflow = '';
-        }
+        );
     </script>
 </x-app-layout>

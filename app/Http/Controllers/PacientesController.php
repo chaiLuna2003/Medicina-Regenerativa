@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Pacientes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Models\AntecedenteHeredofamiliar;
+use App\Models\AntecedentePersonalPatologico;
 
 class PacientesController extends Controller
 {
@@ -93,7 +95,46 @@ class PacientesController extends Controller
 
     public function show(Pacientes $pacientes)
     {
+
+        $user = request()->user();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Acceso a la ficha del paciente
+    |--------------------------------------------------------------------------
+    */
+
+        if ($user->isMedico()) {
+            abort_unless(
+                $user->medico,
+                403,
+                'Tu usuario no tiene un perfil médico asociado.'
+            );
+
+            $tieneRelacionClinica = $pacientes
+                ->citas()
+                ->where(
+                    'medico_id',
+                    $user->medico->id
+                )
+                ->where(
+                    'estado',
+                    '!=',
+                    'cancelada'
+                )
+                ->exists();
+
+            abort_unless(
+                $tieneRelacionClinica,
+                403,
+                'No tienes autorización para consultar este paciente.'
+            );
+        }
+
         $pacientes->load([
+            'historiaClinica.antecedentesHeredofamiliares',
+            'historiaClinica.antecedentesPersonalesPatologicos',
+
             'citas' => function ($query) {
                 $query
                     ->with([
@@ -211,11 +252,19 @@ class PacientesController extends Controller
             ->sortByDesc('fecha')
             ->first();
 
+        $camposHeredofamiliares =
+            AntecedenteHeredofamiliar::CAMPOS;
+
+        $camposPersonalesPatologicos =
+            AntecedentePersonalPatologico::CAMPOS;
+
         return view(
             'pacientes.show',
             compact(
                 'pacientes',
-                'ultimaActividad'
+                'ultimaActividad',
+                'camposHeredofamiliares',
+                'camposPersonalesPatologicos'
             )
         );
     }

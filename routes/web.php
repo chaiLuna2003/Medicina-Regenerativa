@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecetasController;
 use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
@@ -74,15 +75,17 @@ Route::middleware([
         [ProfileController::class, 'destroy']
     )->name('profile.destroy');
 
+
+
     /*
-    |--------------------------------------------------------------------------
-    | Pacientes
-    |--------------------------------------------------------------------------
-    |
-    | Administración y recepción pueden acceder al módulo de pacientes.
-    | La eliminación queda reservada para administración.
-    |
-    */
+|--------------------------------------------------------------------------
+| Gestión administrativa de pacientes
+|--------------------------------------------------------------------------
+|
+| Administración y recepción pueden consultar el listado, registrar
+| pacientes y modificar los datos administrativos permitidos.
+|
+*/
 
     Route::middleware('role:admin,recepcionista')
         ->group(function () {
@@ -91,11 +94,76 @@ Route::middleware([
                 'pacientes',
                 PacientesController::class
             )
-                ->except(['destroy'])
+                ->except([
+                    'show',
+                    'destroy',
+                ])
                 ->parameters([
                     'pacientes' => 'pacientes',
                 ]);
         });
+
+    /*
+|--------------------------------------------------------------------------
+| Ficha del paciente
+|--------------------------------------------------------------------------
+|
+| El médico puede acceder únicamente cuando el controlador confirme
+| que existe una relación clínica mediante una cita.
+|
+*/
+
+    Route::middleware('role:admin,medico,recepcionista')
+        ->group(function () {
+
+            Route::get(
+                '/pacientes/{pacientes}',
+                [PacientesController::class, 'show']
+            )->name('pacientes.show');
+        });
+
+    /*
+|--------------------------------------------------------------------------
+| Historia clínica principal
+|--------------------------------------------------------------------------
+|
+| Administración y médicos autorizados pueden crear o actualizar
+| el resumen clínico principal.
+|
+*/
+
+    Route::middleware('role:admin,medico')
+        ->group(function () {
+
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica',
+                [HistoriaClinicaController::class, 'update']
+            )->name('pacientes.historia-clinica.update');
+        });
+
+    Route::put(
+        '/pacientes/{paciente}/historia-clinica/'
+            . 'antecedentes-heredofamiliares',
+        [
+            HistoriaClinicaController::class,
+            'updateHeredofamiliares',
+        ]
+    )->name(
+        'pacientes.historia-clinica.'
+            . 'heredofamiliares.update'
+    );
+
+    Route::put(
+    '/pacientes/{paciente}/historia-clinica/'
+        . 'antecedentes-personales-patologicos',
+    [
+        HistoriaClinicaController::class,
+        'updatePersonalesPatologicos',
+    ]
+)->name(
+    'pacientes.historia-clinica.'
+        . 'personales-patologicos.update'
+);
 
     /*
     |--------------------------------------------------------------------------
