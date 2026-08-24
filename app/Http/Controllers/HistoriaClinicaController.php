@@ -7,6 +7,7 @@ use App\Models\Pacientes;
 use App\Models\AntecedentePersonalPatologico;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Models\AntecedentePersonalNoPatologico;
 
 class HistoriaClinicaController extends Controller
 {
@@ -222,9 +223,9 @@ class HistoriaClinicaController extends Controller
         }
 
         $validated = $request->validateWithBag(
-    'personalesPatologicos',
-    $rules
-);
+            'personalesPatologicos',
+            $rules
+        );
 
         /*
     |--------------------------------------------------------------------------
@@ -289,6 +290,112 @@ class HistoriaClinicaController extends Controller
                 'Antecedentes personales patológicos actualizados correctamente.'
             );
     }
+
+    /**
+ * Crea o actualiza los antecedentes personales no patológicos.
+ */
+public function updatePersonalesNoPatologicos(
+    Request $request,
+    Pacientes $paciente
+): RedirectResponse {
+    $this->autorizarEdicionClinica(
+        $request,
+        $paciente
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validación
+    |--------------------------------------------------------------------------
+    */
+
+    $rules = [
+        'antecedentes' => [
+            'nullable',
+            'array',
+        ],
+    ];
+
+    foreach (
+        array_keys(
+            AntecedentePersonalNoPatologico::CAMPOS
+        ) as $campo
+    ) {
+        $rules["antecedentes.{$campo}"] = [
+            'nullable',
+            'string',
+            'max:1000',
+        ];
+    }
+
+    $validated = $request->validateWithBag(
+        'personalesNoPatologicos',
+        $rules
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Normalización
+    |--------------------------------------------------------------------------
+    */
+
+    $antecedentes = [];
+
+    foreach (
+        array_keys(
+            AntecedentePersonalNoPatologico::CAMPOS
+        ) as $campo
+    ) {
+        $valor = trim(
+            (string) data_get(
+                $validated,
+                "antecedentes.{$campo}",
+                ''
+            )
+        );
+
+        $antecedentes[$campo] = $valor !== ''
+            ? $valor
+            : null;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Historia clínica
+    |--------------------------------------------------------------------------
+    */
+
+    $historiaClinica = $paciente
+        ->historiaClinica()
+        ->firstOrCreate([
+            'paciente_id' => $paciente->id,
+        ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Crear o actualizar antecedentes
+    |--------------------------------------------------------------------------
+    */
+
+    $historiaClinica
+        ->antecedentesPersonalesNoPatologicos()
+        ->updateOrCreate(
+            [
+                'historia_clinica_id' =>
+                    $historiaClinica->id,
+            ],
+            [
+                'antecedentes' => $antecedentes,
+            ]
+        );
+
+    return redirect()
+        ->route('pacientes.show', $paciente)
+        ->with(
+            'success',
+            'Antecedentes personales no patológicos actualizados correctamente.'
+        );
+}
 
     /**
      * Verifica que el usuario pueda editar información clínica.

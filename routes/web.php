@@ -154,15 +154,27 @@ Route::middleware([
     );
 
     Route::put(
+        '/pacientes/{paciente}/historia-clinica/'
+            . 'antecedentes-personales-patologicos',
+        [
+            HistoriaClinicaController::class,
+            'updatePersonalesPatologicos',
+        ]
+    )->name(
+        'pacientes.historia-clinica.'
+            . 'personales-patologicos.update'
+    );
+
+    Route::put(
     '/pacientes/{paciente}/historia-clinica/'
-        . 'antecedentes-personales-patologicos',
+        . 'antecedentes-personales-no-patologicos',
     [
         HistoriaClinicaController::class,
-        'updatePersonalesPatologicos',
+        'updatePersonalesNoPatologicos',
     ]
 )->name(
     'pacientes.historia-clinica.'
-        . 'personales-patologicos.update'
+        . 'personales-no-patologicos.update'
 );
 
     /*

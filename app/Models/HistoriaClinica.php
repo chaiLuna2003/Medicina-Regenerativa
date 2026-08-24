@@ -35,10 +35,18 @@ class HistoriaClinica extends Model
     }
 
     public function antecedentesPersonalesPatologicos(): HasOne
-{
-    return $this->hasOne(
-        AntecedentePersonalPatologico::class,
-        'historia_clinica_id'
-    );
-}
+    {
+        return $this->hasOne(
+            AntecedentePersonalPatologico::class,
+            'historia_clinica_id'
+        );
+    }
+
+    public function antecedentesPersonalesNoPatologicos(): HasOne
+    {
+        return $this->hasOne(
+            AntecedentePersonalNoPatologico::class,
+            'historia_clinica_id'
+        );
+    }
 }

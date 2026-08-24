@@ -930,6 +930,143 @@
                         </div>
                     </details>
 
+                    @php
+                    $personalesNoPatologicos = $pacientes
+                    ->historiaClinica
+                    ?->antecedentesPersonalesNoPatologicos;
+
+                    $valoresPersonalesNoPatologicos =
+                    $personalesNoPatologicos?->antecedentes ?? [];
+                    @endphp
+
+                    {{-- ========================================================= --}}
+                    {{-- ANTECEDENTES PERSONALES NO PATOLÓGICOS --}}
+                    {{-- ========================================================= --}}
+
+                    <details
+                        class="group overflow-hidden rounded-2xl
+           border border-slate-200
+           bg-white shadow-sm">
+
+                        <summary
+                            class="flex cursor-pointer list-none
+               items-center justify-between
+               gap-4 px-6 py-5">
+
+                            <div>
+                                <h3 class="font-semibold text-slate-900">
+                                    Antecedentes personales no patológicos
+                                </h3>
+
+                                <p class="mt-1 text-xs text-slate-400">
+                                    Vivienda, higiene, actividad física e inmunizaciones
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-3">
+
+                                @if (
+                                request()->user()->isAdmin()
+                                || request()->user()->isMedico()
+                                )
+                                <button
+                                    type="button"
+                                    onclick="
+                        event.preventDefault();
+                        event.stopPropagation();
+                        abrirModalPersonalesNoPatologicos();
+                    "
+                                    class="inline-flex items-center
+                           justify-center rounded-xl
+                           bg-indigo-600 px-4 py-2
+                           text-xs font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-indigo-700">
+
+                                    {{ $personalesNoPatologicos
+                        ? 'Editar'
+                        : 'Registrar' }}
+                                </button>
+                                @endif
+
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    class="h-5 w-5 text-slate-400
+                       transition duration-200
+                       group-open:rotate-180"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor">
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </summary>
+
+                        <div class="border-t border-slate-100">
+
+                            @if ($personalesNoPatologicos)
+
+                            <div
+                                class="grid grid-cols-1 gap-0
+                       sm:grid-cols-2
+                       lg:grid-cols-3">
+
+                                @foreach (
+                                $camposPersonalesNoPatologicos
+                                as $clave => $etiqueta
+                                )
+
+                                @php
+                                $valor = data_get(
+                                $valoresPersonalesNoPatologicos,
+                                $clave
+                                );
+                                @endphp
+
+                                <div
+                                    class="border-b border-r
+                               border-slate-100 p-4">
+
+                                    <p class="text-xs font-medium text-slate-400">
+                                        {{ $etiqueta }}
+                                    </p>
+
+                                    <p
+                                        class="mt-1 whitespace-pre-line
+                                   text-sm font-semibold
+                                   text-slate-800">
+                                        {{ filled($valor)
+                                ? $valor
+                                : 'No registrado' }}
+                                    </p>
+                                </div>
+
+                                @endforeach
+                            </div>
+
+                            @else
+
+                            <div class="px-6 py-10 text-center">
+
+                                <p class="text-sm font-semibold text-slate-700">
+                                    Sin antecedentes personales no patológicos
+                                </p>
+
+                                <p class="mt-1 text-sm text-slate-400">
+                                    Registra los hábitos y condiciones generales.
+                                </p>
+                            </div>
+
+                            @endif
+
+                        </div>
+                    </details>
+
                     {{-- Resumen --}}
                     <section
                         class="rounded-2xl border
@@ -3408,12 +3545,12 @@
                             type="text"
                             maxlength="1000"
                             value="{{ old(
-                                "antecedentes.{$clave}",
-                                data_get(
-                                    $valoresHeredofamiliares,
-                                    $clave
-                                )
-                            ) }}"
+    "antecedentes.{$clave}",
+    data_get(
+        $valoresPersonalesPatologicos,
+        $clave
+    )
+) }}"
                             placeholder="Negado o especifique"
                             class="block w-full rounded-xl
                                    border-slate-300 text-sm
@@ -3473,88 +3610,88 @@
     @if (
     request()->user()->isAdmin()
     || request()->user()->isMedico()
-)
-
-<div
-    id="modal-personales-patologicos"
-    class="fixed inset-0 z-50 hidden
-           items-center justify-center
-           bg-slate-950/50 p-4"
-    aria-hidden="true"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="titulo-modal-personales-patologicos">
+    )
 
     <div
-        class="max-h-[90vh] w-full max-w-5xl
+        id="modal-personales-patologicos"
+        class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-slate-950/50 p-4"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-personales-patologicos">
+
+        <div
+            class="max-h-[90vh] w-full max-w-5xl
                overflow-y-auto rounded-2xl
                bg-white shadow-2xl">
 
-        <div
-            class="sticky top-0 z-10
+            <div
+                class="sticky top-0 z-10
                    flex items-start justify-between
                    border-b border-slate-100
                    bg-white px-6 py-5">
 
-            <div>
-                <h3
-                    id="titulo-modal-personales-patologicos"
-                    class="text-lg font-semibold text-slate-900">
-                    Antecedentes personales patológicos
-                </h3>
+                <div>
+                    <h3
+                        id="titulo-modal-personales-patologicos"
+                        class="text-lg font-semibold text-slate-900">
+                        Antecedentes personales patológicos
+                    </h3>
 
-                <p class="mt-1 text-sm text-slate-500">
-                    Escribe “negado” o especifica el antecedente.
-                </p>
-            </div>
+                    <p class="mt-1 text-sm text-slate-500">
+                        Escribe “negado” o especifica el antecedente.
+                    </p>
+                </div>
 
-            <button
-                type="button"
-                onclick="cerrarModalPersonalesPatologicos()"
-                class="flex h-9 w-9 items-center
+                <button
+                    type="button"
+                    onclick="cerrarModalPersonalesPatologicos()"
+                    class="flex h-9 w-9 items-center
                        justify-center rounded-lg
                        text-slate-400 transition
                        hover:bg-slate-100
                        hover:text-slate-700"
-                aria-label="Cerrar modal">
+                    aria-label="Cerrar modal">
 
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2">
 
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M6 18 18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
 
-        <form
-            method="POST"
-            action="{{ route(
+            <form
+                method="POST"
+                action="{{ route(
                 'pacientes.historia-clinica.'
                 . 'personales-patologicos.update',
                 $pacientes
             ) }}">
 
-            @csrf
-            @method('PUT')
+                @csrf
+                @method('PUT')
 
-            <div
-                class="grid grid-cols-1 gap-4 p-6
+                <div
+                    class="grid grid-cols-1 gap-4 p-6
                        sm:grid-cols-2
                        lg:grid-cols-3
                        xl:grid-cols-4">
 
-                @foreach (
+                    @foreach (
                     $camposPersonalesPatologicos
                     as $clave => $etiqueta
-                )
+                    )
 
                     <div>
                         <label
@@ -3586,51 +3723,211 @@
                                    focus:ring-amber-500">
 
                         @error(
-                            "antecedentes.{$clave}",
-                            'personalesPatologicos'
+                        "antecedentes.{$clave}",
+                        'personalesPatologicos'
                         )
-                            <p class="mt-1 text-xs text-red-600">
-                                {{ $message }}
-                            </p>
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
                         @enderror
                     </div>
 
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
 
-            <div
-                class="sticky bottom-0
+                <div
+                    class="sticky bottom-0
                        flex items-center justify-end gap-3
                        border-t border-slate-100
                        bg-slate-50 px-6 py-4">
 
-                <button
-                    type="button"
-                    onclick="cerrarModalPersonalesPatologicos()"
-                    class="rounded-xl border
+                    <button
+                        type="button"
+                        onclick="cerrarModalPersonalesPatologicos()"
+                        class="rounded-xl border
                            border-slate-300 bg-white
                            px-4 py-2.5
                            text-sm font-semibold
                            text-slate-700 transition
                            hover:bg-slate-50">
-                    Cancelar
-                </button>
+                        Cancelar
+                    </button>
 
-                <button
-                    type="submit"
-                    class="rounded-xl bg-amber-600
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-amber-600
                            px-5 py-2.5
                            text-sm font-semibold
                            text-white shadow-sm
                            transition hover:bg-amber-700">
-                    Guardar antecedentes
+                        Guardar antecedentes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @endif
+
+    @if (
+    request()->user()->isAdmin()
+    || request()->user()->isMedico()
+    )
+
+    <div
+        id="modal-personales-no-patologicos"
+        class="fixed inset-0 z-50 hidden
+           items-center justify-center
+           bg-slate-950/50 p-4"
+        aria-hidden="true"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-modal-personales-no-patologicos">
+
+        <div
+            class="max-h-[90vh] w-full max-w-4xl
+               overflow-y-auto rounded-2xl
+               bg-white shadow-2xl">
+
+            <div
+                class="sticky top-0 z-10
+                   flex items-start justify-between
+                   border-b border-slate-100
+                   bg-white px-6 py-5">
+
+                <div>
+                    <h3
+                        id="titulo-modal-personales-no-patologicos"
+                        class="text-lg font-semibold text-slate-900">
+                        Antecedentes personales no patológicos
+                    </h3>
+
+                    <p class="mt-1 text-sm text-slate-500">
+                        Registra hábitos y condiciones generales del paciente.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onclick="cerrarModalPersonalesNoPatologicos()"
+                    class="flex h-9 w-9 items-center
+                       justify-center rounded-lg
+                       text-slate-400 transition
+                       hover:bg-slate-100
+                       hover:text-slate-700"
+                    aria-label="Cerrar modal">
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2">
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M6 18 18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
-        </form>
-    </div>
-</div>
 
-@endif
+            <form
+                method="POST"
+                action="{{ route(
+                'pacientes.historia-clinica.'
+                . 'personales-no-patologicos.update',
+                $pacientes
+            ) }}">
+
+                @csrf
+                @method('PUT')
+
+                <div
+                    class="grid grid-cols-1 gap-4 p-6
+                       sm:grid-cols-2
+                       lg:grid-cols-3">
+
+                    @foreach (
+                    $camposPersonalesNoPatologicos
+                    as $clave => $etiqueta
+                    )
+
+                    <div>
+                        <label
+                            for="personal_no_patologico_{{ $clave }}"
+                            class="mb-1.5 block
+                                   text-sm font-medium
+                                   text-slate-700">
+                            {{ $etiqueta }}
+                        </label>
+
+                        <input
+                            id="personal_no_patologico_{{ $clave }}"
+                            name="antecedentes[{{ $clave }}]"
+                            type="text"
+                            maxlength="1000"
+                            value="{{ old(
+                                "antecedentes.{$clave}",
+                                data_get(
+                                    $valoresPersonalesNoPatologicos,
+                                    $clave
+                                )
+                            ) }}"
+                            placeholder="Escribe la información"
+                            class="block w-full rounded-xl
+                                   border-slate-300 text-sm
+                                   shadow-sm
+                                   focus:border-indigo-500
+                                   focus:ring-indigo-500">
+
+                        @error(
+                        "antecedentes.{$clave}",
+                        'personalesNoPatologicos'
+                        )
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
+                    @endforeach
+                </div>
+
+                <div
+                    class="sticky bottom-0
+                       flex items-center justify-end gap-3
+                       border-t border-slate-100
+                       bg-slate-50 px-6 py-4">
+
+                    <button
+                        type="button"
+                        onclick="cerrarModalPersonalesNoPatologicos()"
+                        class="rounded-xl border
+                           border-slate-300 bg-white
+                           px-4 py-2.5
+                           text-sm font-semibold
+                           text-slate-700 transition
+                           hover:bg-slate-50">
+                        Cancelar
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="rounded-xl bg-indigo-600
+                           px-5 py-2.5
+                           text-sm font-semibold
+                           text-white shadow-sm
+                           transition hover:bg-indigo-700">
+                        Guardar antecedentes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @endif
 
     <div
         id="estado-validacion-historia"
@@ -3653,14 +3950,24 @@
     </div>
 
     <div
-    id="estado-validacion-personales-patologicos"
-    data-tiene-errores="{{ (
+        id="estado-validacion-personales-patologicos"
+        data-tiene-errores="{{ (
         $errors
             ->personalesPatologicos
             ->has('antecedentes.*')
     ) ? 'true' : 'false' }}"
-    hidden>
-</div>
+        hidden>
+    </div>
+
+    <div
+        id="estado-validacion-personales-no-patologicos"
+        data-tiene-errores="{{ (
+        $errors
+            ->personalesNoPatologicos
+            ->has('antecedentes.*')
+    ) ? 'true' : 'false' }}"
+        hidden>
+    </div>
 
     <script>
         /*
@@ -3669,16 +3976,27 @@
     |--------------------------------------------------------------------------
     */
 
-    function abrirModalPersonalesPatologicos() {
-    abrirModal(
-        'modal-personales-patologicos',
-        'personal_patologico_enfermedades_infancia'
-    );
-}
+        function abrirModalPersonalesNoPatologicos() {
+            abrirModal(
+                'modal-personales-no-patologicos',
+                'personal_no_patologico_casa_habitacion'
+            );
+        }
 
-function cerrarModalPersonalesPatologicos() {
-    cerrarModal('modal-personales-patologicos');
-}
+        function cerrarModalPersonalesNoPatologicos() {
+            cerrarModal('modal-personales-no-patologicos');
+        }
+
+        function abrirModalPersonalesPatologicos() {
+            abrirModal(
+                'modal-personales-patologicos',
+                'personal_patologico_enfermedades_infancia'
+            );
+        }
+
+        function cerrarModalPersonalesPatologicos() {
+            cerrarModal('modal-personales-patologicos');
+        }
 
         function abrirModalHeredofamiliares() {
             abrirModal(
@@ -3812,6 +4130,7 @@ function cerrarModalPersonalesPatologicos() {
                 cerrarModalHistoriaClinica();
                 cerrarModalHeredofamiliares();
                 cerrarModalPersonalesPatologicos();
+                cerrarModalPersonalesNoPatologicos();
             }
         );
 
@@ -3842,9 +4161,13 @@ function cerrarModalPersonalesPatologicos() {
                 cerrar: cerrarModalHeredofamiliares,
             },
             {
-    id: 'modal-personales-patologicos',
-    cerrar: cerrarModalPersonalesPatologicos,
-},
+                id: 'modal-personales-patologicos',
+                cerrar: cerrarModalPersonalesPatologicos,
+            },
+            {
+                id: 'modal-personales-no-patologicos',
+                cerrar: cerrarModalPersonalesNoPatologicos,
+            },
         ];
 
         modales.forEach(function(configuracion) {
@@ -3892,18 +4215,31 @@ function cerrarModalPersonalesPatologicos() {
                     estadoHeredofamiliares
                     ?.dataset.tieneErrores === 'true';
 
-                    const estadoPersonalesPatologicos =
-    document.getElementById(
-        'estado-validacion-personales-patologicos'
-    );
+                const estadoPersonalesPatologicos =
+                    document.getElementById(
+                        'estado-validacion-personales-patologicos'
+                    );
 
-const tieneErroresPersonalesPatologicos =
-    estadoPersonalesPatologicos
-        ?.dataset.tieneErrores === 'true';
+                const tieneErroresPersonalesPatologicos =
+                    estadoPersonalesPatologicos
+                    ?.dataset.tieneErrores === 'true';
 
-if (tieneErroresPersonalesPatologicos) {
-    abrirModalPersonalesPatologicos();
-}
+                const estadoPersonalesNoPatologicos =
+                    document.getElementById(
+                        'estado-validacion-personales-no-patologicos'
+                    );
+
+                const tieneErroresPersonalesNoPatologicos =
+                    estadoPersonalesNoPatologicos
+                    ?.dataset.tieneErrores === 'true';
+
+                if (tieneErroresPersonalesNoPatologicos) {
+                    abrirModalPersonalesNoPatologicos();
+                }
+
+                if (tieneErroresPersonalesPatologicos) {
+                    abrirModalPersonalesPatologicos();
+                }
 
 
                 if (tieneErroresHeredofamiliares) {
