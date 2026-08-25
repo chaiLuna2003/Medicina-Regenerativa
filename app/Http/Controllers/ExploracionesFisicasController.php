@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Citas;
+use App\Models\ExploracionFisica;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -44,51 +45,101 @@ class ExploracionesFisicasController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Validación
+        | Reglas de validación
         |--------------------------------------------------------------------------
         */
 
+        $rules = [
+            'interrogatorio' => [
+                'nullable',
+                'string',
+                'max:20000',
+            ],
+
+            'anotaciones' => [
+                'nullable',
+                'string',
+                'max:20000',
+            ],
+
+            'recomendaciones' => [
+                'nullable',
+                'string',
+                'max:20000',
+            ],
+
+            'sistemas' => [
+                'nullable',
+                'array',
+            ],
+        ];
+
+        foreach (
+            array_keys(ExploracionFisica::SISTEMAS)
+            as $sistema
+        ) {
+            $rules["sistemas.{$sistema}"] = [
+                'nullable',
+                'string',
+                'max:5000',
+            ];
+        }
+
         $validated = $request->validateWithBag(
             'exploracionFisica',
-            [
-                'interrogatorio' => [
-                    'nullable',
-                    'string',
-                    'max:20000',
-                ],
-
-                'anotaciones' => [
-                    'nullable',
-                    'string',
-                    'max:20000',
-                ],
-
-                'exploracion_fisica' => [
-                    'nullable',
-                    'string',
-                    'max:20000',
-                ],
-
-                'recomendaciones' => [
-                    'nullable',
-                    'string',
-                    'max:20000',
-                ],
-            ]
+            $rules
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Normalizar campos narrativos
+        | Normalizar campos generales
         |--------------------------------------------------------------------------
         */
 
-        foreach ($validated as $campo => $valor) {
-            $valor = trim((string) $valor);
+        $camposGenerales = [];
 
-            $validated[$campo] = $valor !== ''
-                ? $valor
-                : null;
+        foreach (
+            array_keys(ExploracionFisica::CAMPOS)
+            as $campo
+        ) {
+            $valor = trim(
+                (string) data_get(
+                    $validated,
+                    $campo,
+                    ''
+                )
+            );
+
+            $camposGenerales[$campo] =
+                $valor !== ''
+                    ? $valor
+                    : null;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Normalizar sistemas y órganos
+        |--------------------------------------------------------------------------
+        */
+
+        $sistemas = [];
+
+        foreach (
+            array_keys(ExploracionFisica::SISTEMAS)
+            as $sistema
+        ) {
+            $valor = trim(
+                (string) data_get(
+                    $validated,
+                    "sistemas.{$sistema}",
+                    ''
+                )
+            );
+
+            $sistemas[$sistema] =
+                $valor !== ''
+                    ? $valor
+                    : null;
         }
 
         /*
@@ -101,7 +152,8 @@ class ExploracionesFisicasController extends Controller
             ->paciente
             ->historiaClinica()
             ->firstOrCreate([
-                'paciente_id' => $cita->paciente_id,
+                'paciente_id' =>
+                    $cita->paciente_id,
             ]);
 
         /*
@@ -110,24 +162,32 @@ class ExploracionesFisicasController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $cita->exploracionFisica()->updateOrCreate(
-            [
-                'cita_id' => $cita->id,
-            ],
-            array_merge(
-                $validated,
+        $cita
+            ->exploracionFisica()
+            ->updateOrCreate(
                 [
-                    'historia_clinica_id' =>
-                        $historiaClinica->id,
+                    'cita_id' => $cita->id,
+                ],
+                array_merge(
+                    $camposGenerales,
+                    [
+                        'historia_clinica_id' =>
+                            $historiaClinica->id,
 
-                    'medico_id' =>
-                        $cita->medico_id,
-                ]
-            )
-        );
+                        'medico_id' =>
+                            $cita->medico_id,
+
+                        'sistemas' =>
+                            $sistemas,
+                    ]
+                )
+            );
 
         return redirect()
-            ->route('pacientes.show', $cita->paciente)
+            ->route(
+                'pacientes.show',
+                $cita->paciente
+            )
             ->with(
                 'success',
                 'Exploración física actualizada correctamente.'

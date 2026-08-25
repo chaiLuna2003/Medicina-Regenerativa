@@ -9,6 +9,7 @@ use App\Models\AntecedenteHeredofamiliar;
 use App\Models\AntecedentePersonalPatologico;
 use App\Models\AntecedentePersonalNoPatologico;
 use App\Models\HabitoAlimenticio;
+use App\Models\ExploracionFisica;
 
 class PacientesController extends Controller
 {
@@ -97,7 +98,6 @@ class PacientesController extends Controller
 
     public function show(Pacientes $pacientes)
     {
-
         $user = request()->user();
 
         /*
@@ -133,11 +133,28 @@ class PacientesController extends Controller
             );
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | Cargar relaciones clínicas
+    |--------------------------------------------------------------------------
+    */
+
         $pacientes->load([
             'historiaClinica.antecedentesHeredofamiliares',
             'historiaClinica.antecedentesPersonalesPatologicos',
             'historiaClinica.antecedentesPersonalesNoPatologicos',
             'historiaClinica.habitoAlimenticio',
+
+            'historiaClinica.exploracionesFisicas' =>
+            function ($query) {
+                $query
+                    ->with([
+                        'cita.signoVital',
+                        'medico.user',
+                    ])
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id');
+            },
 
             'citas' => function ($query) {
                 $query
@@ -146,6 +163,7 @@ class PacientesController extends Controller
                         'receta',
                         'estudios',
                         'signoVital',
+                        'exploracionFisica',
                     ])
                     ->orderByDesc('fecha')
                     ->orderByDesc('hora');
@@ -180,16 +198,17 @@ class PacientesController extends Controller
         ]);
 
         /*
-|--------------------------------------------------------------------------
-| Última actividad clínica del paciente
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Última actividad clínica del paciente
+    |--------------------------------------------------------------------------
+    */
 
         $actividades = collect();
 
         /*
- * Citas
- */
+     * Citas
+     */
+
         foreach ($pacientes->citas as $cita) {
             if ($cita->fecha) {
                 $fechaCita = \Carbon\Carbon::parse(
@@ -207,8 +226,9 @@ class PacientesController extends Controller
         }
 
         /*
- * Estudios clínicos
- */
+     * Estudios clínicos
+     */
+
         foreach ($pacientes->estudios as $estudio) {
             if ($estudio->fecha_estudio) {
                 $actividades->push([
@@ -222,8 +242,9 @@ class PacientesController extends Controller
         }
 
         /*
- * Recetas
- */
+     * Recetas
+     */
+
         foreach ($pacientes->recetas as $receta) {
             if ($receta->fecha_expedicion) {
                 $actividades->push([
@@ -237,8 +258,9 @@ class PacientesController extends Controller
         }
 
         /*
- * Signos vitales
- */
+     * Signos vitales
+     */
+
         foreach ($pacientes->signosVitales as $signo) {
             if ($signo->created_at) {
                 $actividades->push([
@@ -250,11 +272,37 @@ class PacientesController extends Controller
         }
 
         /*
- * Seleccionamos la actividad más reciente.
- */
+     * Exploraciones físicas
+     */
+
+        $exploracionesFisicas = $pacientes
+            ->historiaClinica
+            ?->exploracionesFisicas
+            ?? collect();
+
+        foreach ($exploracionesFisicas as $exploracion) {
+            if ($exploracion->created_at) {
+                $actividades->push([
+                    'tipo' => 'exploracion_fisica',
+                    'titulo' => 'Exploración física',
+                    'fecha' => $exploracion->created_at,
+                ]);
+            }
+        }
+
+        /*
+     * Seleccionar actividad más reciente
+     */
+
         $ultimaActividad = $actividades
             ->sortByDesc('fecha')
             ->first();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Catálogos para la vista
+    |--------------------------------------------------------------------------
+    */
 
         $camposHeredofamiliares =
             AntecedenteHeredofamiliar::CAMPOS;
@@ -271,6 +319,18 @@ class PacientesController extends Controller
         $camposHabitosAlimenticios =
             HabitoAlimenticio::ALIMENTOS;
 
+        $camposExploracionFisica =
+            ExploracionFisica::CAMPOS;
+
+        $sistemasExploracionFisica =
+            ExploracionFisica::SISTEMAS;
+
+        /*
+    |--------------------------------------------------------------------------
+    | Mostrar ficha
+    |--------------------------------------------------------------------------
+    */
+
         return view(
             'pacientes.show',
             compact(
@@ -280,7 +340,9 @@ class PacientesController extends Controller
                 'camposPersonalesPatologicos',
                 'camposPersonalesNoPatologicos',
                 'comidasHabitosAlimenticios',
-                'camposHabitosAlimenticios'
+                'camposHabitosAlimenticios',
+                'camposExploracionFisica',
+                'sistemasExploracionFisica'
             )
         );
     }
