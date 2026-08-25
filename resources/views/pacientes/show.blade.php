@@ -165,38 +165,92 @@
                                border border-slate-200 bg-white shadow-sm">
                         <div class="p-6">
 
-                            <div class="flex items-start gap-4">
-                                <img
-                                    src="{{ $pacientes->fotoUrl() }}"
-                                    alt="Foto de {{ $pacientes->nombre }}"
-                                    class="h-24 w-24 rounded-xl
-                                           border border-slate-200
-                                           object-cover shadow-sm">
+                          <div class="flex items-start gap-4">
 
-                                <div class="min-w-0 flex-1">
-                                    <h1
-                                        class="text-xl font-bold
-                                               text-slate-900">
-                                        {{ $pacientes->nombre }}
-                                        {{ $pacientes->apellido }}
-                                    </h1>
+    <img
+        src="{{ $pacientes->fotoUrl() }}"
+        alt="Foto de {{ $pacientes->nombre }}"
+        class="h-24 w-24 shrink-0
+               rounded-xl border
+               border-slate-200
+               object-cover shadow-sm">
 
+    <div class="min-w-0 flex-1">
 
+        <h1
+            class="text-xl font-bold
+                   text-slate-900">
+            {{ $pacientes->nombre }}
+            {{ $pacientes->apellido }}
+        </h1>
 
-                                    <p class="mt-1 text-sm text-slate-500">
-                                        {{ $pacientes->edad
-                                            ?? 'Edad no disponible' }}
-                                    </p>
+        <p class="mt-1 text-sm text-slate-500">
+            {{ $pacientes->edad
+                ?? 'Edad no disponible' }}
+        </p>
 
-                                    <p
-                                        class="mt-2 inline-flex rounded-full
-                                               bg-blue-50 px-2.5 py-1
-                                               text-xs font-semibold
-                                               text-blue-700">
-                                        Paciente #{{ $pacientes->id }}
-                                    </p>
-                                </div>
-                            </div>
+        {{-- Sexo y condición --}}
+        <div class="mt-2 flex flex-wrap gap-2">
+
+            <span
+                class="inline-flex rounded-full
+                       bg-slate-100 px-2.5 py-1
+                       text-xs font-semibold
+                       text-slate-700">
+
+                {{ $pacientes->sexo_texto }}
+            </span>
+
+            @if ($pacientes->finado)
+                <span
+                    class="inline-flex rounded-full
+                           bg-red-100 px-2.5 py-1
+                           text-xs font-semibold
+                           text-red-700">
+                    Finado
+                </span>
+            @endif
+        </div>
+
+        {{-- ID y categoría --}}
+        <div class="mt-2 flex flex-wrap gap-2">
+
+            <span
+                class="inline-flex rounded-full
+                       bg-blue-50 px-2.5 py-1
+                       text-xs font-semibold
+                       text-blue-700">
+
+                Paciente #{{ $pacientes->id }}
+            </span>
+
+            @unless (request()->user()->isMedico())
+
+           @php
+    $estiloCategoria =
+        $pacientes->categoria_estilo;
+
+    $estiloCategoriaInline = sprintf(
+        'background-color: %s; color: %s; border-color: %s;',
+        $estiloCategoria['fondo'],
+        $estiloCategoria['texto'],
+        $estiloCategoria['borde']
+    );
+@endphp
+
+           <span
+    class="inline-flex rounded-full
+           border px-2.5 py-1
+           text-xs font-semibold"
+    style="{{ $estiloCategoriaInline }}">
+
+    {{ $pacientes->categoria_texto }}
+</span>
+
+            @endunless
+        </div>
+    </div>
+</div>
 
                         </div>
                     </section>
@@ -265,41 +319,79 @@
                             @endif
                         </div>
 
-                        <dl class="space-y-4 p-5">
+                        <dl
+                            class="grid grid-cols-1 gap-4 p-5
+           sm:grid-cols-2
+           lg:grid-cols-1 xl:grid-cols-2">
 
                             <div>
-                                <dt
-                                    class="text-xs font-medium
-                                           text-slate-400">
+                                <dt class="text-xs font-medium text-slate-400">
                                     Fecha de nacimiento
                                 </dt>
 
-                                <dd
-                                    class="mt-1 text-sm font-semibold
-                                           text-slate-800">
-                                    {{ $pacientes->fecha_nacimiento?->format(
-                                        'd/m/Y'
-                                    ) ?? 'No registrada' }}
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->fecha_nacimiento
+                ?->format('d/m/Y')
+                ?? 'No registrada' }}
                                 </dd>
                             </div>
 
-
-
                             <div>
-                                <dt
-                                    class="text-xs font-medium
-                                           text-slate-400">
+                                <dt class="text-xs font-medium text-slate-400">
                                     Edad
                                 </dt>
 
-                                <dd
-                                    class="mt-1 text-sm font-semibold
-                                           text-slate-800">
-                                    {{ $pacientes->edad
-                                        ?? 'No disponible' }}
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->edad ?? 'No disponible' }}
                                 </dd>
                             </div>
 
+                            <div>
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Sexo
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->sexo_texto }}
+                                </dd>
+                            </div>
+
+                            @unless (request()->user()->isMedico())
+
+                            <div>
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Lugar de nacimiento
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->lugar_nacimiento
+                    ?: 'No registrado' }}
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Ocupación
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->ocupacion
+                    ?: 'No registrada' }}
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Religión
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->religion
+                    ?: 'No registrada' }}
+                                </dd>
+                            </div>
+
+                            @endunless
                         </dl>
                     </section>
 
@@ -343,43 +435,95 @@
 
                         <dl class="space-y-4 p-5">
 
+                            @foreach ([
+                            'telefono' => 'Celular / WhatsApp',
+                            'telefono_fijo' => 'Teléfono',
+                            'telefono_secundario' => 'Teléfono secundario',
+                            'email' => 'Correo electrónico',
+                            ] as $campo => $etiqueta)
+
                             <div>
-                                <dt
-                                    class="text-xs font-medium
-                                           text-slate-400">
-                                    Teléfono
+                                <dt class="text-xs font-medium text-slate-400">
+                                    {{ $etiqueta }}
                                 </dt>
 
                                 <dd
-                                    class="mt-1 text-sm font-semibold
-                                           text-slate-800">
-                                    {{ $pacientes->telefono
-                                        ?? 'No registrado' }}
+                                    class="mt-1 break-words
+                       text-sm font-semibold
+                       text-slate-800">
+                                    {{ $pacientes->{$campo}
+                    ?: 'No registrado' }}
+                                </dd>
+                            </div>
+                            @endforeach
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Domicilio
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->domicilio
+                ?: 'No registrado' }}
                                 </dd>
                             </div>
 
                             <div>
-                                <dt
-                                    class="text-xs font-medium
-                                           text-slate-400">
-                                    Correo electrónico
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Ciudad y estado
                                 </dt>
 
-                                <dd
-                                    class="mt-1 break-all
-                                           text-sm font-semibold
-                                           text-slate-800">
-                                    {{ $pacientes->email
-                                        ?? 'No registrado' }}
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{
+                collect([
+                    $pacientes->ciudad,
+                    $pacientes->estado,
+                ])
+                    ->filter()
+                    ->implode(', ')
+                ?: 'No registrado'
+            }}
                                 </dd>
                             </div>
 
+                            <div>
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Código postal
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    {{ $pacientes->codigo_postal
+                ?: 'No registrado' }}
+                                </dd>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <dt class="text-xs font-medium text-slate-400">
+                                    Costo personalizado
+                                </dt>
+
+                                <dd class="mt-1 text-sm font-semibold text-slate-800">
+                                    @if (
+                                    $pacientes->costo_consulta_personalizado
+                                    !== null
+                                    )
+                                    ${{ number_format(
+                    (float) $pacientes
+                        ->costo_consulta_personalizado,
+                    2
+                ) }}
+                                    @else
+                                    No configurado
+                                    @endif
+                                </dd>
+                            </div>
                         </dl>
                     </section>
 
                     @endunless
 
 
+                    @unless (request()->user()->isMedico())
 
                     {{-- Notas --}}
                     <section
@@ -421,6 +565,8 @@
                                 ?? 'Sin notas registradas.' }}
                         </div>
                     </section>
+
+                    @endunless
 
 
 
@@ -3046,204 +3192,7 @@
         </div>
     </div>
 
-    @if (
-    request()->user()->isAdmin()
-    || request()->user()->isRecepcionista()
-    )
-
-    {{-- ===================================================== --}}
-    {{-- MODAL: INFORMACIÓN DE CONTACTO --}}
-    {{-- ===================================================== --}}
-    <div
-        id="modal-contacto"
-        class="fixed inset-0 z-50 hidden
-               items-center justify-center
-               bg-slate-950/40 px-4 py-8
-               backdrop-blur-[2px]"
-        aria-hidden="true">
-        <div
-            class="w-full max-w-lg overflow-hidden
-                   rounded-2xl bg-white shadow-2xl"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="titulo-modal-contacto">
-
-            {{-- Encabezado --}}
-            <div
-                class="flex items-start justify-between
-                       border-b border-slate-100
-                       px-6 py-5">
-                <div>
-                    <h3
-                        id="titulo-modal-contacto"
-                        class="text-lg font-semibold text-slate-900">
-                        Editar información de contacto
-                    </h3>
-
-                    <p class="mt-1 text-sm text-slate-500">
-                        Actualiza el teléfono y correo electrónico
-                        del paciente.
-                    </p>
-                </div>
-
-                {{-- Cerrar --}}
-                <button
-                    type="button"
-                    onclick="cerrarModalContacto()"
-                    class="flex h-9 w-9 items-center
-                           justify-center rounded-lg
-                           text-slate-400 transition
-                           hover:bg-slate-100
-                           hover:text-slate-700"
-                    aria-label="Cerrar modal">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        stroke-width="2">
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            {{-- Formulario --}}
-            <form
-                method="POST"
-                action="{{ route('pacientes.update', $pacientes) }}">
-                @csrf
-                @method('PUT')
-
-                {{-- Indica qué sección estamos actualizando --}}
-                <input
-                    type="hidden"
-                    name="seccion"
-                    value="contacto">
-
-                <div class="space-y-5 px-6 py-6">
-
-                    {{-- Teléfono --}}
-                    <div>
-                        <label
-                            for="modal_telefono"
-                            class="mb-1.5 block
-                                   text-sm font-medium
-                                   text-slate-700">
-                            Teléfono
-                        </label>
-
-                        <input
-                            id="modal_telefono"
-                            name="telefono"
-                            type="text"
-                            value="{{ old(
-                                'telefono',
-                                $pacientes->telefono
-                            ) }}"
-                            maxlength="20"
-                            placeholder="Ej. 55 1234 5678"
-                            class="block w-full rounded-xl
-                                   border-slate-300
-                                   text-sm shadow-sm
-                                   focus:border-blue-500
-                                   focus:ring-blue-500">
-
-                        @error('telefono')
-                        <p class="mt-1.5 text-xs text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
-
-                    {{-- Correo --}}
-                    <div>
-                        <label
-                            for="modal_email"
-                            class="mb-1.5 block
-                                   text-sm font-medium
-                                   text-slate-700">
-                            Correo electrónico
-                        </label>
-
-                        <input
-                            id="modal_email"
-                            name="email"
-                            type="email"
-                            value="{{ old(
-                                'email',
-                                $pacientes->email
-                            ) }}"
-                            maxlength="255"
-                            placeholder="paciente@correo.com"
-                            class="block w-full rounded-xl
-                                   border-slate-300
-                                   text-sm shadow-sm
-                                   focus:border-blue-500
-                                   focus:ring-blue-500">
-
-                        @error('email')
-                        <p class="mt-1.5 text-xs text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
-
-                    {{-- Aviso --}}
-                    <div
-                        class="rounded-xl border border-blue-100
-                               bg-blue-50 px-4 py-3">
-                        <p
-                            class="text-xs leading-5
-                                   text-blue-700">
-                            Esta información se utiliza como medio
-                            de contacto con el paciente.
-                        </p>
-                    </div>
-
-                </div>
-
-                {{-- Acciones --}}
-                <div
-                    class="flex items-center justify-end gap-3
-                           border-t border-slate-100
-                           bg-slate-50 px-6 py-4">
-                    <button
-                        type="button"
-                        onclick="cerrarModalContacto()"
-                        class="rounded-xl border
-                               border-slate-300 bg-white
-                               px-4 py-2.5
-                               text-sm font-semibold
-                               text-slate-700 transition
-                               hover:bg-slate-50">
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="submit"
-                        class="rounded-xl bg-blue-600
-                               px-5 py-2.5
-                               text-sm font-semibold
-                               text-white shadow-sm
-                               transition
-                               hover:bg-blue-700
-                               focus:outline-none
-                               focus:ring-2
-                               focus:ring-blue-500
-                               focus:ring-offset-2">
-                        Guardar cambios
-                    </button>
-                </div>
-
-            </form>
-        </div>
-    </div>
-
-    @endif
+    
 
     @if (
     request()->user()->isAdmin()
@@ -3322,7 +3271,7 @@
                             for="modal_telefono"
                             class="mb-1.5 block text-sm
                                    font-medium text-slate-700">
-                            Teléfono
+                            Celular / WhatsApp
                         </label>
 
                         <input
@@ -3346,6 +3295,68 @@
                         </p>
                         @enderror
                     </div>
+
+                    {{-- Teléfono fijo --}}
+<div>
+    <label
+        for="modal_telefono_fijo"
+        class="mb-1.5 block text-sm
+               font-medium text-slate-700">
+        Teléfono
+    </label>
+
+    <input
+        id="modal_telefono_fijo"
+        name="telefono_fijo"
+        type="text"
+        value="{{ old(
+            'telefono_fijo',
+            $pacientes->telefono_fijo
+        ) }}"
+        maxlength="20"
+        class="block w-full rounded-xl
+               border-slate-300 text-sm
+               shadow-sm
+               focus:border-blue-500
+               focus:ring-blue-500">
+
+    @error('telefono_fijo')
+        <p class="mt-1.5 text-xs text-red-600">
+            {{ $message }}
+        </p>
+    @enderror
+</div>
+
+{{-- Teléfono secundario --}}
+<div>
+    <label
+        for="modal_telefono_secundario"
+        class="mb-1.5 block text-sm
+               font-medium text-slate-700">
+        Teléfono secundario
+    </label>
+
+    <input
+        id="modal_telefono_secundario"
+        name="telefono_secundario"
+        type="text"
+        value="{{ old(
+            'telefono_secundario',
+            $pacientes->telefono_secundario
+        ) }}"
+        maxlength="20"
+        class="block w-full rounded-xl
+               border-slate-300 text-sm
+               shadow-sm
+               focus:border-blue-500
+               focus:ring-blue-500">
+
+    @error('telefono_secundario')
+        <p class="mt-1.5 text-xs text-red-600">
+            {{ $message }}
+        </p>
+    @enderror
+</div>
 
                     <div>
                         <label

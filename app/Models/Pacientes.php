@@ -11,12 +11,140 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pacientes extends Model
 {
+
+    /**
+     * Catálogo oficial de sexos.
+     *
+     * Los identificadores se almacenan en la base de datos
+     * y las etiquetas se muestran en la interfaz.
+     */
+    public const SEXOS = [
+        'masculino' => 'Masculino',
+        'femenino' => 'Femenino',
+    ];
+
+    /**
+     * Catálogo oficial de categorías de pacientes.
+     */
+    public const CATEGORIAS = [
+        'sin_categoria' => [
+            'etiqueta' => 'Sin categoría',
+            'fondo' => '#F1F5F9',
+            'texto' => '#475569',
+            'borde' => '#CBD5E1',
+        ],
+
+        'rotarios' => [
+            'etiqueta' => 'Rotarios',
+            'fondo' => '#F3E8FF',
+            'texto' => '#7E22CE',
+            'borde' => '#D8B4FE',
+        ],
+
+        'unidem' => [
+            'etiqueta' => 'UNIDEM',
+            'fondo' => '#E0F2FE',
+            'texto' => '#0369A1',
+            'borde' => '#7DD3FC',
+        ],
+
+        'alumnos_cucs' => [
+            'etiqueta' => 'Alumnos CUCS',
+            'fondo' => '#DBEAFE',
+            'texto' => '#1D4ED8',
+            'borde' => '#93C5FD',
+        ],
+
+        'trabajadores' => [
+            'etiqueta' => 'Trabajadores',
+            'fondo' => '#FCE7F3',
+            'texto' => '#BE185D',
+            'borde' => '#F9A8D4',
+        ],
+
+        'rotarios_20' => [
+            'etiqueta' => 'Rotarios 20%',
+            'fondo' => '#FFE4E6',
+            'texto' => '#BE123C',
+            'borde' => '#FDA4AF',
+        ],
+
+        'donativo' => [
+            'etiqueta' => 'Donativo',
+            'fondo' => '#CCFBF1',
+            'texto' => '#0F766E',
+            'borde' => '#5EEAD4',
+        ],
+
+        'medicos_50' => [
+            'etiqueta' => 'Médicos 50% desc.',
+            'fondo' => '#FEF3C7',
+            'texto' => '#A16207',
+            'borde' => '#FCD34D',
+        ],
+
+        'unidem_20' => [
+            'etiqueta' => 'UNIDEM 20%',
+            'fondo' => '#99F6E4',
+            'texto' => '#115E59',
+            'borde' => '#2DD4BF',
+        ],
+    ];
+
     protected $fillable = [
         'nombre',
         'apellido',
         'fecha_nacimiento',
+
+        /*
+    |--------------------------------------------------------------------------
+    | Clasificación
+    |--------------------------------------------------------------------------
+    */
+
+        'sexo',
+        'categoria',
+
+        /*
+    |--------------------------------------------------------------------------
+    | Contacto
+    |--------------------------------------------------------------------------
+    */
+
         'telefono',
+        'telefono_fijo',
+        'telefono_secundario',
         'email',
+
+        /*
+    |--------------------------------------------------------------------------
+    | Ubicación
+    |--------------------------------------------------------------------------
+    */
+
+        'domicilio',
+        'ciudad',
+        'estado',
+        'codigo_postal',
+        'lugar_nacimiento',
+
+        /*
+    |--------------------------------------------------------------------------
+    | Información complementaria
+    |--------------------------------------------------------------------------
+    */
+
+        'ocupacion',
+        'religion',
+        'costo_consulta_personalizado',
+        'finado',
+
+        /*
+    |--------------------------------------------------------------------------
+    | Campos existentes
+    |--------------------------------------------------------------------------
+    */
+
         'notas',
         'foto',
         'status',
@@ -26,8 +154,42 @@ class Pacientes extends Model
     {
         return [
             'fecha_nacimiento' => 'date',
+
+            'costo_consulta_personalizado' =>
+            'decimal:2',
+
+            'finado' => 'boolean',
             'status' => 'boolean',
         ];
+    }
+
+    protected function sexoTexto(): Attribute
+    {
+        return Attribute::make(
+            get: fn(): string =>
+            self::SEXOS[$this->sexo]
+                ?? 'No especificado'
+        );
+    }
+
+    protected function categoriaTexto(): Attribute
+    {
+        return Attribute::make(
+            get: fn(): string =>
+            self::CATEGORIAS[$this->categoria
+                ?? 'sin_categoria']['etiqueta']
+                ?? 'Sin categoría'
+        );
+    }
+
+    protected function categoriaEstilo(): Attribute
+    {
+        return Attribute::make(
+            get: fn(): array =>
+            self::CATEGORIAS[$this->categoria
+                ?? 'sin_categoria']
+                ?? self::CATEGORIAS['sin_categoria']
+        );
     }
 
     public function fotoUrl(): string
