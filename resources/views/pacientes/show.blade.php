@@ -134,30 +134,30 @@
 
     @include(
     'pacientes.modals.antecedentes-heredofamiliares'
-)
+    )
 
-  @include(
+    @include(
     'pacientes.modals.antecedentes-personales-patologicos'
-)
+    )
 
 
-@include(
+    @include(
     'pacientes.modals.antecedentes-personales-no-patologicos'
-)
-@include(
+    )
+    @include(
     'pacientes.modals.habitos-alimenticios'
-) 
-  @include(
+    )
+    @include(
     'pacientes.modals.exploracion-fisica'
-)
+    )
 
 
 
-@include(
+    @include(
     'pacientes.partials.estados-validacion'
-)
+    )
 
-   @include(
+    @include(
     'pacientes.scripts.show'
-)
+    )
 </x-app-layout>

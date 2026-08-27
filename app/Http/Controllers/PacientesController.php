@@ -983,25 +983,25 @@ class PacientesController extends Controller
             ],
 
             'estado_civil' => [
-    'nullable',
-    Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
-],
+                'nullable',
+                Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
+            ],
 
-'escolaridad' => [
-    'nullable',
-    Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
-],
+            'escolaridad' => [
+                'nullable',
+                Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
+            ],
 
-'tipo_sangre' => [
-    'nullable',
-    Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
-],
+            'tipo_sangre' => [
+                'nullable',
+                Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
+            ],
 
-'alergias' => [
-    'nullable',
-    'string',
-    'max:2000',
-],
+            'alergias' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
 
             'costo_consulta_personalizado' => [
                 'nullable',

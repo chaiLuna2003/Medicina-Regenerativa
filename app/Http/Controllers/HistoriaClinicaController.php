@@ -537,243 +537,243 @@ class HistoriaClinicaController extends Controller
     }
 
     /**
- * Crea o actualiza los antecedentes ginecoobstétricos.
- */
-public function updateGinecoobstetricos(
-    Request $request,
-    Pacientes $paciente
-): RedirectResponse {
-    /*
+     * Crea o actualiza los antecedentes ginecoobstétricos.
+     */
+    public function updateGinecoobstetricos(
+        Request $request,
+        Pacientes $paciente
+    ): RedirectResponse {
+        /*
     |--------------------------------------------------------------------------
     | Autorización
     |--------------------------------------------------------------------------
     */
 
-    $this->autorizarEdicionClinica(
-        $request,
-        $paciente
-    );
+        $this->autorizarEdicionClinica(
+            $request,
+            $paciente
+        );
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Restricción por sexo
     |--------------------------------------------------------------------------
     */
 
-    abort_unless(
-        $paciente->sexo === 'femenino',
-        422,
-        'Los antecedentes ginecoobstétricos solo aplican a pacientes femeninas.'
-    );
+        abort_unless(
+            $paciente->sexo === 'femenino',
+            422,
+            'Los antecedentes ginecoobstétricos solo aplican a pacientes femeninas.'
+        );
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Validación
     |--------------------------------------------------------------------------
     */
 
-    $validated = $request->validateWithBag(
-        'ginecoobstetricos',
-        [
-            'edad_menarca' => [
-                'nullable',
-                'integer',
-                'min:5',
-                'max:25',
-            ],
+        $validated = $request->validateWithBag(
+            'ginecoobstetricos',
+            [
+                'edad_menarca' => [
+                    'nullable',
+                    'integer',
+                    'min:5',
+                    'max:25',
+                ],
 
-            'ritmo_menstrual' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
+                'ritmo_menstrual' => [
+                    'nullable',
+                    'string',
+                    'max:100',
+                ],
 
-            'duracion_menstruacion_dias' => [
-                'nullable',
-                'integer',
-                'min:1',
-                'max:30',
-            ],
+                'duracion_menstruacion_dias' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                    'max:30',
+                ],
 
-            'fecha_ultima_menstruacion' => [
-                'nullable',
-                'date',
-                'before_or_equal:today',
-            ],
+                'fecha_ultima_menstruacion' => [
+                    'nullable',
+                    'date',
+                    'before_or_equal:today',
+                ],
 
-            'edad_inicio_vida_sexual' => [
-                'nullable',
-                'integer',
-                'min:5',
-                'max:100',
-            ],
+                'edad_inicio_vida_sexual' => [
+                    'nullable',
+                    'integer',
+                    'min:5',
+                    'max:100',
+                ],
 
-            'numero_parejas_sexuales' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:1000',
-            ],
+                'numero_parejas_sexuales' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:1000',
+                ],
 
-            'gestas' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'gestas' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'partos' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'partos' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'cesareas' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'cesareas' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'abortos' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'abortos' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'embarazos_ectopicos' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'embarazos_ectopicos' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'hijos_vivos' => [
-                'nullable',
-                'integer',
-                'min:0',
-                'max:100',
-            ],
+                'hijos_vivos' => [
+                    'nullable',
+                    'integer',
+                    'min:0',
+                    'max:100',
+                ],
 
-            'embarazo_actual' => [
-                'nullable',
-                Rule::in(['0', '1']),
-            ],
+                'embarazo_actual' => [
+                    'nullable',
+                    Rule::in(['0', '1']),
+                ],
 
-            'metodo_anticonceptivo' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
+                'metodo_anticonceptivo' => [
+                    'nullable',
+                    'string',
+                    'max:255',
+                ],
 
-            'menopausia' => [
-                'nullable',
-                Rule::in(['0', '1']),
-            ],
+                'menopausia' => [
+                    'nullable',
+                    Rule::in(['0', '1']),
+                ],
 
-            'edad_menopausia' => [
-                'nullable',
-                'integer',
-                'min:20',
-                'max:100',
-            ],
+                'edad_menopausia' => [
+                    'nullable',
+                    'integer',
+                    'min:20',
+                    'max:100',
+                ],
 
-            'fecha_ultimo_papanicolaou' => [
-                'nullable',
-                'date',
-                'before_or_equal:today',
-            ],
+                'fecha_ultimo_papanicolaou' => [
+                    'nullable',
+                    'date',
+                    'before_or_equal:today',
+                ],
 
-            'resultado_papanicolaou' => [
-                'nullable',
-                'string',
-                'max:5000',
-            ],
+                'resultado_papanicolaou' => [
+                    'nullable',
+                    'string',
+                    'max:5000',
+                ],
 
-            'fecha_ultima_mastografia' => [
-                'nullable',
-                'date',
-                'before_or_equal:today',
-            ],
+                'fecha_ultima_mastografia' => [
+                    'nullable',
+                    'date',
+                    'before_or_equal:today',
+                ],
 
-            'resultado_mastografia' => [
-                'nullable',
-                'string',
-                'max:5000',
-            ],
+                'resultado_mastografia' => [
+                    'nullable',
+                    'string',
+                    'max:5000',
+                ],
 
-            'infecciones_transmision_sexual' => [
-                'nullable',
-                'string',
-                'max:5000',
-            ],
+                'infecciones_transmision_sexual' => [
+                    'nullable',
+                    'string',
+                    'max:5000',
+                ],
 
-            'observaciones' => [
-                'nullable',
-                'string',
-                'max:10000',
-            ],
-        ]
-    );
+                'observaciones' => [
+                    'nullable',
+                    'string',
+                    'max:10000',
+                ],
+            ]
+        );
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Normalizar campos booleanos
     |--------------------------------------------------------------------------
     */
 
-    foreach (
-        ['embarazo_actual', 'menopausia']
-        as $campo
-    ) {
-        $validated[$campo] = array_key_exists(
-            $campo,
-            $validated
-        )
-            ? (bool) $validated[$campo]
-            : null;
-    }
+        foreach (
+            ['embarazo_actual', 'menopausia']
+            as $campo
+        ) {
+            $validated[$campo] = array_key_exists(
+                $campo,
+                $validated
+            )
+                ? (bool) $validated[$campo]
+                : null;
+        }
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Obtener o crear la historia clínica
     |--------------------------------------------------------------------------
     */
 
-    $historiaClinica = $paciente
-        ->historiaClinica()
-        ->firstOrCreate([
-            'paciente_id' => $paciente->id,
-        ]);
+        $historiaClinica = $paciente
+            ->historiaClinica()
+            ->firstOrCreate([
+                'paciente_id' => $paciente->id,
+            ]);
 
-    /*
+        /*
     |--------------------------------------------------------------------------
     | Crear o actualizar antecedentes
     |--------------------------------------------------------------------------
     */
 
-    $historiaClinica
-        ->antecedenteGinecoobstetrico()
-        ->updateOrCreate(
-            [
-                'historia_clinica_id' =>
-                $historiaClinica->id,
-            ],
-            $validated
-        );
+        $historiaClinica
+            ->antecedenteGinecoobstetrico()
+            ->updateOrCreate(
+                [
+                    'historia_clinica_id' =>
+                    $historiaClinica->id,
+                ],
+                $validated
+            );
 
-    return redirect()
-        ->route(
-            'pacientes.show',
-            $paciente
-        )
-        ->with(
-            'success',
-            'Antecedentes ginecoobstétricos actualizados correctamente.'
-        );
-}
+        return redirect()
+            ->route(
+                'pacientes.show',
+                $paciente
+            )
+            ->with(
+                'success',
+                'Antecedentes ginecoobstétricos actualizados correctamente.'
+            );
+    }
 
     /**
      * Verifica que el usuario pueda editar información clínica.
