@@ -302,39 +302,39 @@ class EstudiosController extends Controller
     }
 
     private function validarAccesoPaciente(
-    Request $request,
-    Pacientes $paciente
-): void {
-    $usuario = $request->user();
+        Request $request,
+        Pacientes $paciente
+    ): void {
+        $usuario = $request->user();
 
-    // Admin y recepción pueden consultar.
-    if (in_array(
-        $usuario->role,
-        ['admin', 'recepcionista'],
-        true
-    )) {
-        return;
+        // Admin y recepción pueden consultar.
+        if (in_array(
+            $usuario->role,
+            ['admin', 'recepcionista'],
+            true
+        )) {
+            return;
+        }
+
+        // Cualquier otro rol debe ser médico.
+        abort_unless(
+            $usuario->role === 'medico',
+            403
+        );
+
+        $medico = $usuario->medico;
+
+        abort_unless($medico, 403);
+
+        // El médico debe tener relación clínica con el paciente.
+        $tieneRelacionClinica = $paciente
+            ->citas()
+            ->where('medico_id', $medico->id)
+            ->exists();
+
+        abort_unless(
+            $tieneRelacionClinica,
+            403
+        );
     }
-
-    // Cualquier otro rol debe ser médico.
-    abort_unless(
-        $usuario->role === 'medico',
-        403
-    );
-
-    $medico = $usuario->medico;
-
-    abort_unless($medico, 403);
-
-    // El médico debe tener relación clínica con el paciente.
-    $tieneRelacionClinica = $paciente
-        ->citas()
-        ->where('medico_id', $medico->id)
-        ->exists();
-
-    abort_unless(
-        $tieneRelacionClinica,
-        403
-    );
-}
 }

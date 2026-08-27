@@ -18,37 +18,37 @@ use Illuminate\Support\Str;
 class RecetasController extends Controller
 {
     /**
- * Muestra el historial visual de recetas de un paciente.
- *
- * El administrador puede consultar cualquier historial.
- * El médico debe tener relación clínica con el paciente.
- */
-public function historial(
-    Request $request,
-    Pacientes $paciente
-): View {
-    $this->autorizarHistorial(
-        $request,
-        $paciente
-    );
+     * Muestra el historial visual de recetas de un paciente.
+     *
+     * El administrador puede consultar cualquier historial.
+     * El médico debe tener relación clínica con el paciente.
+     */
+    public function historial(
+        Request $request,
+        Pacientes $paciente
+    ): View {
+        $this->autorizarHistorial(
+            $request,
+            $paciente
+        );
 
-    $recetas = $paciente->recetas()
-        ->with([
-            'cita.medico.user',
-            'cita.paciente',
-        ])
-        ->orderByDesc('fecha_expedicion')
-        ->orderByDesc('recetas.id')
-        ->get();
+        $recetas = $paciente->recetas()
+            ->with([
+                'cita.medico.user',
+                'cita.paciente',
+            ])
+            ->orderByDesc('fecha_expedicion')
+            ->orderByDesc('recetas.id')
+            ->get();
 
-    return view(
-        'recetas.historial',
-        compact(
-            'paciente',
-            'recetas'
-        )
-    );
-}
+        return view(
+            'recetas.historial',
+            compact(
+                'paciente',
+                'recetas'
+            )
+        );
+    }
 
     /**
      * Muestra una receta específica.
@@ -93,10 +93,10 @@ public function historial(
         Receta $receta
     ): Response {
         $receta->load([
-    'cita.paciente',
-    'cita.medico.user',
-    'cita.medico.universidad',
-]);
+            'cita.paciente',
+            'cita.medico.user',
+            'cita.medico.universidad',
+        ]);
 
         /*
      * Una receta debe permanecer asociada

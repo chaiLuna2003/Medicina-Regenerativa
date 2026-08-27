@@ -23,7 +23,7 @@ return new class extends Migration
                     'numero_hermanos'
                 )->nullable();
 
-        /*
+                /*
  * Guardará cada antecedente como un campo de texto.
  *
  * Ejemplo:
@@ -32,8 +32,8 @@ return new class extends Migration
  *   "cancer": "Padre, cáncer pulmonar"
  * }
  */
-$table->json('antecedentes')
-    ->nullable();
+                $table->json('antecedentes')
+                    ->nullable();
 
                 $table->timestamps();
             }

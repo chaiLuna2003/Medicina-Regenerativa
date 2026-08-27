@@ -13,16 +13,16 @@
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <form action="{{ route('medicos.store') }}" method="POST"
-                  class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+                class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
                 @csrf
                 @include('medicos._form', [
-    'usuariosMedicos' => $usuariosMedicos,
-    'universidades' => $universidades,
-])
+                'usuariosMedicos' => $usuariosMedicos,
+                'universidades' => $universidades,
+                ])
 
                 <div class="flex gap-3">
                     <button type="submit"
-                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm">
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium shadow-sm">
                         Guardar médico
                     </button>
                     <a href="{{ route('medicos.index') }}" class="text-gray-600 hover:bg-gray-100 rounded-lg px-5 py-2.5 text-sm font-medium">
