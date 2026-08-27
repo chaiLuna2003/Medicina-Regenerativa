@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("
             ALTER TABLE citas
             MODIFY modalidad ENUM(
@@ -27,6 +31,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         /*
          * Convertimos las nuevas modalidades antes
          * de reducir nuevamente las opciones.
