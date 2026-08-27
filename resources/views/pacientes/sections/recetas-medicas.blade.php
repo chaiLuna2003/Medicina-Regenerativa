@@ -1,7 +1,6 @@
  {{-- ================================================= --}}
  {{-- RECETAS MÉDICAS --}}
  {{-- ================================================= --}}
- 
  <details
      class="group overflow-hidden rounded-2xl
                border border-slate-200

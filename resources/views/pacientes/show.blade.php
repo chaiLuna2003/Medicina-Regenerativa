@@ -144,11 +144,9 @@
 @include(
     'pacientes.modals.antecedentes-personales-no-patologicos'
 )
-  
 @include(
     'pacientes.modals.habitos-alimenticios'
-)
-   
+) 
   @include(
     'pacientes.modals.exploracion-fisica'
 )
