@@ -425,15 +425,25 @@ Route::middleware([
     | directamente a una cita.
     |
     */
+Route::middleware('role:admin,recepcionista')
+    ->group(function () {
 
-    Route::middleware('role:admin,recepcionista')
-        ->group(function () {
+        /*
+         * Cargar estudios desde una cita.
+         */
+        Route::post(
+            '/citas/{cita}/estudios',
+            [EstudiosController::class, 'store']
+        )->name('estudios.store');
 
-            Route::post(
-                '/citas/{cita}/estudios',
-                [EstudiosController::class, 'store']
-            )->name('estudios.store');
-        });
+        /*
+         * Cargar estudios desde la ficha del paciente.
+         */
+        Route::post(
+            '/pacientes/{paciente}/estudios',
+            [EstudiosController::class, 'storeDesdePaciente']
+        )->name('pacientes.estudios.store');
+    });
 
     /*
     |--------------------------------------------------------------------------

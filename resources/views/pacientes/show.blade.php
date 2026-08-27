@@ -89,13 +89,24 @@
                     )
 
 
+                    {{-- Estudios clínicos --}}
                     @if (
                     request()->user()->isAdmin()
                     || request()->user()->isMedico()
+                    || request()->user()->isRecepcionista()
                     )
 
                     @include(
                     'pacientes.sections.estudios-clinicos'
+                    )
+
+                    @endif
+
+
+                    {{-- Recetas médicas --}}
+                    @if (
+                    request()->user()->isAdmin()
+                    || request()->user()->isMedico()
                     )
 
                     @include(
@@ -149,6 +160,14 @@
     )
     @include(
     'pacientes.modals.exploracion-fisica'
+    )
+
+        @include(
+        'pacientes.modals.exploracion-fisica'
+    )
+
+    @include(
+        'pacientes.modals.estudios'
     )
 
 

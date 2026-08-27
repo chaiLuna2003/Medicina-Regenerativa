@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Pacientes;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -128,6 +129,72 @@ class EstudiosController extends Controller
             'Los estudios se cargaron correctamente.'
         );
     }
+
+    /**
+ * Guarda estudios desde la ficha del paciente.
+ *
+ * La cita seleccionada debe pertenecer realmente
+ * al paciente mostrado en la ficha.
+ */
+public function storeDesdePaciente(
+    Request $request,
+    Pacientes $paciente
+): RedirectResponse {
+
+    /*
+     * Segunda capa de protección.
+     */
+    abort_unless(
+        in_array(
+            $request->user()->role,
+            ['admin', 'recepcionista'],
+            true
+        ),
+        403
+    );
+
+    /*
+     * Validar que la cita exista y pertenezca
+     * al paciente recibido en la URL.
+     */
+    $datos = $request->validate([
+        'cita_id' => [
+            'required',
+            'integer',
+
+            Rule::exists('citas', 'id')
+                ->where(
+                    fn ($query) => $query->where(
+                        'paciente_id',
+                        $paciente->id
+                    )
+                ),
+        ],
+    ], [
+        'cita_id.required' =>
+            'Debes seleccionar una cita.',
+
+        'cita_id.exists' =>
+            'La cita seleccionada no pertenece a este paciente.',
+    ]);
+
+    /*
+     * Recuperar la cita ya validada.
+     */
+    $cita = Citas::findOrFail(
+        $datos['cita_id']
+    );
+
+    /*
+     * Reutilizamos exactamente el flujo existente:
+     * permisos, validación, almacenamiento privado
+     * y creación de los estudios.
+     */
+    return $this->store(
+        $request,
+        $cita
+    );
+}
 
     /**
      * Mostrar el historial de estudios de un paciente.

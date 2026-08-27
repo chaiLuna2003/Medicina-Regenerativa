@@ -1,13 +1,13 @@
-<div class="flex items-center justify-between gap-4">
+<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 
-    <div class="flex items-center gap-3">
+    {{-- Información del paciente --}}
+    <div class="flex items-start gap-3">
 
         <a
             href="{{ request()->user()->isMedico()
                 ? route('citas.index')
                 : route('pacientes.index') }}"
-            class="text-slate-400 transition
-                   hover:text-slate-700">
+            class="mt-1 text-slate-400 transition hover:text-slate-700">
 
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -36,14 +36,9 @@
 
             @if ($ultimaActividad)
 
-                <div
-                    class="mt-2 flex flex-wrap
-                           items-center gap-2">
+                <div class="mt-2 flex flex-wrap items-center gap-2">
 
-                    <span
-                        class="inline-flex h-2 w-2
-                               rounded-full bg-blue-500">
-                    </span>
+                    <span class="inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
 
                     <p class="text-xs text-slate-500">
                         Última actividad:
@@ -74,15 +69,51 @@
         </div>
     </div>
 
-    <span
-        class="rounded-full px-3 py-1
-               text-xs font-semibold
-               {{ $pacientes->status
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-red-50 text-red-700' }}">
+    {{-- Acciones --}}
+    <div class="flex flex-wrap items-center gap-3">
 
-        {{ $pacientes->status
-            ? 'Activo'
-            : 'Inactivo' }}
-    </span>
+        @if (
+            request()->user()->isAdmin()
+            || request()->user()->isRecepcionista()
+        )
+            <button
+                type="button"
+                onclick="abrirModalEstudiosPaciente()"
+                class="inline-flex items-center justify-center gap-2
+                       rounded-xl bg-[#0D3B7F] px-4 py-2
+                       text-sm font-semibold text-white
+                       shadow-sm transition
+                       hover:bg-[#082a5d]
+                       focus:outline-none focus:ring-2
+                       focus:ring-[#0D3B7F]/30">
+
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 4v16m8-8H4" />
+                </svg>
+
+                Agregar estudio
+            </button>
+        @endif
+
+        <span
+            class="rounded-full px-3 py-1 text-xs font-semibold
+                   {{ $pacientes->status
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-red-50 text-red-700' }}">
+
+            {{ $pacientes->status
+                ? 'Activo'
+                : 'Inactivo' }}
+        </span>
+    </div>
 </div>
