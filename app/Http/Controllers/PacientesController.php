@@ -161,6 +161,27 @@ class PacientesController extends Controller
                 'max:150',
             ],
 
+            'estado_civil' => [
+                'nullable',
+                Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
+            ],
+
+            'escolaridad' => [
+                'nullable',
+                Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
+            ],
+
+            'tipo_sangre' => [
+                'nullable',
+                Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
+            ],
+
+            'alergias' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+
             'costo_consulta_personalizado' => [
                 'nullable',
                 'numeric',
@@ -284,15 +305,15 @@ class PacientesController extends Controller
     |--------------------------------------------------------------------------
     */
 
-       $pacientes->load([
-    'historiaClinica.antecedentesHeredofamiliares',
-    'historiaClinica.antecedentesPersonalesPatologicos',
-    'historiaClinica.antecedentesPersonalesNoPatologicos',
-    'historiaClinica.habitoAlimenticio',
-    'historiaClinica.antecedenteGinecoobstetrico',
+        $pacientes->load([
+            'historiaClinica.antecedentesHeredofamiliares',
+            'historiaClinica.antecedentesPersonalesPatologicos',
+            'historiaClinica.antecedentesPersonalesNoPatologicos',
+            'historiaClinica.habitoAlimenticio',
+            'historiaClinica.antecedenteGinecoobstetrico',
 
-    'historiaClinica.exploracionesFisicas' =>
-    function ($query) {
+            'historiaClinica.exploracionesFisicas' =>
+            function ($query) {
                 $query
                     ->with([
                         'cita.signoVital',
@@ -594,95 +615,116 @@ class PacientesController extends Controller
                 );
         }
 
-   /*
+        /*
 |--------------------------------------------------------------------------
 | Modal de datos generales
 |--------------------------------------------------------------------------
 */
 
-if ($request->input('seccion') === 'generales') {
-    abort_unless(
-        $user->isAdmin(),
-        403
-    );
+        if ($request->input('seccion') === 'generales') {
+            abort_unless(
+                $user->isAdmin(),
+                403
+            );
 
-    $validated = $request->validate([
-        'nombre' => [
-            'required',
-            'string',
-            'max:255',
-        ],
+            $validated = $request->validate([
+                'nombre' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
 
-        'apellido' => [
-            'required',
-            'string',
-            'max:255',
-        ],
+                'apellido' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
 
-        'fecha_nacimiento' => [
-            'required',
-            'date',
-            'before_or_equal:today',
-        ],
+                'fecha_nacimiento' => [
+                    'required',
+                    'date',
+                    'before_or_equal:today',
+                ],
 
-        'sexo' => [
-            'required',
-            Rule::in(
-                array_keys(Pacientes::SEXOS)
-            ),
-        ],
+                'sexo' => [
+                    'required',
+                    Rule::in(
+                        array_keys(Pacientes::SEXOS)
+                    ),
+                ],
 
-        'categoria' => [
-            'required',
-            Rule::in(
-                array_keys(Pacientes::CATEGORIAS)
-            ),
-        ],
+                'categoria' => [
+                    'required',
+                    Rule::in(
+                        array_keys(Pacientes::CATEGORIAS)
+                    ),
+                ],
 
-        'lugar_nacimiento' => [
-            'nullable',
-            'string',
-            'max:200',
-        ],
+                'lugar_nacimiento' => [
+                    'nullable',
+                    'string',
+                    'max:200',
+                ],
 
-        'ocupacion' => [
-            'nullable',
-            'string',
-            'max:200',
-        ],
+                'ocupacion' => [
+                    'nullable',
+                    'string',
+                    'max:200',
+                ],
 
-        'religion' => [
-            'nullable',
-            'string',
-            'max:150',
-        ],
+                'religion' => [
+                    'nullable',
+                    'string',
+                    'max:150',
+                ],
 
-        'status' => [
-            'required',
-            'boolean',
-        ],
+                'estado_civil' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
+                ],
 
-        'finado' => [
-            'required',
-            'boolean',
-        ],
-    ]);
+                'escolaridad' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
+                ],
 
-    $validated['finado'] =
-        $request->boolean('finado');
+                'tipo_sangre' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
+                ],
 
-    $pacientes->update($validated);
+                'alergias' => [
+                    'nullable',
+                    'string',
+                    'max:2000',
+                ],
 
-    return redirect()
-        ->route(
-            'pacientes.show',
-            $pacientes
-        )
-        ->with(
-            'success',
-            'Datos generales actualizados correctamente.'
-        );
-}
+                'status' => [
+                    'required',
+                    'boolean',
+                ],
+
+                'finado' => [
+                    'required',
+                    'boolean',
+                ],
+            ]);
+
+            $validated['finado'] =
+                $request->boolean('finado');
+
+            $pacientes->update($validated);
+
+            return redirect()
+                ->route(
+                    'pacientes.show',
+                    $pacientes
+                )
+                ->with(
+                    'success',
+                    'Datos generales actualizados correctamente.'
+                );
+        }
 
         /*
     |--------------------------------------------------------------------------
@@ -760,6 +802,27 @@ if ($request->input('seccion') === 'generales') {
                     'nullable',
                     'string',
                     'max:150',
+                ],
+
+                'estado_civil' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
+                ],
+
+                'escolaridad' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
+                ],
+
+                'tipo_sangre' => [
+                    'nullable',
+                    Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
+                ],
+
+                'alergias' => [
+                    'nullable',
+                    'string',
+                    'max:2000',
                 ],
 
                 'costo_consulta_personalizado' => [
@@ -918,6 +981,27 @@ if ($request->input('seccion') === 'generales') {
                 'string',
                 'max:150',
             ],
+
+            'estado_civil' => [
+    'nullable',
+    Rule::in(array_keys(Pacientes::ESTADOS_CIVILES)),
+],
+
+'escolaridad' => [
+    'nullable',
+    Rule::in(array_keys(Pacientes::ESCOLARIDADES)),
+],
+
+'tipo_sangre' => [
+    'nullable',
+    Rule::in(array_keys(Pacientes::TIPOS_SANGRE)),
+],
+
+'alergias' => [
+    'nullable',
+    'string',
+    'max:2000',
+],
 
             'costo_consulta_personalizado' => [
                 'nullable',

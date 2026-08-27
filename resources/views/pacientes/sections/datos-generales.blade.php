@@ -105,6 +105,50 @@
             </dd>
         </div>
 
+        <div>
+            <dt class="text-xs font-medium text-slate-400">
+                Estado civil
+            </dt>
+
+            <dd class="mt-1 text-sm font-semibold text-slate-800">
+                {{ \App\Models\Pacientes::ESTADOS_CIVILES[
+                    $pacientes->estado_civil
+                ] ?? 'No registrado' }}
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-medium text-slate-400">
+                Escolaridad
+            </dt>
+
+            <dd class="mt-1 text-sm font-semibold text-slate-800">
+                {{ \App\Models\Pacientes::ESCOLARIDADES[
+                    $pacientes->escolaridad
+                ] ?? 'No registrada' }}
+            </dd>
+        </div>
+
+        <div>
+            <dt class="text-xs font-medium text-slate-400">
+                Tipo de sangre
+            </dt>
+
+            <dd class="mt-1 text-sm font-semibold text-slate-800">
+                {{ \App\Models\Pacientes::TIPOS_SANGRE[
+                    $pacientes->tipo_sangre
+                ] ?? 'No registrado' }}
+            </dd>
+        </div>
+
+        <div class="sm:col-span-2 lg:col-span-1 xl:col-span-2">
+            <dt class="text-xs font-medium text-slate-400">
+                Alergias
+            </dt>
+
+            <dd class="mt-1 whitespace-pre-line text-sm font-semibold text-slate-800">{{ $pacientes->alergias ?: 'No registradas' }}</dd>
+        </div>
+
         @unless (request()->user()->isMedico())
 
             <div>

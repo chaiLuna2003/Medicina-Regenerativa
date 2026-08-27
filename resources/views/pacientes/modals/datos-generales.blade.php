@@ -445,6 +445,166 @@
                             @enderror
                         </div>
 
+                        {{-- Estado civil --}}
+                        <div>
+                            <label
+                                for="modal_estado_civil"
+                                class="mb-1.5 block text-sm
+                                       font-medium text-slate-700">
+                                Estado civil
+                            </label>
+
+                            <select
+                                id="modal_estado_civil"
+                                name="estado_civil"
+                                class="block w-full rounded-xl
+                                       border-slate-300 text-sm
+                                       shadow-sm
+                                       focus:border-blue-500
+                                       focus:ring-blue-500">
+
+                                <option value="">
+                                    Selecciona una opción
+                                </option>
+
+                                @foreach (\App\Models\Pacientes::ESTADOS_CIVILES as $valor => $etiqueta)
+                                    <option
+                                        value="{{ $valor }}"
+                                        @selected(
+                                            old(
+                                                'estado_civil',
+                                                $pacientes->estado_civil
+                                            ) === $valor
+                                        )>
+                                        {{ $etiqueta }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('estado_civil')
+                                <p class="mt-1.5 text-xs text-red-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Escolaridad --}}
+                        <div>
+                            <label
+                                for="modal_escolaridad"
+                                class="mb-1.5 block text-sm
+                                       font-medium text-slate-700">
+                                Escolaridad
+                            </label>
+
+                            <select
+                                id="modal_escolaridad"
+                                name="escolaridad"
+                                class="block w-full rounded-xl
+                                       border-slate-300 text-sm
+                                       shadow-sm
+                                       focus:border-blue-500
+                                       focus:ring-blue-500">
+
+                                <option value="">
+                                    Selecciona una opción
+                                </option>
+
+                                @foreach (\App\Models\Pacientes::ESCOLARIDADES as $valor => $etiqueta)
+                                    <option
+                                        value="{{ $valor }}"
+                                        @selected(
+                                            old(
+                                                'escolaridad',
+                                                $pacientes->escolaridad
+                                            ) === $valor
+                                        )>
+                                        {{ $etiqueta }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('escolaridad')
+                                <p class="mt-1.5 text-xs text-red-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Tipo de sangre --}}
+                        <div>
+                            <label
+                                for="modal_tipo_sangre"
+                                class="mb-1.5 block text-sm
+                                       font-medium text-slate-700">
+                                Tipo de sangre
+                            </label>
+
+                            <select
+                                id="modal_tipo_sangre"
+                                name="tipo_sangre"
+                                class="block w-full rounded-xl
+                                       border-slate-300 text-sm
+                                       shadow-sm
+                                       focus:border-blue-500
+                                       focus:ring-blue-500">
+
+                                <option value="">
+                                    Selecciona una opción
+                                </option>
+
+                                @foreach (\App\Models\Pacientes::TIPOS_SANGRE as $valor => $etiqueta)
+                                    <option
+                                        value="{{ $valor }}"
+                                        @selected(
+                                            old(
+                                                'tipo_sangre',
+                                                $pacientes->tipo_sangre
+                                            ) === $valor
+                                        )>
+                                        {{ $etiqueta }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('tipo_sangre')
+                                <p class="mt-1.5 text-xs text-red-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        {{-- Alergias --}}
+                        <div class="sm:col-span-2">
+                            <label
+                                for="modal_alergias"
+                                class="mb-1.5 block text-sm
+                                       font-medium text-slate-700">
+                                Alergias
+                            </label>
+
+                            <textarea
+                                id="modal_alergias"
+                                name="alergias"
+                                rows="3"
+                                maxlength="2000"
+                                placeholder="Medicamentos, alimentos u otras alergias conocidas"
+                                class="block w-full rounded-xl
+                                       border-slate-300 text-sm
+                                       shadow-sm
+                                       focus:border-blue-500
+                                       focus:ring-blue-500">{{ old(
+                                            'alergias',
+                                            $pacientes->alergias
+                                        ) }}</textarea>
+
+                            @error('alergias')
+                                <p class="mt-1.5 text-xs text-red-600">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
                         {{-- Estado --}}
                         <div>
                             <label
