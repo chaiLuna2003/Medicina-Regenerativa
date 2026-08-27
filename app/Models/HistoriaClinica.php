@@ -59,6 +59,14 @@ class HistoriaClinica extends Model
         );
     }
 
+    public function antecedenteGinecoobstetrico(): HasOne
+    {
+        return $this->hasOne(
+            AntecedenteGinecoobstetrico::class,
+            'historia_clinica_id'
+        );
+    }
+
     public function exploracionesFisicas(): HasMany
     {
         return $this->hasMany(

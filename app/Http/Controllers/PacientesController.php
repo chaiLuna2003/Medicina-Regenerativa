@@ -284,14 +284,15 @@ class PacientesController extends Controller
     |--------------------------------------------------------------------------
     */
 
-        $pacientes->load([
-            'historiaClinica.antecedentesHeredofamiliares',
-            'historiaClinica.antecedentesPersonalesPatologicos',
-            'historiaClinica.antecedentesPersonalesNoPatologicos',
-            'historiaClinica.habitoAlimenticio',
+       $pacientes->load([
+    'historiaClinica.antecedentesHeredofamiliares',
+    'historiaClinica.antecedentesPersonalesPatologicos',
+    'historiaClinica.antecedentesPersonalesNoPatologicos',
+    'historiaClinica.habitoAlimenticio',
+    'historiaClinica.antecedenteGinecoobstetrico',
 
-            'historiaClinica.exploracionesFisicas' =>
-            function ($query) {
+    'historiaClinica.exploracionesFisicas' =>
+    function ($query) {
                 $query
                     ->with([
                         'cita.signoVital',

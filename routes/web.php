@@ -202,6 +202,18 @@ Route::middleware([
                 'pacientes.historia-clinica.'
                     . 'habitos-alimenticios.update'
             );
+
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica/'
+                    . 'antecedentes-ginecoobstetricos',
+                [
+                    HistoriaClinicaController::class,
+                    'updateGinecoobstetricos',
+                ]
+            )->name(
+                'pacientes.historia-clinica.'
+                    . 'ginecoobstetricos.update'
+            );
         });
 
     /*

@@ -165,92 +165,92 @@
                                border border-slate-200 bg-white shadow-sm">
                         <div class="p-6">
 
-                          <div class="flex items-start gap-4">
+                            <div class="flex items-start gap-4">
 
-    <img
-        src="{{ $pacientes->fotoUrl() }}"
-        alt="Foto de {{ $pacientes->nombre }}"
-        class="h-24 w-24 shrink-0
+                                <img
+                                    src="{{ $pacientes->fotoUrl() }}"
+                                    alt="Foto de {{ $pacientes->nombre }}"
+                                    class="h-24 w-24 shrink-0
                rounded-xl border
                border-slate-200
                object-cover shadow-sm">
 
-    <div class="min-w-0 flex-1">
+                                <div class="min-w-0 flex-1">
 
-        <h1
-            class="text-xl font-bold
+                                    <h1
+                                        class="text-xl font-bold
                    text-slate-900">
-            {{ $pacientes->nombre }}
-            {{ $pacientes->apellido }}
-        </h1>
+                                        {{ $pacientes->nombre }}
+                                        {{ $pacientes->apellido }}
+                                    </h1>
 
-        <p class="mt-1 text-sm text-slate-500">
-            {{ $pacientes->edad
+                                    <p class="mt-1 text-sm text-slate-500">
+                                        {{ $pacientes->edad
                 ?? 'Edad no disponible' }}
-        </p>
+                                    </p>
 
-        {{-- Sexo y condición --}}
-        <div class="mt-2 flex flex-wrap gap-2">
+                                    {{-- Sexo y condición --}}
+                                    <div class="mt-2 flex flex-wrap gap-2">
 
-            <span
-                class="inline-flex rounded-full
+                                        <span
+                                            class="inline-flex rounded-full
                        bg-slate-100 px-2.5 py-1
                        text-xs font-semibold
                        text-slate-700">
 
-                {{ $pacientes->sexo_texto }}
-            </span>
+                                            {{ $pacientes->sexo_texto }}
+                                        </span>
 
-            @if ($pacientes->finado)
-                <span
-                    class="inline-flex rounded-full
+                                        @if ($pacientes->finado)
+                                        <span
+                                            class="inline-flex rounded-full
                            bg-red-100 px-2.5 py-1
                            text-xs font-semibold
                            text-red-700">
-                    Finado
-                </span>
-            @endif
-        </div>
+                                            Finado
+                                        </span>
+                                        @endif
+                                    </div>
 
-        {{-- ID y categoría --}}
-        <div class="mt-2 flex flex-wrap gap-2">
+                                    {{-- ID y categoría --}}
+                                    <div class="mt-2 flex flex-wrap gap-2">
 
-            <span
-                class="inline-flex rounded-full
+                                        <span
+                                            class="inline-flex rounded-full
                        bg-blue-50 px-2.5 py-1
                        text-xs font-semibold
                        text-blue-700">
 
-                Paciente #{{ $pacientes->id }}
-            </span>
+                                            Paciente #{{ $pacientes->id }}
+                                        </span>
 
-            @unless (request()->user()->isMedico())
+                                        @unless (request()->user()->isMedico())
 
-           @php
-    $estiloCategoria =
-        $pacientes->categoria_estilo;
+                                        @php
+                                        $estiloCategoria =
+                                        $pacientes->categoria_estilo;
 
-    $estiloCategoriaInline = sprintf(
-        'background-color: %s; color: %s; border-color: %s;',
-        $estiloCategoria['fondo'],
-        $estiloCategoria['texto'],
-        $estiloCategoria['borde']
-    );
-@endphp
+                                        $estiloCategoriaInline = sprintf(
+                                        'background-color: %s; color: %s; border-color: %s;',
+                                        $estiloCategoria['fondo'],
+                                        $estiloCategoria['texto'],
+                                        $estiloCategoria['borde']
+                                        );
+                                        @endphp
 
-           <span
-    class="inline-flex rounded-full
+                                        <span
+                                            class="inline-flex rounded-full
            border px-2.5 py-1
            text-xs font-semibold"
-    style="{{ $estiloCategoriaInline }}">
+                                            style="{{ $estiloCategoriaInline }}">
 
-    {{ $pacientes->categoria_texto }}
-</span>
+                                            {{ $pacientes->categoria_texto }}
+                                        </span>
 
-            @endunless
-        </div>
-    </div>
-</div>
+                                        @endunless
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                     </section>
@@ -1212,6 +1212,17 @@
 
                         </div>
                     </details>
+
+                    {{-- ===================================================== --}}
+                    {{-- ANTECEDENTES GINECOOBSTÉTRICOS --}}
+                    {{-- Solo se muestran para pacientes femeninas --}}
+                    {{-- ===================================================== --}}
+
+                    @if ($pacientes->sexo === 'femenino')
+                    @include(
+                    'pacientes.partials.ginecoobstetricos'
+                    )
+                    @endif
 
                     @php
                     $habitoAlimenticio = $pacientes
@@ -3192,7 +3203,7 @@
         </div>
     </div>
 
-    
+
 
     @if (
     request()->user()->isAdmin()
@@ -3297,66 +3308,66 @@
                     </div>
 
                     {{-- Teléfono fijo --}}
-<div>
-    <label
-        for="modal_telefono_fijo"
-        class="mb-1.5 block text-sm
+                    <div>
+                        <label
+                            for="modal_telefono_fijo"
+                            class="mb-1.5 block text-sm
                font-medium text-slate-700">
-        Teléfono
-    </label>
+                            Teléfono
+                        </label>
 
-    <input
-        id="modal_telefono_fijo"
-        name="telefono_fijo"
-        type="text"
-        value="{{ old(
+                        <input
+                            id="modal_telefono_fijo"
+                            name="telefono_fijo"
+                            type="text"
+                            value="{{ old(
             'telefono_fijo',
             $pacientes->telefono_fijo
         ) }}"
-        maxlength="20"
-        class="block w-full rounded-xl
+                            maxlength="20"
+                            class="block w-full rounded-xl
                border-slate-300 text-sm
                shadow-sm
                focus:border-blue-500
                focus:ring-blue-500">
 
-    @error('telefono_fijo')
-        <p class="mt-1.5 text-xs text-red-600">
-            {{ $message }}
-        </p>
-    @enderror
-</div>
+                        @error('telefono_fijo')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
 
-{{-- Teléfono secundario --}}
-<div>
-    <label
-        for="modal_telefono_secundario"
-        class="mb-1.5 block text-sm
+                    {{-- Teléfono secundario --}}
+                    <div>
+                        <label
+                            for="modal_telefono_secundario"
+                            class="mb-1.5 block text-sm
                font-medium text-slate-700">
-        Teléfono secundario
-    </label>
+                            Teléfono secundario
+                        </label>
 
-    <input
-        id="modal_telefono_secundario"
-        name="telefono_secundario"
-        type="text"
-        value="{{ old(
+                        <input
+                            id="modal_telefono_secundario"
+                            name="telefono_secundario"
+                            type="text"
+                            value="{{ old(
             'telefono_secundario',
             $pacientes->telefono_secundario
         ) }}"
-        maxlength="20"
-        class="block w-full rounded-xl
+                            maxlength="20"
+                            class="block w-full rounded-xl
                border-slate-300 text-sm
                shadow-sm
                focus:border-blue-500
                focus:ring-blue-500">
 
-    @error('telefono_secundario')
-        <p class="mt-1.5 text-xs text-red-600">
-            {{ $message }}
-        </p>
-    @enderror
-</div>
+                        @error('telefono_secundario')
+                        <p class="mt-1.5 text-xs text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
 
                     <div>
                         <label
@@ -3421,7 +3432,7 @@
 
     @endif
 
-@if (request()->user()->isAdmin())
+    @if (request()->user()->isAdmin())
 
     {{-- ===================================================== --}}
     {{-- MODAL: DATOS GENERALES --}}
@@ -3532,9 +3543,9 @@
                                        focus:ring-blue-500">
 
                             @error('nombre')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3565,9 +3576,9 @@
                                        focus:ring-blue-500">
 
                             @error('apellido')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3598,9 +3609,9 @@
                                        focus:ring-blue-500">
 
                             @error('fecha_nacimiento')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3630,10 +3641,9 @@
                                 <option
                                     value="masculino"
                                     @selected(
-                                        old(
-                                            'sexo',
-                                            $pacientes->sexo
-                                        ) === 'masculino'
+                                    old( 'sexo' ,
+                                    $pacientes->sexo
+                                    ) === 'masculino'
                                     )>
                                     Masculino
                                 </option>
@@ -3641,19 +3651,18 @@
                                 <option
                                     value="femenino"
                                     @selected(
-                                        old(
-                                            'sexo',
-                                            $pacientes->sexo
-                                        ) === 'femenino'
+                                    old( 'sexo' ,
+                                    $pacientes->sexo
+                                    ) === 'femenino'
                                     )>
                                     Femenino
                                 </option>
                             </select>
 
                             @error('sexo')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3678,11 +3687,10 @@
                                 <option
                                     value="sin_categoria"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                                ?? 'sin_categoria'
-                                        ) === 'sin_categoria'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ?? 'sin_categoria'
+                                    ) === 'sin_categoria'
                                     )>
                                     Sin categoría
                                 </option>
@@ -3690,10 +3698,9 @@
                                 <option
                                     value="rotarios"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'rotarios'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'rotarios'
                                     )>
                                     ROTARIOS
                                 </option>
@@ -3701,10 +3708,9 @@
                                 <option
                                     value="unidem"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'unidem'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'unidem'
                                     )>
                                     UNIDEM
                                 </option>
@@ -3712,10 +3718,9 @@
                                 <option
                                     value="alumnos_cucs"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'alumnos_cucs'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'alumnos_cucs'
                                     )>
                                     ALUMNOS CUCS
                                 </option>
@@ -3723,10 +3728,9 @@
                                 <option
                                     value="trabajadores"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'trabajadores'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'trabajadores'
                                     )>
                                     TRABAJADORES
                                 </option>
@@ -3734,10 +3738,9 @@
                                 <option
                                     value="rotarios_20"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'rotarios_20'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'rotarios_20'
                                     )>
                                     ROTARIOS 20%
                                 </option>
@@ -3745,10 +3748,9 @@
                                 <option
                                     value="donativo"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'donativo'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'donativo'
                                     )>
                                     DONATIVO
                                 </option>
@@ -3756,10 +3758,9 @@
                                 <option
                                     value="medicos_50"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'medicos_50'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'medicos_50'
                                     )>
                                     MÉDICOS 50% DESC.
                                 </option>
@@ -3767,19 +3768,18 @@
                                 <option
                                     value="unidem_20"
                                     @selected(
-                                        old(
-                                            'categoria',
-                                            $pacientes->categoria
-                                        ) === 'unidem_20'
+                                    old( 'categoria' ,
+                                    $pacientes->categoria
+                                    ) === 'unidem_20'
                                     )>
                                     UNIDEM 20%
                                 </option>
                             </select>
 
                             @error('categoria')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3809,9 +3809,9 @@
                                        focus:ring-blue-500">
 
                             @error('lugar_nacimiento')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3841,9 +3841,9 @@
                                        focus:ring-blue-500">
 
                             @error('ocupacion')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3873,9 +3873,9 @@
                                        focus:ring-blue-500">
 
                             @error('religion')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3900,10 +3900,9 @@
                                 <option
                                     value="1"
                                     @selected(
-                                        (string) old(
-                                            'status',
-                                            $pacientes->status
-                                        ) === '1'
+                                    (string) old( 'status' ,
+                                    $pacientes->status
+                                    ) === '1'
                                     )>
                                     Activo
                                 </option>
@@ -3911,19 +3910,18 @@
                                 <option
                                     value="0"
                                     @selected(
-                                        (string) old(
-                                            'status',
-                                            $pacientes->status
-                                        ) === '0'
+                                    (string) old( 'status' ,
+                                    $pacientes->status
+                                    ) === '0'
                                     )>
                                     Inactivo
                                 </option>
                             </select>
 
                             @error('status')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -3954,14 +3952,13 @@
                                     type="checkbox"
                                     value="1"
                                     @checked(
-                                        (bool) old(
-                                            'finado',
-                                            $pacientes->finado
-                                        )
-                                    )
-                                    class="rounded border-slate-300
-                                           text-blue-600
-                                           focus:ring-blue-500">
+                                    (bool) old( 'finado' ,
+                                    $pacientes->finado
+                                )
+                                )
+                                class="rounded border-slate-300
+                                text-blue-600
+                                focus:ring-blue-500">
 
                                 <span class="text-sm text-slate-700">
                                     Marcar como finado
@@ -3969,9 +3966,9 @@
                             </label>
 
                             @error('finado')
-                                <p class="mt-1.5 text-xs text-red-600">
-                                    {{ $message }}
-                                </p>
+                            <p class="mt-1.5 text-xs text-red-600">
+                                {{ $message }}
+                            </p>
                             @enderror
                         </div>
 
@@ -4025,7 +4022,7 @@
         </div>
     </div>
 
-@endif
+    @endif
 
     @if (request()->user()->isAdmin())
 
@@ -6073,6 +6070,25 @@
         }
 
         /*
+|--------------------------------------------------------------------------
+| Modal de antecedentes ginecoobstétricos
+|--------------------------------------------------------------------------
+*/
+
+        function abrirModalGinecoobstetricos() {
+            abrirModal(
+                'modal-ginecoobstetricos',
+                'gineco_edad_menarca'
+            );
+        }
+
+        function cerrarModalGinecoobstetricos() {
+            cerrarModal(
+                'modal-ginecoobstetricos'
+            );
+        }
+
+        /*
         |--------------------------------------------------------------------------
         | Modal de antecedentes personales no patológicos
         |--------------------------------------------------------------------------
@@ -6216,6 +6232,7 @@
                 cerrarModalPersonalesPatologicos();
                 cerrarModalPersonalesNoPatologicos();
                 cerrarModalHabitosAlimenticios();
+                cerrarModalGinecoobstetricos();
                 cerrarModalExploracionFisica();
             }
         );
@@ -6262,6 +6279,11 @@
                 id: 'modal-exploracion-fisica',
                 cerrar: cerrarModalExploracionFisica,
             },
+
+            {
+                id: 'modal-habitos-alimenticios',
+                cerrar: cerrarModalHabitosAlimenticios,
+            },
         ];
 
         modales.forEach(function(configuracion) {
@@ -6291,6 +6313,26 @@
                 | Historia clínica principal
                 |--------------------------------------------------------------------------
                 */
+
+                /*
+|--------------------------------------------------------------------------
+| Mover modal ginecoobstétrico al nivel del body
+|--------------------------------------------------------------------------
+|
+| Evita que contenedores superiores limiten el fondo del modal.
+|
+*/
+
+const modalGinecoobstetricos =
+    document.getElementById(
+        'modal-ginecoobstetricos'
+    );
+
+if (modalGinecoobstetricos) {
+    document.body.appendChild(
+        modalGinecoobstetricos
+    );
+}
 
                 const estadoValidacion =
                     document.getElementById(
@@ -6388,6 +6430,21 @@
                     }
                 );
 
+                /*
+                |--------------------------------------------------------------------------
+                | Antecedentes ginecoobstétricos
+                |--------------------------------------------------------------------------
+                */
+
+                const estadoGinecoobstetricos =
+                    document.getElementById(
+                        'estado-validacion-ginecoobstetricos'
+                    );
+
+                const tieneErroresGinecoobstetricos =
+                    estadoGinecoobstetricos
+                    ?.dataset.tieneErrores === 'true';
+
                 if (selectorExploracion?.value) {
                     actualizarFormularioExploracionFisica(
                         tieneErroresExploracionFisica
@@ -6422,6 +6479,10 @@
 
                 if (tieneErrores) {
                     abrirModalHistoriaClinica();
+                }
+
+                if (tieneErroresGinecoobstetricos) {
+                    abrirModalGinecoobstetricos();
                 }
             }
         );
