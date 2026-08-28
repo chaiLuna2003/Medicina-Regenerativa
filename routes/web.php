@@ -13,6 +13,7 @@ use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Controllers\ExploracionesFisicasController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HojaDiariaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,31 @@ Route::middleware([
         [ProfileController::class, 'destroy']
     )->name('profile.destroy');
 
+
+    /*
+|--------------------------------------------------------------------------
+| Hoja diaria
+|--------------------------------------------------------------------------
+|
+| Administración, recepción y enfermería pueden consultar todas las citas.
+| El médico solamente podrá generar la hoja correspondiente a sus citas.
+|
+*/
+
+Route::middleware(
+    'role:admin,recepcionista,medico,enfermero'
+)->group(function () {
+
+    Route::get(
+        '/hoja-diaria',
+        [HojaDiariaController::class, 'index']
+    )->name('hoja-diaria.index');
+
+    Route::get(
+        '/hoja-diaria/pdf',
+        [HojaDiariaController::class, 'pdf']
+    )->name('hoja-diaria.pdf');
+});
 
 
     /*
