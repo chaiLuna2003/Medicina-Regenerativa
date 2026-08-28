@@ -34,11 +34,7 @@
     animation-play-state: paused;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .cumpleanos-hoy {
-        animation: none;
-    }
-}
+
 
         @media (prefers-reduced-motion: reduce) {
             .cumpleanos-hoy {
