@@ -15,29 +15,29 @@
                 </p>
             </div>
 
-        @if ($medico !== null)
+            @if ($medico !== null)
 
-    <div class="flex flex-col gap-3 sm:flex-row">
+            <div class="flex flex-col gap-3 sm:flex-row">
 
-        <x-hoja-diaria-button class="w-full sm:w-auto" />
+                <x-hoja-diaria-button class="w-full sm:w-auto" />
 
-        <button
-            id="activar-notificaciones"
-            type="button"
-            class="inline-flex w-full items-center justify-center
+                <button
+                    id="activar-notificaciones"
+                    type="button"
+                    class="inline-flex w-full items-center justify-center
                    gap-2 rounded-xl border border-blue-200
                    bg-blue-50 px-4 py-2.5
                    text-sm font-semibold text-blue-700
                    transition hover:bg-blue-100
                    sm:w-auto">
 
-            <span>🔔</span>
+                    <span>🔔</span>
 
-            Activar recordatorios
-        </button>
-    </div>
+                    Activar recordatorios
+                </button>
+            </div>
 
-@endif
+            @endif
         </div>
     </x-slot>
 
@@ -56,7 +56,6 @@
     ($paciente?->apellido ?? '')
     ),
     'edad' => $paciente?->edad,
-    'telefono' => $paciente?->telefono,
     'motivo' => $cita->motivo,
     'estado' => $cita->estado_actual,
     'primera_consulta' => ($paciente?->citas_count ?? 0) <= 1, 'tiene_signos'=> $cita->signoVital !== null,
@@ -77,7 +76,7 @@
         @endphp
 
         <div class="py-8">
-            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="w-full max-w-none px-3 sm:px-4 lg:px-6">
 
                 @if ($medico === null)
                 <div class="rounded-2xl border border-amber-200 bg-amber-50 p-6">
@@ -157,7 +156,7 @@
                         </div>
                     </button>
                 </div>
-                <div class="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)]">
+                <div class="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
 
                     {{-- Columna izquierda --}}
                     <div class="space-y-6">
@@ -241,6 +240,106 @@
                             </div>
                         </section>
                     </div>
+
+                    <section
+                    class="h-fit overflow-hidden rounded-2xl
+                    border border-gray-200 bg-white shadow-sm">
+                    {{-- Encabezado --}}
+                    <div
+                        class="flex flex-col gap-4 border-b border-gray-100
+                     px-5 py-5 sm:flex-row sm:items-center
+                     sm:justify-between">
+                        <div>
+                            <p
+                                class="text-xs font-semibold uppercase
+                       tracking-wider text-blue-600">
+                                Agenda por horario
+                            </p>
+
+                            <h3
+                                class="mt-1 text-lg font-bold capitalize
+                       text-gray-900">
+                                {{ $fechaSeleccionada
+                    ->locale('es')
+                    ->translatedFormat(
+                        'l, d \d\e F \d\e Y'
+                    ) }}
+                            </h3>
+
+                            <p class="mt-1 text-sm text-gray-500">
+                                Tus citas asignadas en bloques de 15 minutos
+                            </p>
+                        </div>
+
+                        {{-- Navegación entre días --}}
+                        <div class="flex flex-wrap items-center gap-2">
+                            <a
+                                href="{{ route('dashboard', [
+                    'fecha' => $fechaSeleccionada
+                        ->copy()
+                        ->subDay()
+                        ->format('Y-m-d'),
+                     ]) }}"
+                                class="inline-flex h-10 w-10 items-center
+                       justify-center rounded-xl border
+                       border-gray-200 text-gray-600
+                       transition hover:bg-gray-50
+                       hover:text-gray-900"
+                                aria-label="Día anterior"
+                                title="Día anterior">
+                                ←
+                            </a>
+
+                            @if (!$fechaSeleccionada->isToday())
+                            <a
+                                href="{{ route('dashboard') }}"
+                                class="inline-flex h-10 items-center
+                           justify-center rounded-xl border
+                           border-blue-200 bg-blue-50 px-4
+                           text-sm font-semibold text-[#0D3B7F]
+                           transition hover:bg-blue-100">
+                                Hoy
+                            </a>
+                            @endif
+
+                            <a
+                                href="{{ route('dashboard', [
+                    'fecha' => $fechaSeleccionada
+                        ->copy()
+                        ->addDay()
+                        ->format('Y-m-d'),
+                            ]) }}"
+                                class="inline-flex h-10 w-10 items-center
+                       justify-center rounded-xl border
+                       border-gray-200 text-gray-600
+                       transition hover:bg-gray-50
+                       hover:text-gray-900"
+                                aria-label="Día siguiente"
+                                title="Día siguiente">
+                                →
+                            </a>
+
+                            <span
+                                class="inline-flex h-10 items-center
+                       rounded-xl bg-slate-100 px-4
+                       text-xs font-semibold text-slate-600">
+                                {{ $citasSeleccionadas->count() }}
+                                {{ $citasSeleccionadas->count() === 1
+                    ? 'cita'
+                    : 'citas' }}
+                            </span>
+                        </div>
+                    </div>
+                    {{-- Agenda médica compartida --}}
+                    {{-- Cuadrícula compartida --}}
+                    <x-agenda.cuadricula
+                        :medicos-agenda="$medicosAgenda"
+                        :horas-agenda="$horasAgenda"
+                        :citas-agenda="$citasAgenda"
+                        :fecha-seleccionada="$fechaSeleccionada"
+                        :permitir-creacion="false"
+                        :mostrar-notas="true" />
+                </section>
 
                     {{-- Agenda --}}
                     <section
@@ -614,18 +713,6 @@
                 const tituloCalendario =
                     document.getElementById('titulo-calendario');
 
-                const fechaSeleccionadaTexto =
-                    document.getElementById('fecha-seleccionada');
-
-                const listaCitas =
-                    document.getElementById('lista-citas');
-
-                const sinCitas =
-                    document.getElementById('sin-citas');
-
-                const contadorCitas =
-                    document.getElementById('contador-citas');
-
                 const modal =
                     document.getElementById('modal-recordatorio');
 
@@ -640,13 +727,19 @@
 
                 const hoy = new Date();
 
+                let fechaSeleccionada =
+                    "{{ $fechaSeleccionada->format('Y-m-d') }}";
+
+                const fechaSeleccionadaDate = new Date(
+                    `${fechaSeleccionada}T12:00:00`
+                );
+
                 let mesVisible = new Date(
-                    hoy.getFullYear(),
-                    hoy.getMonth(),
+                    fechaSeleccionadaDate.getFullYear(),
+                    fechaSeleccionadaDate.getMonth(),
                     1
                 );
 
-                let fechaSeleccionada = formatearFecha(hoy);
                 let audioContext = null;
 
                 function formatearFecha(fecha) {
@@ -744,149 +837,21 @@
                         `;
 
                         boton.addEventListener('click', () => {
-                            fechaSeleccionada = fechaFormato;
-                            renderizarCalendario();
-                            renderizarCitas();
+                            const url = new URL(
+                                '/dashboard',
+                                window.location.origin
+                            );
+
+                            url.searchParams.set(
+                                'fecha',
+                                fechaFormato
+                            );
+
+                            window.location.href = url.toString();
                         });
 
                         diasCalendario.appendChild(boton);
                     }
-                }
-
-                function renderizarCitas() {
-                    const fecha = new Date(`${fechaSeleccionada}T12:00:00`);
-
-                    fechaSeleccionadaTexto.textContent =
-                        fecha.toLocaleDateString('es-MX', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                        });
-
-                    const citasDelDia = citas
-                        .filter(cita => cita.fecha === fechaSeleccionada)
-                        .sort((a, b) => a.hora.localeCompare(b.hora));
-
-                    contadorCitas.textContent =
-                        `${citasDelDia.length} ${
-                            citasDelDia.length === 1 ? 'cita' : 'citas'
-                        }`;
-
-                    listaCitas.innerHTML = '';
-
-                    if (citasDelDia.length === 0) {
-                        listaCitas.classList.add('hidden');
-                        sinCitas.classList.remove('hidden');
-                        return;
-                    }
-
-                    listaCitas.classList.remove('hidden');
-                    sinCitas.classList.add('hidden');
-
-                    citasDelDia.forEach(cita => {
-                        const articulo = document.createElement('article');
-
-                        articulo.className =
-                            'px-6 py-5 transition hover:bg-gray-50';
-
-                        const signos = cita.tiene_signos ?
-                            `
-                                <div class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                                    <div class="rounded-xl bg-gray-50 px-3 py-2">
-                                        <p class="text-xs text-gray-400">Peso</p>
-                                        <p class="mt-1 text-sm font-bold text-gray-800">
-                                            ${escapar(cita.signos.peso ?? '—')} kg
-                                        </p>
-                                    </div>
-
-                                    <div class="rounded-xl bg-gray-50 px-3 py-2">
-                                        <p class="text-xs text-gray-400">Presión</p>
-                                        <p class="mt-1 text-sm font-bold text-gray-800">
-                                            ${escapar(cita.signos.presion)}
-                                        </p>
-                                    </div>
-
-                                    <div class="rounded-xl bg-gray-50 px-3 py-2">
-                                        <p class="text-xs text-gray-400">Temperatura</p>
-                                        <p class="mt-1 text-sm font-bold text-gray-800">
-                                            ${escapar(cita.signos.temperatura ?? '—')} °C
-                                        </p>
-                                    </div>
-
-                                    <div class="rounded-xl bg-gray-50 px-3 py-2">
-                                        <p class="text-xs text-gray-400">Saturación</p>
-                                        <p class="mt-1 text-sm font-bold text-gray-800">
-                                            ${escapar(cita.signos.saturacion ?? '—')}%
-                                        </p>
-                                    </div>
-                                </div>
-                            ` :
-                            `
-                                <p class="mt-4 inline-flex rounded-full
-                                          bg-amber-50 px-3 py-1.5 text-xs
-                                          font-semibold text-amber-700">
-                                    Signos vitales pendientes
-                                </p>
-                            `;
-
-                        articulo.innerHTML = `
-                            <div class="flex flex-col gap-4 xl:flex-row xl:items-start">
-                                <div class="w-24 shrink-0">
-                                    <p class="text-xl font-bold text-[#0D3B7F]">
-                                        ${escapar(cita.hora_formateada)}
-                                    </p>
-
-                                    <p class="mt-1 text-xs text-gray-400">
-                                        ${escapar(cita.estado.replaceAll('_', ' '))}
-                                    </p>
-                                </div>
-
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex flex-wrap items-center gap-2">
-                                        <h4 class="font-bold text-gray-900">
-                                            ${escapar(cita.paciente)}
-                                        </h4>
-
-                                        <span class="rounded-full px-2.5 py-1
-                                                     text-xs font-semibold
-                                                     ${cita.primera_consulta
-                                                        ? 'bg-violet-50 text-violet-700'
-                                                        : 'bg-gray-100 text-gray-600'}">
-                                            ${cita.primera_consulta
-                                                ? 'Primera consulta'
-                                                : 'Paciente recurrente'}
-                                        </span>
-                                    </div>
-
-                                    <p class="mt-2 text-sm text-gray-600">
-                                        ${escapar(cita.motivo || 'Sin motivo registrado')}
-                                    </p>
-
-                                    <p class="mt-2 text-xs text-gray-400">
-                                        ${escapar(cita.edad || 'Edad no disponible')}
-                                        ${cita.telefono
-                                            ? ` · ${escapar(cita.telefono)}`
-                                            : ''}
-                                    </p>
-
-                                    ${signos}
-                                </div>
-
-                                <a
-                                    href="${cita.url}"
-                                    class="inline-flex shrink-0 justify-center
-                                           rounded-xl bg-[#0D3B7F] px-4 py-2.5
-                                           text-sm font-semibold text-white
-                                           transition hover:bg-[#082a5d]"
-                                >
-                                    Ver cita
-                                </a>
-                            </div>
-                        `;
-
-                        listaCitas.appendChild(articulo);
-                    });
                 }
 
                 function reproducirSonido() {
@@ -1179,7 +1144,6 @@
 
                 actualizarReloj();
                 renderizarCalendario();
-                renderizarCitas();
                 revisarRecordatorios();
 
                 window.setInterval(actualizarReloj, 1000);

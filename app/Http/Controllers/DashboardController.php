@@ -18,11 +18,23 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         return match ($user->role) {
-            'admin' => $this->dashboardAdministrador(),
-            'recepcionista' => $this->dashboardRecepcion($request),
-            'medico' => $this->dashboardMedico($user),
-            'enfermero' => $this->dashboardEnfermero(),
-            default => abort(403),
+            'admin' =>
+            $this->dashboardAdministrador(),
+
+            'recepcionista' =>
+            $this->dashboardRecepcion($request),
+
+            'medico' =>
+            $this->dashboardMedico(
+                $user,
+                $request
+            ),
+
+            'enfermero' =>
+            $this->dashboardEnfermero(),
+
+            default =>
+            abort(403),
         };
     }
 
@@ -441,7 +453,7 @@ class DashboardController extends Controller
             ->first();
 
         $cumpleanosPacientes =
-    $this->obtenerCumpleanosPacientes(7);
+            $this->obtenerCumpleanosPacientes(7);
 
         return view(
             'dashboard.recepcion',
@@ -472,27 +484,96 @@ class DashboardController extends Controller
     /**
      * Dashboard del médico autenticado.
      */
-    private function dashboardMedico(User $user)
-    {
-        /*
-     * Médico vinculado con el usuario autenticado.
+    /**
+     * Dashboard del médico autenticado.
      */
+    private function dashboardMedico(
+        User $user,
+        Request $request
+    ) {
+        $request->validate([
+            'fecha' => [
+                'nullable',
+                'date_format:Y-m-d',
+            ],
+        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Médico autenticado
+    |--------------------------------------------------------------------------
+    */
+
         $medico = $user->medico;
 
         /*
-     * Valores predeterminados por si el usuario
-     * todavía no tiene un perfil médico asociado.
-     */
+    |--------------------------------------------------------------------------
+    | Fecha seleccionada
+    |--------------------------------------------------------------------------
+    */
+
+        $fechaSeleccionada = $request->filled('fecha')
+            ? Carbon::createFromFormat(
+                'Y-m-d',
+                $request->input('fecha')
+            )->startOfDay()
+            : Carbon::today();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Valores predeterminados
+    |--------------------------------------------------------------------------
+    */
+
         $citas = collect();
         $citasFinalizadas = collect();
+        $citasSeleccionadas = collect();
+        $medicosAgenda = collect();
+        $citasAgenda = collect();
+        $horasAgenda = collect();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Horarios de 15 minutos
+    |--------------------------------------------------------------------------
+    */
+
+        $horaAgenda = Carbon::createFromTime(
+            9,
+            0
+        );
+
+        $ultimaHoraAgenda = Carbon::createFromTime(
+            20,
+            45
+        );
+
+        while ($horaAgenda->lte($ultimaHoraAgenda)) {
+            $horasAgenda->push(
+                $horaAgenda->format('H:i')
+            );
+
+            $horaAgenda->addMinutes(15);
+        }
 
         if ($medico !== null) {
             /*
-         * El calendario conserva contexto reciente y permite planear
-         * los siguientes meses sin descargar todo el historial clínico.
-         */
-            $inicioCalendario = now()->subMonth()->startOfMonth();
-            $finCalendario = now()->addMonths(6)->endOfMonth();
+        |--------------------------------------------------------------------------
+        | Agenda general existente
+        |--------------------------------------------------------------------------
+        |
+        | Se conserva para los indicadores y modales actuales mientras
+        | terminamos de migrar la interfaz médica.
+        |
+        */
+
+            $inicioCalendario = now()
+                ->subMonth()
+                ->startOfMonth();
+
+            $finCalendario = now()
+                ->addMonths(6)
+                ->endOfMonth();
 
             $todasLasCitas = Citas::query()
                 ->with([
@@ -518,8 +599,11 @@ class DashboardController extends Controller
                 ->orderBy('hora')
                 ->get();
 
-            [$citas, $citasFinalizadas] = $todasLasCitas
-                ->partition(function (Citas $cita) {
+            [
+                $citas,
+                $citasFinalizadas,
+            ] = $todasLasCitas->partition(
+                function (Citas $cita) {
                     $fechaHoraFinal = Carbon::parse(
                         $cita->fecha->format('Y-m-d')
                             . ' '
@@ -532,14 +616,115 @@ class DashboardController extends Controller
 
                     return $cita->estado !== 'finalizada'
                         && $fechaHoraFinal->gte(now());
-                });
+                }
+            );
+
+            /*
+        |--------------------------------------------------------------------------
+        | Citas del día seleccionado
+        |--------------------------------------------------------------------------
+        |
+        | La restricción por medico_id se aplica en el servidor.
+        | El médico no puede alterar la URL para consultar otra agenda.
+        |
+        */
+
+            $citasSeleccionadas = Citas::query()
+                ->with([
+                    'paciente',
+                    'medico',
+                ])
+                ->where(
+                    'medico_id',
+                    $medico->id
+                )
+                ->whereDate(
+                    'fecha',
+                    $fechaSeleccionada->toDateString()
+                )
+                ->orderBy('hora')
+                ->get();
+
+            /*
+        |--------------------------------------------------------------------------
+        | Única columna médica
+        |--------------------------------------------------------------------------
+        */
+
+            $medicosAgenda = collect([
+                $medico,
+            ]);
+
+            /*
+        |--------------------------------------------------------------------------
+        | Distribución en bloques de 15 minutos
+        |--------------------------------------------------------------------------
+        */
+
+            foreach ($citasSeleccionadas as $cita) {
+                $inicioCita = Carbon::parse(
+                    $cita->hora
+                );
+
+                $duracionCita =
+                    $cita->duracion_minutos ?? 15;
+
+                $cantidadBloques = max(
+                    1,
+                    (int) ceil(
+                        $duracionCita / 15
+                    )
+                );
+
+                for (
+                    $indice = 0;
+                    $indice < $cantidadBloques;
+                    $indice++
+                ) {
+                    $horaBloque = $inicioCita
+                        ->copy()
+                        ->addMinutes(
+                            $indice * 15
+                        )
+                        ->format('H:i');
+
+                    $llaveBloque =
+                        $medico->id
+                        . '|'
+                        . $horaBloque;
+
+                    $citasAgenda->put(
+                        $llaveBloque,
+                        [
+                            'cita' => $cita,
+                            'es_inicio' =>
+                            $indice === 0,
+                            'es_final' =>
+                            $indice
+                                === $cantidadBloques - 1,
+                            'indice' =>
+                            $indice,
+                            'total_bloques' =>
+                            $cantidadBloques,
+                        ]
+                    );
+                }
+            }
         }
 
-        return view('Dashboard.medico', compact(
-            'medico',
-            'citas',
-            'citasFinalizadas',
-        ));
+        return view(
+            'Dashboard.medico',
+            compact(
+                'medico',
+                'citas',
+                'citasFinalizadas',
+                'citasSeleccionadas',
+                'fechaSeleccionada',
+                'medicosAgenda',
+                'horasAgenda',
+                'citasAgenda',
+            )
+        );
     }
 
     /**

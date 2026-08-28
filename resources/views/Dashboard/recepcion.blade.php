@@ -56,15 +56,14 @@
     </x-slot>
 
     <div class="py-8">
-        <div class="mx-auto max-w-7xl space-y-8 px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-none space-y-8 px-3 sm:px-4 lg:px-6">
 
             {{-- ================================================= --}}
             {{-- CUMPLEAÑOS DE PACIENTES --}}
             {{-- ================================================= --}}
-           {{-- Cumpleaños de pacientes --}}
-<x-cumpleanos-pacientes
-    :pacientes="$cumpleanosPacientes"
-/>
+            {{-- Cumpleaños de pacientes --}}
+            <x-cumpleanos-pacientes
+                :pacientes="$cumpleanosPacientes" />
 
             {{-- Indicadores generales de hoy --}}
             <section class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -538,241 +537,14 @@
                     </div>
 
                     {{-- Cuadrícula de médicos y horarios --}}
-                    <div class="max-h-[690px] overflow-auto">
-                        @if ($medicosAgenda->isEmpty())
-                        <div class="px-6 py-16 text-center">
-                            <p class="font-semibold text-gray-900">
-                                No hay médicos activos
-                            </p>
 
-                            <p class="mt-1 text-sm text-gray-500">
-                                Registra o activa un médico para mostrar la agenda.
-                            </p>
-                        </div>
-                        @else
-                        <div
-                            class="grid min-w-max"
-                            style="grid-template-columns:
-                       76px repeat(
-                           {{ $medicosAgenda->count() }},
-                           minmax(210px, 1fr)
-                       );">
-                            {{-- Encabezado de hora --}}
-                            <div
-                                class="sticky left-0 top-0 z-30 flex h-14
-                           items-center justify-center border-b
-                           border-r border-gray-200 bg-slate-100
-                           text-xs font-bold text-gray-500">
-                                Hora
-                            </div>
-
-
-                            {{-- Encabezados de médicos --}}
-                            @foreach ($medicosAgenda as $medico)
-                            <div
-                                class="sticky top-0 z-20 flex h-14
-               items-center justify-center border-b
-               border-r border-gray-200 bg-slate-100
-               px-3 text-center">
-                                <div class="min-w-0">
-                                    <p class="truncate text-sm font-bold text-gray-800">
-                                        Dr. {{ $medico->nombre }}
-                                        {{ $medico->apellido_paterno }}
-                                    </p>
-
-                                    <p class="mt-0.5 truncate text-[11px] text-gray-500">
-                                        {{ $medico->especialidad
-                    ?: 'Medicina general' }}
-                                    </p>
-                                </div>
-                            </div>
-                            @endforeach
-
-                            {{-- Filas de horarios --}}
-                            @foreach ($horasAgenda as $horaAgenda)
-                            {{-- Columna de hora --}}
-                            <div
-                                class="sticky left-0 z-10 flex h-12
-               items-center justify-center border-b
-               border-r border-gray-100 bg-white
-               text-xs font-semibold text-gray-500">
-                                {{ \Carbon\Carbon::createFromFormat(
-            'H:i',
-            $horaAgenda
-        )->format('h:i A') }}
-                            </div>
-
-                            {{-- Celdas de médicos para este horario --}}
-                            @foreach ($medicosAgenda as $medico)
-                            @php
-                            $llaveAgenda =
-                            $medico->id
-                            . '|'
-                            . $horaAgenda;
-
-                            $bloqueAgenda =
-                            $citasAgenda->get(
-                            $llaveAgenda
-                            );
-
-                            $citaAgenda =
-                            $bloqueAgenda['cita']
-                            ?? null;
-
-                            $esInicioAgenda =
-                            $bloqueAgenda['es_inicio']
-                            ?? false;
-
-                            $esFinalAgenda =
-                            $bloqueAgenda['es_final']
-                            ?? false;
-
-                            $colorCitaAgenda = match (
-                            $citaAgenda?->estado_actual
-                            ) {
-                            'confirmada' =>
-                            'border-emerald-500 bg-emerald-500 text-white',
-
-                            'en_espera' =>
-                            'border-amber-400 bg-amber-400 text-white',
-
-                            'en_curso', 'en_consulta' =>
-                            'border-blue-500 bg-blue-500 text-white',
-
-                            'finalizada' =>
-                            'border-slate-400 bg-slate-400 text-white',
-
-                            'cancelada' =>
-                            'border-red-200 bg-red-50 text-red-600',
-
-                            default =>
-                            'border-indigo-500 bg-indigo-500 text-white',
-                            };
-
-                            $bordesCitaAgenda =
-                            $esInicioAgenda && $esFinalAgenda
-                            ? 'rounded-md'
-                            : (
-                            $esInicioAgenda
-                            ? 'rounded-t-md border-b-0'
-                            : (
-                            $esFinalAgenda
-                            ? 'rounded-b-md border-t-0'
-                            : 'rounded-none border-y-0'
-                            )
-                            );
-
-                            $espaciadoCeldaAgenda =
-                            $esInicioAgenda && $esFinalAgenda
-                            ? 'p-1'
-                            : (
-                            $esInicioAgenda
-                            ? 'px-1 pt-1'
-                            : (
-                            $esFinalAgenda
-                            ? 'px-1 pb-1'
-                            : 'px-1'
-                            )
-                            );
-
-                            $pacienteAgenda = $citaAgenda
-                            ? trim(
-                            ($citaAgenda->paciente?->nombre ?? '')
-                            . ' '
-                            . ($citaAgenda->paciente?->apellido ?? '')
-                            )
-                            : null;
-                            @endphp
-
-                            <div
-                                class="h-12 border-b border-r
-                                  border-gray-100 bg-white
-                                  {{ $espaciadoCeldaAgenda }}">
-                                @if ($citaAgenda)
-                                <a
-                                    href="{{ route(
-            'citas.show',
-            $citaAgenda
-        ) }}"
-                                    title="{{ $pacienteAgenda
-            ?: 'Paciente no disponible' }}
-            · {{ $citaAgenda->duracion_minutos ?? 15 }}
-            minutos"
-                                    class="flex h-full items-center gap-2
-               overflow-hidden border px-2
-               text-xs font-semibold shadow-sm
-               transition hover:brightness-95
-               {{ $colorCitaAgenda }}
-               {{ $bordesCitaAgenda }}">
-                                    @if ($esInicioAgenda)
-                                    <span
-                                        class="shrink-0 rounded bg-white/20
-                       px-1.5 py-0.5 text-[9px]
-                       font-bold uppercase">
-                                        {{ $citaAgenda->modalidad ===
-                    'videoconsulta'
-                    ? 'Video'
-                    : 'Cita' }}
-                                    </span>
-
-                                    <span class="truncate">
-                                        {{ $pacienteAgenda
-                    ?: 'Paciente no disponible' }}
-
-                                        ·
-
-                                        {{ $citaAgenda->duracion_minutos
-                    ?? 15 }} min
-                                    </span>
-                                    @else
-                                    <span
-                                        class="h-1.5 w-full rounded-full
-                       bg-white/25"></span>
-                                    @endif
-                                </a>
-                                @else
-                                @php
-                                $fechaHoraBloque =
-                                \Carbon\Carbon::parse(
-                                $fechaSeleccionada->format('Y-m-d')
-                                . ' '
-                                . $horaAgenda
-                                );
-
-                                $puedeCrearCita =
-                                $fechaHoraBloque->gt(now());
-                                @endphp
-
-                                @if ($puedeCrearCita)
-                                <button
-                                    type="button"
-                                    class="abrir-modal-cita group flex h-full
-                   w-full items-center justify-center
-                   rounded-md border border-transparent
-                   text-gray-300 transition
-                   hover:border-blue-200 hover:bg-blue-50
-                   hover:text-[#0D3B7F]"
-                                    data-medico-id="{{ $medico->id }}"
-                                    data-medico-nombre="Dr. {{ $medico->nombre }}
-                {{ $medico->apellido_paterno }}"
-                                    data-fecha="{{ $fechaSeleccionada->format('Y-m-d') }}"
-                                    data-hora="{{ $horaAgenda }}"
-                                    title="Crear cita en este horario">
-                                    <span
-                                        class="text-lg opacity-0 transition
-                       group-hover:opacity-100">
-                                        +
-                                    </span>
-                                </button>
-                                @endif
-                                @endif
-                            </div>
-                            @endforeach
-                            @endforeach
-
-                        </div>
-                        @endif
-                    </div>
+                    <x-agenda.cuadricula
+                        :medicos-agenda="$medicosAgenda"
+                        :horas-agenda="$horasAgenda"
+                        :citas-agenda="$citasAgenda"
+                        :fecha-seleccionada="$fechaSeleccionada"
+                        :permitir-creacion="true"
+                        :mostrar-notas="false" />
                 </div>
 
                 {{-- Calendario --}}
