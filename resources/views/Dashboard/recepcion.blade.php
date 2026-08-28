@@ -22,6 +22,7 @@
             </div>
 
             <div class="flex flex-col gap-3 sm:flex-row">
+                <x-hoja-diaria-button class="w-full sm:w-auto" />
                 <a
                     href="{{ route('citas.create') }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl

@@ -15,26 +15,41 @@
                 </p>
             </div>
 
-            <a
-                href="{{ route('signos-vitales.index') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:border-gray-400 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2"
-            >
-                <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                </svg>
+<div class="flex flex-col gap-3 sm:flex-row">
 
-                Historial de signos
-            </a>
+    <x-hoja-diaria-button class="w-full sm:w-auto" />
+
+    <a
+        href="{{ route('signos-vitales.index') }}"
+        class="inline-flex w-full items-center justify-center
+               gap-2 rounded-xl border border-gray-300
+               bg-white px-5 py-3 text-sm font-semibold
+               text-gray-700 shadow-sm transition
+               hover:border-gray-400 hover:bg-gray-50
+               focus:outline-none focus:ring-2
+               focus:ring-gray-900 focus:ring-offset-2
+               sm:w-auto">
+
+        <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7
+                   a2 2 0 01-2-2V5a2 2 0 012-2
+                   h5.586a1 1 0 01.707.293
+                   l3.414 3.414A1 1 0 0117 7.414V19
+                   a2 2 0 01-2 2z" />
+        </svg>
+
+        Historial de signos
+    </a>
+</div>
         </div>
     </x-slot>
 

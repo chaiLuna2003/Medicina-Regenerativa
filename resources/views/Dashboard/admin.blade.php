@@ -1,6 +1,10 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+        <div
+            class="flex flex-col gap-4
+               sm:flex-row sm:items-center
+               sm:justify-between">
+
             <div>
                 <h2 class="text-xl font-semibold text-slate-900">
                     Panel administrativo
@@ -11,9 +15,20 @@
                 </p>
             </div>
 
-            <p class="text-sm text-slate-500">
-                {{ now()->translatedFormat('l, d \d\e F \d\e Y') }}
-            </p>
+            <div
+                class="flex flex-col items-start gap-3
+                   sm:items-end">
+
+                <p class="text-sm text-slate-500">
+                    {{ ucfirst(
+    now()
+        ->locale('es')
+        ->translatedFormat('l, d \d\e F \d\e Y')
+) }}
+                </p>
+
+                <x-hoja-diaria-button class="w-full sm:w-auto" />
+            </div>
         </div>
     </x-slot>
 
@@ -43,15 +58,13 @@
                     <div class="flex flex-wrap gap-3">
                         <a
                             href="{{ route('pacientes.create') }}"
-                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500"
-                        >
+                            class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-500">
                             Nuevo paciente
                         </a>
 
                         <a
                             href="{{ route('citas.create') }}"
-                            class="inline-flex items-center justify-center rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
-                        >
+                            class="inline-flex items-center justify-center rounded-lg border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">
                             Nueva cita
                         </a>
                     </div>
@@ -64,14 +77,13 @@
                 {{-- Pacientes --}}
                 <a
                     href="{{ route('pacientes.index') }}"
-                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-                >
+                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md">
                     <div class="flex items-start justify-between">
                         <div class="rounded-xl bg-blue-50 p-3 text-blue-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24" stroke-width="1.8">
+                                viewBox="0 0 24 24" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M18 18.72a9.094 9.094 0 003.741-.479
+                                    d="M18 18.72a9.094 9.094 0 003.741-.479
                                       3 3 0 00-4.682-2.72m.94 3.198v.001
                                       c0 .504-.123.978-.34 1.395A11.95
                                       11.95 0 0112 21c-2.036 0-3.954-.51-5.63-1.41
@@ -85,7 +97,7 @@
                                       11-6 0 3 3 0 016 0zm6 3a2.25 2.25
                                       0 11-4.5 0 2.25 2.25 0
                                       014.5 0zm-13.5 0a2.25 2.25 0
-                                      11-4.5 0 2.25 2.25 0 014.5 0z"/>
+                                      11-4.5 0 2.25 2.25 0 014.5 0z" />
                             </svg>
                         </div>
 
@@ -109,14 +121,13 @@
                 {{-- Médicos --}}
                 <a
                     href="{{ route('medicos.index') }}"
-                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md"
-                >
+                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md">
                     <div class="flex items-start justify-between">
                         <div class="rounded-xl bg-violet-50 p-3 text-violet-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24" stroke-width="1.8">
+                                viewBox="0 0 24 24" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M4.5 12.75l6 6 9-13.5"/>
+                                    d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                         </div>
 
@@ -140,21 +151,20 @@
                 {{-- Citas --}}
                 <a
                     href="{{ route('citas.index') }}"
-                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
-                >
+                    class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md">
                     <div class="flex items-start justify-between">
                         <div class="rounded-xl bg-amber-50 p-3 text-amber-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24" stroke-width="1.8">
+                                viewBox="0 0 24 24" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M6.75 3v2.25M17.25 3v2.25M3.75
+                                    d="M6.75 3v2.25M17.25 3v2.25M3.75
                                       18.75V7.5A2.25 2.25 0 016
                                       5.25h12a2.25 2.25 0 012.25
                                       2.25v11.25M3.75 18.75A2.25
                                       2.25 0 006 21h12a2.25 2.25 0
                                       002.25-2.25M3.75 18.75v-7.5A2.25
                                       2.25 0 016 9h12a2.25 2.25 0
-                                      012.25 2.25v7.5"/>
+                                      012.25 2.25v7.5" />
                             </svg>
                         </div>
 
@@ -180,13 +190,13 @@
                     <div class="flex items-start justify-between">
                         <div class="rounded-xl bg-emerald-50 p-3 text-emerald-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                 viewBox="0 0 24 24" stroke-width="1.8">
+                                viewBox="0 0 24 24" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M15.75 6a3.75 3.75 0 11-7.5
+                                    d="M15.75 6a3.75 3.75 0 11-7.5
                                       0 3.75 3.75 0 017.5 0zM4.5
                                       20.118a7.5 7.5 0 0115 0A17.933
                                       17.933 0 0112 21.75c-2.676
-                                      0-5.216-.584-7.5-1.632z"/>
+                                      0-5.216-.584-7.5-1.632z" />
                             </svg>
                         </div>
 
@@ -206,208 +216,192 @@
             </section>
 
             {{-- ================================================= --}}
-{{-- CUMPLEAÑOS DE PACIENTES --}}
-{{-- ================================================= --}}
-<section
-    class="overflow-hidden rounded-2xl
+            {{-- CUMPLEAÑOS DE PACIENTES --}}
+            {{-- ================================================= --}}
+            <section
+                class="overflow-hidden rounded-2xl
            border border-slate-200
-           bg-white shadow-sm"
->
-    <div
-        class="flex items-center justify-between
+           bg-white shadow-sm">
+                <div
+                    class="flex items-center justify-between
                border-b border-slate-100
-               px-6 py-5"
-    >
-        <div class="flex items-center gap-3">
-            <div
-                class="flex h-10 w-10 items-center
+               px-6 py-5">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex h-10 w-10 items-center
                        justify-center rounded-xl
-                       bg-pink-50 text-pink-600"
-            >
-                🎂
-            </div>
+                       bg-pink-50 text-pink-600">
+                            🎂
+                        </div>
 
-            <div>
-                <h3 class="font-semibold text-slate-900">
-                    Cumpleaños de pacientes
-                </h3>
+                        <div>
+                            <h3 class="font-semibold text-slate-900">
+                                Cumpleaños de pacientes
+                            </h3>
 
-                <p class="text-xs text-slate-400">
-                    Hoy y próximos 7 días
-                </p>
-            </div>
-        </div>
+                            <p class="text-xs text-slate-400">
+                                Hoy y próximos 7 días
+                            </p>
+                        </div>
+                    </div>
 
-        <span
-            class="rounded-full bg-pink-50
+                    <span
+                        class="rounded-full bg-pink-50
                    px-2.5 py-1 text-xs
-                   font-semibold text-pink-700"
-        >
-            {{ $cumpleanosPacientes->count() }}
-        </span>
-    </div>
+                   font-semibold text-pink-700">
+                        {{ $cumpleanosPacientes->count() }}
+                    </span>
+                </div>
 
-    <div class="divide-y divide-slate-100">
+                <div class="divide-y divide-slate-100">
 
-        @forelse ($cumpleanosPacientes as $paciente)
+                    @forelse ($cumpleanosPacientes as $paciente)
 
-            @php
-                $esHoy =
+                    @php
+                    $esHoy =
                     $paciente->dias_para_cumpleanos === 0;
 
-                $telefono =
+                    $telefono =
                     preg_replace(
-                        '/\D+/',
-                        '',
-                        (string) $paciente->telefono
+                    '/\D+/',
+                    '',
+                    (string) $paciente->telefono
                     );
 
-                if (strlen($telefono) === 10) {
+                    if (strlen($telefono) === 10) {
                     $telefono = '52' . $telefono;
-                }
+                    }
 
-                $mensaje = rawurlencode(
+                    $mensaje = rawurlencode(
                     "¡Hola {$paciente->nombre}! 🎉 "
                     . "De parte de todo el equipo de la clínica "
                     . "te deseamos un feliz cumpleaños. "
                     . "Esperamos que tengas un excelente día."
-                );
-            @endphp
+                    );
+                    @endphp
 
-            <div
-                class="flex flex-col gap-4
+                    <div
+                        class="flex flex-col gap-4
                        px-6 py-5
                        sm:flex-row
                        sm:items-center
-                       sm:justify-between"
-            >
-                <div class="flex items-center gap-4">
+                       sm:justify-between">
+                        <div class="flex items-center gap-4">
 
-                    <img
-                        src="{{ $paciente->fotoUrl() }}"
-                        alt="Foto de {{ $paciente->nombre }}"
-                        class="h-12 w-12 rounded-xl
+                            <img
+                                src="{{ $paciente->fotoUrl() }}"
+                                alt="Foto de {{ $paciente->nombre }}"
+                                class="h-12 w-12 rounded-xl
                                border border-slate-200
-                               object-cover"
-                    >
+                               object-cover">
 
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <p
-                                class="font-semibold text-slate-900"
-                            >
-                                {{ $paciente->nombre }}
-                                {{ $paciente->apellido }}
-                            </p>
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p
+                                        class="font-semibold text-slate-900">
+                                        {{ $paciente->nombre }}
+                                        {{ $paciente->apellido }}
+                                    </p>
 
-                            @if ($esHoy)
-                                <span
-                                    class="rounded-full
+                                    @if ($esHoy)
+                                    <span
+                                        class="rounded-full
                                            bg-pink-100
                                            px-2 py-0.5
                                            text-[11px]
                                            font-bold
-                                           text-pink-700"
-                                >
-                                    Hoy
-                                </span>
-                            @endif
-                        </div>
+                                           text-pink-700">
+                                        Hoy
+                                    </span>
+                                    @endif
+                                </div>
 
-                        <p
-                            class="mt-1 text-sm
-                                   text-slate-500"
-                        >
-                            {{ $paciente
+                                <p
+                                    class="mt-1 text-sm
+                                   text-slate-500">
+                                    {{ $paciente
                                 ->proximo_cumpleanos
                                 ->format('d/m/Y') }}
-                        </p>
+                                </p>
 
-                        <p
-                            class="mt-1 text-xs
-                                   text-slate-400"
-                        >
-                            Cumple
-                            {{ $paciente->edad_cumpleanos }}
-                            años
+                                <p
+                                    class="mt-1 text-xs
+                                   text-slate-400">
+                                    Cumple
+                                    {{ $paciente->edad_cumpleanos }}
+                                    años
 
-                            @unless ($esHoy)
-                                · En
-                                {{ $paciente->dias_para_cumpleanos }}
-                                {{ $paciente->dias_para_cumpleanos === 1
+                                    @unless ($esHoy)
+                                    · En
+                                    {{ $paciente->dias_para_cumpleanos }}
+                                    {{ $paciente->dias_para_cumpleanos === 1
                                     ? 'día'
                                     : 'días' }}
-                            @endunless
-                        </p>
-                    </div>
-                </div>
+                                    @endunless
+                                </p>
+                            </div>
+                        </div>
 
-                <div
-                    class="flex flex-wrap
-                           items-center gap-2"
-                >
-                    <a
-                        href="{{ route(
+                        <div
+                            class="flex flex-wrap
+                           items-center gap-2">
+                            <a
+                                href="{{ route(
                             'pacientes.show',
                             $paciente
                         ) }}"
-                        class="inline-flex items-center
+                                class="inline-flex items-center
                                rounded-lg border
                                border-slate-200
                                bg-white px-3 py-2
                                text-xs font-semibold
                                text-slate-700
                                transition
-                               hover:bg-slate-50"
-                    >
-                        Ver paciente
-                    </a>
+                               hover:bg-slate-50">
+                                Ver paciente
+                            </a>
 
-                    @if ($telefono)
-                        <a
-                            href="https://wa.me/{{ $telefono }}?text={{ $mensaje }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex items-center
+                            @if ($telefono)
+                            <a
+                                href="https://wa.me/{{ $telefono }}?text={{ $mensaje }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center
                                    rounded-lg
                                    bg-green-600
                                    px-3 py-2
                                    text-xs font-semibold
                                    text-white transition
-                                   hover:bg-green-700"
-                        >
-                            Felicitar por WhatsApp
-                        </a>
-                    @endif
+                                   hover:bg-green-700">
+                                Felicitar por WhatsApp
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+
+                    @empty
+
+                    <div
+                        class="px-6 py-10
+                       text-center">
+                        <p
+                            class="text-sm font-medium
+                           text-slate-600">
+                            No hay cumpleaños próximos.
+                        </p>
+
+                        <p
+                            class="mt-1 text-xs
+                           text-slate-400">
+                            Aquí aparecerán los pacientes
+                            que cumplan años en los próximos 7 días.
+                        </p>
+                    </div>
+
+                    @endforelse
+
                 </div>
-            </div>
-
-        @empty
-
-            <div
-                class="px-6 py-10
-                       text-center"
-            >
-                <p
-                    class="text-sm font-medium
-                           text-slate-600"
-                >
-                    No hay cumpleaños próximos.
-                </p>
-
-                <p
-                    class="mt-1 text-xs
-                           text-slate-400"
-                >
-                    Aquí aparecerán los pacientes
-                    que cumplan años en los próximos 7 días.
-                </p>
-            </div>
-
-        @endforelse
-
-    </div>
-</section>
+            </section>
 
             {{-- Contenido principal --}}
             <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
@@ -427,14 +421,14 @@
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                         <a href="{{ route('pacientes.index') }}"
-                           class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm">
+                            class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm">
                             <div class="rounded-xl bg-blue-50 p-3 text-blue-600">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24" stroke-width="1.8">
+                                    viewBox="0 0 24 24" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M18 18.72a9.094 9.094 0 003.741-.479
+                                        d="M18 18.72a9.094 9.094 0 003.741-.479
                                           3 3 0 00-4.682-2.72M15 6.75a3
-                                          3 0 11-6 0 3 3 0 016 0z"/>
+                                          3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
                             </div>
 
@@ -453,12 +447,12 @@
                         </a>
 
                         <a href="{{ route('medicos.index') }}"
-                           class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-violet-300 hover:shadow-sm">
+                            class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-violet-300 hover:shadow-sm">
                             <div class="rounded-xl bg-violet-50 p-3 text-violet-600">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24" stroke-width="1.8">
+                                    viewBox="0 0 24 24" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M4.5 12.75l6 6 9-13.5"/>
+                                        d="M4.5 12.75l6 6 9-13.5" />
                                 </svg>
                             </div>
 
@@ -477,17 +471,17 @@
                         </a>
 
                         <a href="{{ route('citas.index') }}"
-                           class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-amber-300 hover:shadow-sm">
+                            class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-amber-300 hover:shadow-sm">
                             <div class="rounded-xl bg-amber-50 p-3 text-amber-600">
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor"
-                                     viewBox="0 0 24 24" stroke-width="1.8">
+                                    viewBox="0 0 24 24" stroke-width="1.8">
                                     <path stroke-linecap="round" stroke-linejoin="round"
-                                          d="M6.75 3v2.25M17.25 3v2.25M3.75
+                                        d="M6.75 3v2.25M17.25 3v2.25M3.75
                                           9h16.5M5.25 5.25h13.5a1.5
                                           1.5 0 011.5 1.5v12a1.5 1.5
                                           0 01-1.5 1.5H5.25a1.5 1.5
                                           0 01-1.5-1.5v-12a1.5 1.5
-                                          0 011.5-1.5z"/>
+                                          0 011.5-1.5z" />
                                 </svg>
                             </div>
 
@@ -506,46 +500,46 @@
                         </a>
 
                         <a href="{{ route('usuarios.index') }}"
-   class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5
+                            class="group flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5
           transition duration-200 hover:-translate-y-0.5 hover:border-blue-300
           hover:shadow-lg hover:shadow-blue-900/5">
 
-    <div class="rounded-xl bg-blue-50 p-3 text-blue-700 transition
+                            <div class="rounded-xl bg-blue-50 p-3 text-blue-700 transition
                 group-hover:bg-blue-700 group-hover:text-white">
-        <svg class="h-6 w-6"
-             fill="none"
-             stroke="currentColor"
-             viewBox="0 0 24 24"
-             stroke-width="1.8">
-            <path stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M15.75 6a3.75 3.75 0 11-7.5 0
+                                <svg class="h-6 w-6"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.8">
+                                    <path stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M15.75 6a3.75 3.75 0 11-7.5 0
                      3.75 3.75 0 017.5 0z
-                     M4.5 20.25a8.25 8.25 0 0115 0"/>
-        </svg>
-    </div>
+                     M4.5 20.25a8.25 8.25 0 0115 0" />
+                                </svg>
+                            </div>
 
-    <div class="min-w-0 flex-1">
-        <h3 class="font-semibold text-slate-800">
-            Usuarios y roles
-        </h3>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-semibold text-slate-800">
+                                    Usuarios y roles
+                                </h3>
 
-        <p class="mt-1 text-sm text-slate-500">
-            Administra usuarios, roles y accesos al sistema.
-        </p>
-    </div>
+                                <p class="mt-1 text-sm text-slate-500">
+                                    Administra usuarios, roles y accesos al sistema.
+                                </p>
+                            </div>
 
-    <svg class="h-5 w-5 text-slate-400 transition
+                            <svg class="h-5 w-5 text-slate-400 transition
                 group-hover:translate-x-1 group-hover:text-blue-700"
-         fill="none"
-         stroke="currentColor"
-         viewBox="0 0 24 24"
-         stroke-width="1.8">
-        <path stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
-    </svg>
-</a>
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                stroke-width="1.8">
+                                <path stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </a>
                     </div>
                 </div>
 
@@ -569,8 +563,7 @@
                                     class="h-full rounded-full bg-emerald-500"
                                     style="width: {{ $totalCitasHoy > 0
                                         ? ($citasConfirmadasHoy / $totalCitasHoy) * 100
-                                        : 0 }}%"
-                                ></div>
+                                        : 0 }}%"></div>
                             </div>
                         </div>
 
@@ -587,8 +580,7 @@
                                     class="h-full rounded-full bg-amber-500"
                                     style="width: {{ $totalCitasHoy > 0
                                         ? ($citasPendientesHoy / $totalCitasHoy) * 100
-                                        : 0 }}%"
-                                ></div>
+                                        : 0 }}%"></div>
                             </div>
                         </div>
 
@@ -620,42 +612,40 @@
                         </div>
 
                         <a href="{{ route('pacientes.index') }}"
-                           class="text-sm font-medium text-blue-600 hover:text-blue-700">
+                            class="text-sm font-medium text-blue-600 hover:text-blue-700">
                             Ver todos
                         </a>
                     </div>
 
                     <div class="divide-y divide-slate-100">
                         @forelse ($ultimosPacientes as $paciente)
-                            <div class="flex items-center gap-3 px-6 py-4">
-                                <img
-                                    src="{{ $paciente->fotoUrl() }}"
-                                    alt="{{ $paciente->nombre }}"
-                                    class="h-10 w-10 rounded-full border border-slate-200 object-cover"
-                                >
+                        <div class="flex items-center gap-3 px-6 py-4">
+                            <img
+                                src="{{ $paciente->fotoUrl() }}"
+                                alt="{{ $paciente->nombre }}"
+                                class="h-10 w-10 rounded-full border border-slate-200 object-cover">
 
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium text-slate-800">
-                                        {{ $paciente->nombre }}
-                                        {{ $paciente->apellido }}
-                                    </p>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-slate-800">
+                                    {{ $paciente->nombre }}
+                                    {{ $paciente->apellido }}
+                                </p>
 
-                                    <p class="text-xs text-slate-500">
-                                        {{ $paciente->created_at->diffForHumans() }}
-                                    </p>
-                                </div>
-
-                                <a
-                                    href="{{ route('pacientes.show', $paciente) }}"
-                                    class="text-sm text-blue-600 hover:text-blue-700"
-                                >
-                                    Ver
-                                </a>
+                                <p class="text-xs text-slate-500">
+                                    {{ $paciente->created_at->diffForHumans() }}
+                                </p>
                             </div>
+
+                            <a
+                                href="{{ route('pacientes.show', $paciente) }}"
+                                class="text-sm text-blue-600 hover:text-blue-700">
+                                Ver
+                            </a>
+                        </div>
                         @empty
-                            <div class="px-6 py-10 text-center text-sm text-slate-500">
-                                Todavía no hay pacientes registrados.
-                            </div>
+                        <div class="px-6 py-10 text-center text-sm text-slate-500">
+                            Todavía no hay pacientes registrados.
+                        </div>
                         @endforelse
                     </div>
                 </div>
@@ -673,48 +663,46 @@
                         </div>
 
                         <a href="{{ route('citas.index') }}"
-                           class="text-sm font-medium text-blue-600 hover:text-blue-700">
+                            class="text-sm font-medium text-blue-600 hover:text-blue-700">
                             Ver agenda
                         </a>
                     </div>
 
                     <div class="divide-y divide-slate-100">
                         @forelse ($proximasCitas as $cita)
-                            <div class="flex items-center gap-4 px-6 py-4">
-                                <div class="min-w-[64px] rounded-xl bg-slate-100 px-3 py-2 text-center">
-                                    <p class="text-xs font-medium uppercase text-slate-500">
-                                        {{ $cita->fecha->translatedFormat('d M') }}
-                                    </p>
-                                    <p class="mt-0.5 text-sm font-bold text-slate-800">
-                                        {{ Carbon\Carbon::parse($cita->hora)->format('H:i') }}
-                                    </p>
-                                </div>
+                        <div class="flex items-center gap-4 px-6 py-4">
+                            <div class="min-w-[64px] rounded-xl bg-slate-100 px-3 py-2 text-center">
+                                <p class="text-xs font-medium uppercase text-slate-500">
+                                    {{ $cita->fecha->translatedFormat('d M') }}
+                                </p>
+                                <p class="mt-0.5 text-sm font-bold text-slate-800">
+                                    {{ Carbon\Carbon::parse($cita->hora)->format('H:i') }}
+                                </p>
+                            </div>
 
-                                <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium text-slate-800">
-                                        {{ $cita->paciente?->nombre }}
-                                        {{ $cita->paciente?->apellido }}
-                                    </p>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-slate-800">
+                                    {{ $cita->paciente?->nombre }}
+                                    {{ $cita->paciente?->apellido }}
+                                </p>
 
-                                    <p class="truncate text-xs text-slate-500">
-                                        Dr. {{ $cita->medico?->nombre }}
-                                        {{ $cita->medico?->apellido_paterno }}
-                                    </p>
-                                </div>
+                                <p class="truncate text-xs text-slate-500">
+                                    Dr. {{ $cita->medico?->nombre }}
+                                    {{ $cita->medico?->apellido_paterno }}
+                                </p>
+                            </div>
 
-                                <span @class([
-                                    'rounded-full px-2.5 py-1 text-xs font-medium',
-                                    'bg-emerald-50 text-emerald-700' => $cita->estado === 'confirmada',
-                                    'bg-amber-50 text-amber-700' => $cita->estado === 'en_espera',
-                                    'bg-slate-100 text-slate-600' => !in_array($cita->estado, ['confirmada', 'en_espera']),
+                            <span @class([ 'rounded-full px-2.5 py-1 text-xs font-medium' , 'bg-emerald-50 text-emerald-700'=> $cita->estado === 'confirmada',
+                                'bg-amber-50 text-amber-700' => $cita->estado === 'en_espera',
+                                'bg-slate-100 text-slate-600' => !in_array($cita->estado, ['confirmada', 'en_espera']),
                                 ])>
-                                    {{ ucfirst(str_replace('_', ' ', $cita->estado)) }}
-                                </span>
-                            </div>
+                                {{ ucfirst(str_replace('_', ' ', $cita->estado)) }}
+                            </span>
+                        </div>
                         @empty
-                            <div class="px-6 py-10 text-center text-sm text-slate-500">
-                                No hay próximas citas programadas.
-                            </div>
+                        <div class="px-6 py-10 text-center text-sm text-slate-500">
+                            No hay próximas citas programadas.
+                        </div>
                         @endforelse
                     </div>
                 </div>
