@@ -37,18 +37,28 @@
     </summary>
 
     <div class="border-t border-slate-100">
-        @if (request()->user()->isAdmin())
-            <div class="flex justify-end px-5 pt-4">
-                <button
-                    type="button"
-                    onclick="abrirModalDatosGenerales()"
-                    class="rounded-lg px-2.5 py-1.5 text-xs
-                           font-semibold text-blue-600 transition
-                           hover:bg-blue-50 hover:text-blue-800">
-                    Editar
-                </button>
-            </div>
-        @endif
+       @if (request()->user()->isAdmin())
+    <div class="flex justify-end px-5 pt-4">
+        <button
+            type="button"
+            onclick="abrirModalDatosGenerales()"
+            class="rounded-lg px-2.5 py-1.5 text-xs
+                   font-semibold text-blue-600 transition
+                   hover:bg-blue-50 hover:text-blue-800">
+            Editar
+        </button>
+    </div>
+@elseif (request()->user()->isRecepcionista())
+    <div class="flex justify-end px-5 pt-4">
+        <a
+            href="{{ route('pacientes.edit', $pacientes) }}"
+            class="rounded-lg px-2.5 py-1.5 text-xs
+                   font-semibold text-blue-600 transition
+                   hover:bg-blue-50 hover:text-blue-800">
+            Editar
+        </a>
+    </div>
+@endif
 
         <dl
             class="grid grid-cols-1 gap-4 p-5
