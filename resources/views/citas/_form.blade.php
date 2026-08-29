@@ -1,585 +1,523 @@
 @if ($errors->any())
-            <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
-                <h3 class="font-semibold text-red-800">
-                    Revisa los siguientes campos:
-                </h3>
+<div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+    <h3 class="font-semibold text-red-800">
+        Revisa los siguientes campos:
+    </h3>
 
-                <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
-                    @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            @endif
+    <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
+        @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
 
-  <form
-                method="POST"
-                action="{{ route('citas.store') }}"
-                class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                @csrf
+<form
+    method="POST"
+    action="{{ route('citas.store') }}"
+    class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    @csrf
 
-                <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
 
-                    {{-- Paciente --}}
-                    {{-- Buscador de paciente --}}
-                    <div class="relative md:col-span-2">
-                        <label
-                            for="buscar_paciente"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Paciente
-                            <span class="text-red-500">*</span>
-                        </label>
+        {{-- Paciente --}}
+        {{-- Buscador de paciente --}}
+        <div class="relative md:col-span-2">
+            <label
+                for="buscar_paciente"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Paciente
+                <span class="text-red-500">*</span>
+            </label>
 
-                        {{-- Este es el dato que Laravel guardará --}}
-                        <input
-                            type="hidden"
-                            id="paciente_id"
-                            name="paciente_id"
-                            value="{{ old('paciente_id') }}">
+            {{-- Este es el dato que Laravel guardará --}}
+            <input
+                type="hidden"
+                id="paciente_id"
+                name="paciente_id"
+                value="{{ old('paciente_id') }}">
 
-                        <div class="relative">
-                            <input
-                                type="search"
-                                id="buscar_paciente"
-                                placeholder="Escribe el nombre o apellido del paciente..."
-                                autocomplete="off"
-                                class="block w-full rounded-xl border-gray-300 bg-white
+            <div class="relative">
+                <input
+                    type="search"
+                    id="buscar_paciente"
+                    placeholder="Escribe el nombre o apellido del paciente..."
+                    autocomplete="off"
+                    class="block w-full rounded-xl border-gray-300 bg-white
                    pr-11 text-gray-900 shadow-sm
                    focus:border-blue-500 focus:ring-blue-500">
 
-                            <div
-                                id="indicador_busqueda"
-                                class="pointer-events-none absolute inset-y-0 right-4
+                <div
+                    id="indicador_busqueda"
+                    class="pointer-events-none absolute inset-y-0 right-4
                    hidden items-center">
-                                <svg
-                                    class="h-5 w-5 animate-spin text-blue-600"
-                                    viewBox="0 0 24 24"
-                                    fill="none">
-                                    <circle
-                                        class="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        stroke-width="4"></circle>
+                    <svg
+                        class="h-5 w-5 animate-spin text-blue-600"
+                        viewBox="0 0 24 24"
+                        fill="none">
+                        <circle
+                            class="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            stroke-width="4"></circle>
 
-                                    <path
-                                        class="opacity-75"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                </svg>
-                            </div>
-                        </div>
+                        <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                </div>
+            </div>
 
-                        {{-- Resultados --}}
-                        <div
-                            id="resultados_pacientes"
-                            class="absolute z-30 mt-2 hidden max-h-72 w-full
+            {{-- Resultados --}}
+            <div
+                id="resultados_pacientes"
+                class="absolute z-30 mt-2 hidden max-h-72 w-full
                overflow-y-auto rounded-xl border border-gray-200
                bg-white shadow-xl"></div>
 
-                        {{-- Paciente seleccionado --}}
-                        <div
-                            id="paciente_seleccionado"
-                            class="mt-3 hidden items-center justify-between gap-4
+            {{-- Paciente seleccionado --}}
+            <div
+                id="paciente_seleccionado"
+                class="mt-3 hidden items-center justify-between gap-4
                rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
-                            <div>
-                                <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                                    Paciente seleccionado
-                                </p>
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
+                        Paciente seleccionado
+                    </p>
 
-                                <p
-                                    id="nombre_paciente_seleccionado"
-                                    class="mt-1 font-semibold text-gray-900"></p>
-                            </div>
+                    <p
+                        id="nombre_paciente_seleccionado"
+                        class="mt-1 font-semibold text-gray-900"></p>
+                </div>
 
-                            <button
-                                type="button"
-                                id="quitar_paciente"
-                                class="shrink-0 text-sm font-semibold text-red-600
+                <button
+                    type="button"
+                    id="quitar_paciente"
+                    class="shrink-0 text-sm font-semibold text-red-600
                    hover:text-red-700 hover:underline">
-                                Cambiar
-                            </button>
-                        </div>
+                    Cambiar
+                </button>
+            </div>
 
-                        <p
-                            id="mensaje_busqueda"
-                            class="mt-2 text-sm text-gray-500">
-                            Escribe al menos 2 caracteres para buscar.
-                        </p>
+            <p
+                id="mensaje_busqueda"
+                class="mt-2 text-sm text-gray-500">
+                Escribe al menos 2 caracteres para buscar.
+            </p>
 
-                        @error('paciente_id')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
+            @error('paciente_id')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
 
-                    {{-- Modalidad de consulta --}}
-                    <div class="md:col-span-2">
-                        <fieldset>
-                            <legend
-                                class="mb-3 text-sm font-semibold
-                   text-gray-700">
-                                Modalidad de la consulta
-                                <span class="text-red-500">*</span>
-                            </legend>
+        {{-- Tipo de atención --}}
+        <div class="md:col-span-2">
+            <fieldset>
+                <legend class="mb-3 text-sm font-semibold text-gray-700">
+                    Tipo de atención
+                    <span class="text-red-500">*</span>
+                </legend>
 
-                            <div class="grid gap-4 sm:grid-cols-2">
+                @php
+                $modalidades = [
+                'presencial' => [
+                'titulo' => 'Consultorio u oficina',
+                'descripcion' => 'Atención presencial dentro de las instalaciones.',
+                'icono' => '🏥',
+                ],
+                'telefonica' => [
+                'titulo' => 'Telefónica',
+                'descripcion' => 'Consulta realizada mediante llamada telefónica.',
+                'icono' => '📞',
+                ],
+                'videoconsulta' => [
+                'titulo' => 'Videollamada',
+                'descripcion' => 'Se generará automáticamente un enlace de Google Meet.',
+                'icono' => '💻',
+                ],
+                'fuera_instalaciones' => [
+                'titulo' => 'Fuera de las instalaciones',
+                'descripcion' => 'Atención presencial fuera del consultorio.',
+                'icono' => '📍',
+                ],
+                ];
+                @endphp
 
-                                {{-- Consulta presencial --}}
-                                <label
-                                    class="cursor-pointer rounded-2xl
-                       border border-gray-300 bg-white
-                       p-4 transition
-                       hover:border-[#0D3B7F]
-                       hover:bg-blue-50">
-                                    <div class="flex items-start gap-3">
-                                        <input
-                                            type="radio"
-                                            name="modalidad"
-                                            value="presencial"
-                                            class="mt-1 text-[#0D3B7F]
-                               focus:ring-[#0D3B7F]"
-                                            @checked(
-                                            old( 'modalidad' , 'presencial'
-                                            )==='presencial'
-                                            )>
-
-                                        <div>
-                                            <p
-                                                class="font-semibold
-                                   text-gray-900">
-                                                Consulta presencial
-                                            </p>
-
-                                            <p
-                                                class="mt-1 text-sm
-                                   text-gray-500">
-                                                Atención dentro de las
-                                                instalaciones.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </label>
-
-                                {{-- Videoconsulta --}}
-                                <label
-                                    class="cursor-pointer rounded-2xl
-                       border border-gray-300 bg-white
-                       p-4 transition
-                       hover:border-[#0D3B7F]
-                       hover:bg-blue-50">
-                                    <div class="flex items-start gap-3">
-                                        <input
-                                            type="radio"
-                                            name="modalidad"
-                                            value="videoconsulta"
-                                            class="mt-1 text-[#0D3B7F]
-                               focus:ring-[#0D3B7F]"
-                                            @checked(
-                                            old('modalidad')==='videoconsulta'
-                                            )>
-
-                                        <div>
-                                            <p
-                                                class="font-semibold
-                                   text-gray-900">
-                                                Videoconsulta
-                                            </p>
-
-                                            <p
-                                                class="mt-1 text-sm
-                                   text-gray-500">
-                                                Se generará automáticamente
-                                                un enlace de Google Meet.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-
-                            {{-- Tipo de atención --}}
-                            <div class="md:col-span-2">
-                                <fieldset>
-                                    <legend class="mb-3 text-sm font-semibold text-gray-700">
-                                        Tipo de atención
-                                        <span class="text-red-500">*</span>
-                                    </legend>
-
-                                    <div class="grid gap-4 sm:grid-cols-2">
-                                        @php
-                                        $modalidades = [
-                                        'presencial' => [
-                                        'titulo' => 'Consultorio u oficina',
-                                        'descripcion' =>
-                                        'Atención presencial dentro de las instalaciones.',
-                                        'icono' => '🏥',
-                                        ],
-
-                                        'telefonica' => [
-                                        'titulo' => 'Telefónica',
-                                        'descripcion' =>
-                                        'Consulta realizada mediante llamada telefónica.',
-                                        'icono' => '📞',
-                                        ],
-
-                                        'videoconsulta' => [
-                                        'titulo' => 'Videollamada',
-                                        'descripcion' =>
-                                        'Se generará automáticamente un enlace de Google Meet.',
-                                        'icono' => '💻',
-                                        ],
-
-                                        'fuera_instalaciones' => [
-                                        'titulo' => 'Fuera de las instalaciones',
-                                        'descripcion' =>
-                                        'Atención presencial fuera del consultorio.',
-                                        'icono' => '📍',
-                                        ],
-                                        ];
-                                        @endphp
-
-                                        @foreach ($modalidades as $valor => $modalidad)
-                                        <label
-                                            class="cursor-pointer rounded-2xl border
+                <div class="grid gap-4 sm:grid-cols-2">
+                    @foreach ($modalidades as $valor => $modalidad)
+                    <label
+                        class="cursor-pointer rounded-2xl border
                            border-gray-300 bg-white p-4 transition
-                           hover:border-[#0D3B7F]
-                           hover:bg-blue-50">
-                                            <div class="flex items-start gap-3">
-                                                <input
-                                                    type="radio"
-                                                    name="modalidad"
-                                                    value="{{ $valor }}"
-                                                    class="mt-1 text-[#0D3B7F]
-                                   focus:ring-[#0D3B7F]"
-                                                    @checked(
-                                                    old( 'modalidad' , 'presencial'
-                                                    )===$valor
-                                                    )>
+                           hover:border-[#0D3B7F] hover:bg-blue-50">
+                        <div class="flex items-start gap-3">
+                            <input
+                                type="radio"
+                                name="modalidad"
+                                value="{{ $valor }}"
+                                required
+                                class="mt-1 text-[#0D3B7F] focus:ring-[#0D3B7F]"
+                                @checked(old('modalidad', 'presencial' )===$valor)>
 
-                                                <div class="min-w-0">
-                                                    <div class="flex items-center gap-2">
-                                                        <span>{{ $modalidad['icono'] }}</span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span aria-hidden="true">
+                                        {{ $modalidad['icono'] }}
+                                    </span>
 
-                                                        <p class="font-semibold text-gray-900">
-                                                            {{ $modalidad['titulo'] }}
-                                                        </p>
-                                                    </div>
+                                    <span class="font-semibold text-gray-900">
+                                        {{ $modalidad['titulo'] }}
+                                    </span>
+                                </div>
 
-                                                    <p class="mt-1 text-sm text-gray-500">
-                                                        {{ $modalidad['descripcion'] }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </label>
-                                        @endforeach
-                                    </div>
-
-                                    @error('modalidad')
-                                    <p class="mt-2 text-sm text-red-600">
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </fieldset>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    {{ $modalidad['descripcion'] }}
+                                </p>
                             </div>
-                        </fieldset>
-                    </div>
+                        </div>
+                    </label>
+                    @endforeach
+                </div>
 
-                    {{-- Médico --}}
-                    <div class="md:col-span-2">
-                        <label
-                            for="medico_id"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Médico
-                            <span class="text-red-500">*</span>
-                        </label>
+                @error('modalidad')
+                <p class="mt-2 text-sm text-red-600">
+                    {{ $message }}
+                </p>
+                @enderror
+            </fieldset>
+        </div>
 
-                        <select
-                            id="medico_id"
-                            name="medico_id"
-                            required
-                            class="block w-full rounded-xl border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">
-                                Selecciona un médico
-                            </option>
+        {{-- Dirección para atención fuera de las instalaciones --}}
+        <div
+            id="contenedor-direccion-cita"
+            class="md:col-span-2 {{ old('modalidad', 'presencial') === 'fuera_instalaciones' ? '' : 'hidden' }}">
+            <label
+                for="direccion_cita"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Dirección de la cita
+                <span class="text-red-500">*</span>
+            </label>
 
-                            @foreach ($medicos as $medico)
-                            <option
-                                value="{{ $medico->id }}"
-                                @selected(old('medico_id')==$medico->id)
-                                >
-                                {{ $medico->nombre }}
+            <textarea
+                id="direccion_cita"
+                name="direccion_cita"
+                rows="3"
+                maxlength="500"
+                placeholder="Calle, número, colonia, municipio, estado y referencias"
+                class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm
+               focus:border-blue-500 focus:ring-blue-500
+               @error('direccion_cita') border-red-400 @enderror"
+                @required(old('modalidad', 'presencial' )==='fuera_instalaciones' )>{{ old('direccion_cita') }}</textarea>
 
-                                @if (!empty($medico->apellido_paterno))
-                                {{ $medico->apellido_paterno }}
-                                @endif
+            <p class="mt-2 text-xs text-gray-500">
+                Incluye referencias suficientes para que el médico pueda llegar al lugar.
+            </p>
 
-                                @if (!empty($medico->especialidad))
-                                — {{ $medico->especialidad }}
-                                @endif
-                            </option>
-                            @endforeach
-                        </select>
+            @error('direccion_cita')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
 
-                        @error('medico_id')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
+        {{-- Médico --}}
+        <div class="md:col-span-2">
+            <label
+                for="medico_id"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Médico
+                <span class="text-red-500">*</span>
+            </label>
 
-                    {{-- Fecha --}}
-                    <div>
-                        <label
-                            for="fecha"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Fecha
-                            <span class="text-red-500">*</span>
-                        </label>
+            <select
+                id="medico_id"
+                name="medico_id"
+                required
+                class="block w-full rounded-xl border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="">
+                    Selecciona un médico
+                </option>
 
-                        <input
-                            id="fecha"
-                            name="fecha"
-                            type="date"
-                            min="{{ now()->format('Y-m-d') }}"
-                            value="{{ old('fecha', now()->format('Y-m-d')) }}"
-                            required
-                            class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                @foreach ($medicos as $medico)
+                <option
+                    value="{{ $medico->id }}"
+                    @selected(old('medico_id')==$medico->id)
+                    >
+                    {{ $medico->nombre }}
 
-                        @error('fecha')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
+                    @if (!empty($medico->apellido_paterno))
+                    {{ $medico->apellido_paterno }}
+                    @endif
 
-                    {{-- Hora --}}
-                    <div>
-                        <label
-                            for="hora"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Hora
-                            <span class="text-red-500">*</span>
-                        </label>
+                    @if (!empty($medico->especialidad))
+                    — {{ $medico->especialidad }}
+                    @endif
+                </option>
+                @endforeach
+            </select>
 
-                        <select
-                            id="hora"
-                            name="hora"
-                            required
-                            disabled
-                            data-valor-anterior="{{ old('hora') }}"
-                            class="block w-full rounded-xl border-gray-300 bg-white
+            @error('medico_id')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
+
+        {{-- Fecha --}}
+        <div>
+            <label
+                for="fecha"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Fecha
+                <span class="text-red-500">*</span>
+            </label>
+
+            <input
+                id="fecha"
+                name="fecha"
+                type="date"
+                min="{{ now()->format('Y-m-d') }}"
+                value="{{ old('fecha', now()->format('Y-m-d')) }}"
+                required
+                class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+
+            @error('fecha')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
+
+        {{-- Hora --}}
+        <div>
+            <label
+                for="hora"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Hora
+                <span class="text-red-500">*</span>
+            </label>
+
+            <select
+                id="hora"
+                name="hora"
+                required
+                disabled
+                data-valor-anterior="{{ old('hora') }}"
+                class="block w-full rounded-xl border-gray-300 bg-white
                             text-gray-900 shadow-sm
                             focus:border-blue-500 focus:ring-blue-500
                               disabled:cursor-not-allowed disabled:bg-gray-100">
-                            <option value="">
-                                Selecciona primero médico y fecha
-                            </option>
-                        </select>
+                <option value="">
+                    Selecciona primero médico y fecha
+                </option>
+            </select>
 
-                        <p id="mensaje_horarios" class="mt-2 text-sm text-gray-500">
-                            El sistema mostrará los bloques disponibles de 15 minutos.
-                        </p>
+            <p id="mensaje_horarios" class="mt-2 text-sm text-gray-500">
+                El sistema mostrará los bloques disponibles de 15 minutos.
+            </p>
 
-                        @error('hora')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
+            @error('hora')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
 
-                    {{-- Hora de finalización --}}
-                    {{-- Hora de finalización --}}
-                    <div>
-                        <label
-                            for="duracion_minutos"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Finaliza la cita
-                            <span class="text-red-500">*</span>
-                        </label>
+        {{-- Hora de finalización --}}
+        {{-- Hora de finalización --}}
+        <div>
+            <label
+                for="duracion_minutos"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Finaliza la cita
+                <span class="text-red-500">*</span>
+            </label>
 
-                        <select
-                            id="duracion_minutos"
-                            name="duracion_minutos"
-                            required
-                            disabled
-                            data-valor-anterior="{{ old(
+            <select
+                id="duracion_minutos"
+                name="duracion_minutos"
+                required
+                disabled
+                data-valor-anterior="{{ old(
             'duracion_minutos',
             15
         ) }}"
-                            class="block w-full rounded-xl
+                class="block w-full rounded-xl
                border-gray-300 bg-white
                text-gray-900 shadow-sm
                focus:border-blue-500
                focus:ring-blue-500
                disabled:cursor-not-allowed
                disabled:bg-gray-100">
-                            <option value="">
-                                Selecciona primero la hora de inicio
-                            </option>
-                        </select>
+                <option value="">
+                    Selecciona primero la hora de inicio
+                </option>
+            </select>
 
-                        <p
-                            id="mensaje_duracion"
-                            class="mt-2 text-sm text-gray-500">
-                            La duración puede ser de 15 minutos hasta 2 horas.
-                        </p>
+            <p
+                id="mensaje_duracion"
+                class="mt-2 text-sm text-gray-500">
+                La duración puede ser de 15 minutos hasta 2 horas.
+            </p>
 
-                        @error('duracion_minutos')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
+            @error('duracion_minutos')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
 
-                    {{-- Motivo de la cita --}}
-                    <div class="md:col-span-2">
-                        <fieldset>
-                            <legend class="mb-3 text-sm font-semibold text-gray-700">
-                                Motivo de la cita
-                                <span class="text-red-500">*</span>
-                            </legend>
+        {{-- Motivo de la cita --}}
+        <div class="md:col-span-2">
+            <fieldset>
+                <legend class="mb-3 text-sm font-semibold text-gray-700">
+                    Motivo de la cita
+                    <span class="text-red-500">*</span>
+                </legend>
 
-                            @php
-                            $motivosCita = [
-                            'consulta_inicial' => [
-                            'titulo' => 'Consulta inicial',
-                            'descripcion' =>
-                            'Primera valoración del paciente.',
-                            ],
+                @php
+                $motivosCita = [
+                'consulta_inicial' => [
+                'titulo' => 'Consulta inicial',
+                'descripcion' =>
+                'Primera valoración del paciente.',
+                ],
 
-                            'consulta_subsecuente' => [
-                            'titulo' => 'Consulta subsecuente',
-                            'descripcion' =>
-                            'Seguimiento de una consulta anterior.',
-                            ],
+                'consulta_subsecuente' => [
+                'titulo' => 'Consulta subsecuente',
+                'descripcion' =>
+                'Seguimiento de una consulta anterior.',
+                ],
 
-                            'consulta_emergencia' => [
-                            'titulo' => 'Consulta de emergencia',
-                            'descripcion' =>
-                            'Atención prioritaria o urgente.',
-                            ],
-                            ];
-                            @endphp
+                'consulta_emergencia' => [
+                'titulo' => 'Consulta de emergencia',
+                'descripcion' =>
+                'Atención prioritaria o urgente.',
+                ],
+                ];
+                @endphp
 
-                            <div class="grid gap-4 sm:grid-cols-3">
-                                @foreach ($motivosCita as $valor => $motivoCita)
-                                <label
-                                    class="cursor-pointer rounded-2xl border
+                <div class="grid gap-4 sm:grid-cols-3">
+                    @foreach ($motivosCita as $valor => $motivoCita)
+                    <label
+                        class="cursor-pointer rounded-2xl border
                            border-gray-300 bg-white p-4 transition
                            hover:border-[#0D3B7F]
                            hover:bg-blue-50">
-                                    <div class="flex items-start gap-3">
-                                        <input
-                                            type="radio"
-                                            name="motivo"
-                                            value="{{ $valor }}"
-                                            class="mt-1 text-[#0D3B7F]
+                        <div class="flex items-start gap-3">
+                            <input
+                                type="radio"
+                                name="motivo"
+                                value="{{ $valor }}"
+                                class="mt-1 text-[#0D3B7F]
                                    focus:ring-[#0D3B7F]"
-                                            @checked(
-                                            old('motivo')===$valor
-                                            )>
+                                @checked(
+                                old('motivo')===$valor
+                                )>
 
-                                        <div>
-                                            <p class="font-semibold text-gray-900">
-                                                {{ $motivoCita['titulo'] }}
-                                            </p>
+                            <div>
+                                <p class="font-semibold text-gray-900">
+                                    {{ $motivoCita['titulo'] }}
+                                </p>
 
-                                            <p class="mt-1 text-sm text-gray-500">
-                                                {{ $motivoCita['descripcion'] }}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </label>
-                                @endforeach
+                                <p class="mt-1 text-sm text-gray-500">
+                                    {{ $motivoCita['descripcion'] }}
+                                </p>
                             </div>
-
-                            @error('motivo')
-                            <p class="mt-2 text-sm text-red-600">
-                                {{ $message }}
-                            </p>
-                            @enderror
-                        </fieldset>
-                    </div>
-
-                    {{-- Estado --}}
-                    <div class="md:col-span-2">
-                        <label
-                            for="estado"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Estado inicial
-                            <span class="text-red-500">*</span>
-                        </label>
-
-                        <select
-                            id="estado"
-                            name="estado"
-                            required
-                            class="block w-full rounded-xl border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option
-                                value="programada"
-                                @selected(old('estado', 'programada' )==='programada' )>
-                                Programada
-                            </option>
-
-                            <option
-                                value="confirmada"
-                                @selected(old('estado')==='confirmada' )>
-                                Confirmada
-                            </option>
-                        </select>
-
-                        @error('estado')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
-
-                    {{-- Notas --}}
-                    <div class="md:col-span-2">
-                        <label
-                            for="notas"
-                            class="mb-2 block text-sm font-semibold text-gray-700">
-                            Notas adicionales
-                        </label>
-
-                        <textarea
-                            id="notas"
-                            name="notas"
-                            rows="4"
-                            maxlength="2000"
-                            placeholder="Información adicional sobre la cita..."
-                            class="block w-full resize-none rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notas') }}</textarea>
-
-                        @error('notas')
-                        <p class="mt-2 text-sm text-red-600">
-                            {{ $message }}
-                        </p>
-                        @enderror
-                    </div>
-
+                        </div>
+                    </label>
+                    @endforeach
                 </div>
 
-                <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
+                @error('motivo')
+                <p class="mt-2 text-sm text-red-600">
+                    {{ $message }}
+                </p>
+                @enderror
+            </fieldset>
+        </div>
 
-                    <a
-                        href="{{ route('dashboard') }}"
-                        class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
-                        Cancelar
-                    </a>
+        {{-- Estado --}}
+        <div class="md:col-span-2">
+            <label
+                for="estado"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Estado inicial
+                <span class="text-red-500">*</span>
+            </label>
 
-                    <button
-                        type="submit"
-                        class="inline-flex items-center justify-center rounded-xl bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#082a5d] focus:outline-none focus:ring-2 focus:ring-[#0D3B7F] focus:ring-offset-2">
-                        Guardar cita
-                    </button>
+            <select
+                id="estado"
+                name="estado"
+                required
+                class="block w-full rounded-xl border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option
+                    value="programada"
+                    @selected(old('estado', 'programada' )==='programada' )>
+                    Programada
+                </option>
 
-                </div>
-            </form>
+                <option
+                    value="confirmada"
+                    @selected(old('estado')==='confirmada' )>
+                    Confirmada
+                </option>
+            </select>
 
-            <script>
+            @error('estado')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
+
+        {{-- Notas --}}
+        <div class="md:col-span-2">
+            <label
+                for="notas"
+                class="mb-2 block text-sm font-semibold text-gray-700">
+                Notas adicionales
+            </label>
+
+            <textarea
+                id="notas"
+                name="notas"
+                rows="4"
+                maxlength="2000"
+                placeholder="Información adicional sobre la cita..."
+                class="block w-full resize-none rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notas') }}</textarea>
+
+            @error('notas')
+            <p class="mt-2 text-sm text-red-600">
+                {{ $message }}
+            </p>
+            @enderror
+        </div>
+
+    </div>
+
+    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
+
+        <a
+            href="{{ route('dashboard') }}"
+            class="inline-flex items-center justify-center rounded-xl border border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
+            Cancelar
+        </a>
+
+        <button
+            type="submit"
+            class="inline-flex items-center justify-center rounded-xl bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#082a5d] focus:outline-none focus:ring-2 focus:ring-[#0D3B7F] focus:ring-offset-2">
+            Guardar cita
+        </button>
+
+    </div>
+</form>
+
+<script>
     document.addEventListener('DOMContentLoaded', () => {
         const buscador = document.getElementById('buscar_paciente');
         const pacienteId = document.getElementById('paciente_id');
@@ -599,18 +537,61 @@
                 'duracion_minutos'
             );
 
+        const modalidades = document.querySelectorAll(
+            'input[name="modalidad"]'
+        );
+
+        const contenedorDireccion = document.getElementById(
+            'contenedor-direccion-cita'
+        );
+
+        const direccionCita = document.getElementById(
+            'direccion_cita'
+        );
+
         const mensajeDuracion =
             document.getElementById(
                 'mensaje_duracion'
             );
 
+        const mensajeHorarios =
+            document.getElementById(
+                'mensaje_horarios'
+            );
+
         let bloquesHorarios = [];
-        const mensajeHorarios = document.getElementById('mensaje_horarios');
-
         let solicitudHorarios;
-
         let temporizador;
         let solicitudActual;
+
+        function actualizarCampoDireccion() {
+            const modalidadSeleccionada = document.querySelector(
+                'input[name="modalidad"]:checked'
+            )?.value;
+
+            const requiereDireccion =
+                modalidadSeleccionada === 'fuera_instalaciones';
+
+            contenedorDireccion.classList.toggle(
+                'hidden',
+                !requiereDireccion
+            );
+
+            direccionCita.required = requiereDireccion;
+
+            if (!requiereDireccion) {
+                direccionCita.value = '';
+            }
+        }
+
+        modalidades.forEach((modalidad) => {
+            modalidad.addEventListener(
+                'change',
+                actualizarCampoDireccion
+            );
+        });
+
+        actualizarCampoDireccion();
 
         function mostrarMensaje(texto) {
             resultados.innerHTML = '';
@@ -939,7 +920,7 @@
         async function cargarHorarios() {
             if (!medico.value || !fecha.value) {
                 hora.disabled = true;
-            
+
                 hora.innerHTML =
                     '<option value="">Selecciona primero médico y fecha</option>';
 
@@ -1036,6 +1017,9 @@
                 mensajeHorarios.textContent = opcionSeleccionada ?
                     `Próximo espacio disponible: ${opcionSeleccionada}.` :
                     'Selecciona uno de los horarios disponibles.';
+
+                hora.dataset.valorAnterior = hora.value;
+                generarOpcionesDuracion();
             } catch (error) {
                 if (error.name === 'AbortError') {
                     return;
@@ -1070,8 +1054,10 @@
             }
         );
 
-        medico.addEventListener('change', () => {
-            hora.dataset.valorAnterior = '';
+        medico.addEventListener('change', (event) => {
+            hora.dataset.valorAnterior =
+                event.detail?.horaSeleccionada || '';
+
             cargarHorarios();
         });
 
@@ -1081,7 +1067,7 @@
         });
 
         cargarHorarios();
-        
+
         generarOpcionesDuracion();
 
     });

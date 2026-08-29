@@ -907,11 +907,6 @@
                     'fecha'
                 );
 
-            const horaFormulario =
-                document.getElementById(
-                    'hora'
-                );
-
             const duracionFormulario =
                 document.getElementById(
                     'duracion_minutos'
@@ -999,28 +994,24 @@
                 fechaFormulario.value =
                     fechaSeleccionada;
 
+                duracionFormulario.dataset.valorAnterior =
+                    '15';
+
                 /*
-                 * Al disparar change, el script reutilizable
-                 * consulta los horarios disponibles.
+                 * El formulario reutilizable recibe la hora exacta
+                 * pulsada en la cuadrícula y la conserva mientras
+                 * reconstruye el selector de horarios.
                  */
                 medicoFormulario.dispatchEvent(
-                    new Event(
+                    new CustomEvent(
                         'change', {
                             bubbles: true,
+                            detail: {
+                                horaSeleccionada,
+                            },
                         }
                     )
                 );
-
-                /*
-                 * El listener del formulario limpia primero
-                 * el valor anterior. Por eso asignamos la hora
-                 * después de disparar el evento.
-                 */
-                horaFormulario.dataset.valorAnterior =
-                    horaSeleccionada;
-
-                duracionFormulario.dataset.valorAnterior =
-                    '15';
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');

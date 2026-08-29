@@ -279,6 +279,40 @@
                         </fieldset>
                     </div>
 
+                    {{-- Dirección para atención fuera de las instalaciones --}}
+                    <div
+                        id="contenedor-direccion-cita"
+                        class="{{ old('modalidad', $cita->modalidad) === 'fuera_instalaciones' ? '' : 'hidden' }}">
+                        <label
+                            for="direccion_cita"
+                            class="mb-2 block text-sm font-semibold text-gray-700">
+                            Dirección de la cita
+                            <span class="text-red-500">*</span>
+                        </label>
+
+                        <textarea
+                            id="direccion_cita"
+                            name="direccion_cita"
+                            rows="3"
+                            maxlength="500"
+                            placeholder="Calle, número, colonia, municipio, estado y referencias"
+                            class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm
+               focus:border-[#0D3B7F] focus:ring-[#0D3B7F]
+               @error('direccion_cita') border-red-400 @enderror"
+                            @required(old('modalidad', $cita->modalidad) === 'fuera_instalaciones')
+    >{{ old('direccion_cita', $cita->direccion_cita) }}</textarea>
+
+                        <p class="mt-2 text-xs text-gray-500">
+                            Incluye referencias suficientes para que el médico pueda llegar al lugar.
+                        </p>
+
+                        @error('direccion_cita')
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
+                        @enderror
+                    </div>
+
                     {{-- Fecha, hora y estado --}}
                     <div class="grid gap-6 md:grid-cols-3">
 
@@ -653,464 +687,500 @@
         </div>
     </div>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const medico =
-            document.getElementById('medico_id');
+        document.addEventListener('DOMContentLoaded', () => {
+            const medico =
+                document.getElementById('medico_id');
 
-        const fecha =
-            document.getElementById('fecha');
+            const fecha =
+                document.getElementById('fecha');
 
-        const hora =
-            document.getElementById('hora');
+            const hora =
+                document.getElementById('hora');
 
-        const duracion =
-            document.getElementById(
-                'duracion_minutos'
+            const duracion =
+                document.getElementById(
+                    'duracion_minutos'
+                );
+
+            const modalidades = document.querySelectorAll(
+                'input[name="modalidad"]'
             );
 
-        const mensajeHorarios =
-            document.getElementById(
-                'mensaje_horarios'
+            const contenedorDireccion = document.getElementById(
+                'contenedor-direccion-cita'
             );
 
-        const mensajeDuracion =
-            document.getElementById(
-                'mensaje_duracion'
+            const direccionCita = document.getElementById(
+                'direccion_cita'
             );
 
-        let bloquesHorarios = [];
-        let solicitudHorarios;
+            const mensajeHorarios =
+                document.getElementById(
+                    'mensaje_horarios'
+                );
 
-        /**
-         * Calcula y formatea la hora final.
-         */
-        function formatearHoraFinal(
-            horaInicio,
-            duracionMinutos
-        ) {
-            const [horas, minutos] =
+            const mensajeDuracion =
+                document.getElementById(
+                    'mensaje_duracion'
+                );
+
+            let bloquesHorarios = [];
+            let solicitudHorarios;
+
+            function actualizarCampoDireccion() {
+                const modalidadSeleccionada = document.querySelector(
+                    'input[name="modalidad"]:checked'
+                )?.value;
+
+                const requiereDireccion =
+                    modalidadSeleccionada === 'fuera_instalaciones';
+
+                contenedorDireccion.classList.toggle(
+                    'hidden',
+                    !requiereDireccion
+                );
+
+                direccionCita.required = requiereDireccion;
+
+                if (!requiereDireccion) {
+                    direccionCita.value = '';
+                }
+            }
+
+            modalidades.forEach((modalidad) => {
+                modalidad.addEventListener(
+                    'change',
+                    actualizarCampoDireccion
+                );
+            });
+
+            actualizarCampoDireccion();
+
+            /**
+             * Calcula y formatea la hora final.
+             */
+            function formatearHoraFinal(
+                horaInicio,
+                duracionMinutos
+            ) {
+                const [horas, minutos] =
                 horaInicio
                     .split(':')
                     .map(Number);
 
-            const fechaHora = new Date();
+                const fechaHora = new Date();
 
-            fechaHora.setHours(
-                horas,
-                minutos + duracionMinutos,
-                0,
-                0
-            );
-
-            return fechaHora.toLocaleTimeString(
-                'es-MX',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true,
-                }
-            );
-        }
-
-        /**
-         * Genera las duraciones que caben antes
-         * del siguiente bloque ocupado.
-         */
-        function generarOpcionesDuracion() {
-            duracion.innerHTML = '';
-
-            if (
-                !hora.value
-                || bloquesHorarios.length === 0
-            ) {
-                duracion.disabled = true;
-
-                duracion.innerHTML =
-                    '<option value="">'
-                    + 'Selecciona primero la hora de inicio'
-                    + '</option>';
-
-                mensajeDuracion.textContent =
-                    'La duración puede ser de '
-                    + '15 minutos hasta 2 horas.';
-
-                return;
-            }
-
-            const indiceInicio =
-                bloquesHorarios.findIndex(
-                    bloque =>
-                        bloque.hora === hora.value
+                fechaHora.setHours(
+                    horas,
+                    minutos + duracionMinutos,
+                    0,
+                    0
                 );
 
-            if (indiceInicio === -1) {
-                duracion.disabled = true;
-
-                duracion.innerHTML =
-                    '<option value="">'
-                    + 'Horario de inicio no disponible'
-                    + '</option>';
-
-                return;
-            }
-
-            const valorAnterior =
-                Number(
-                    duracion.dataset.valorAnterior
-                    || 15
+                return fechaHora.toLocaleTimeString(
+                    'es-MX', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                    }
                 );
-
-            const duracionesPermitidas = [
-                15,
-                30,
-                45,
-                60,
-                75,
-                90,
-                105,
-                120,
-            ];
-
-            let primeraOpcion = null;
-
-            duracionesPermitidas.forEach(
-                duracionMinutos => {
-                    const bloquesNecesarios =
-                        duracionMinutos / 15;
-
-                    const bloquesRequeridos =
-                        bloquesHorarios.slice(
-                            indiceInicio,
-                            indiceInicio
-                                + bloquesNecesarios
-                        );
-
-                    const estaDisponible =
-                        bloquesRequeridos.length
-                            === bloquesNecesarios
-                        && bloquesRequeridos.every(
-                            bloque =>
-                                bloque.disponible
-                        );
-
-                    if (!estaDisponible) {
-                        return;
-                    }
-
-                    const opcion =
-                        document.createElement(
-                            'option'
-                        );
-
-                    opcion.value =
-                        String(duracionMinutos);
-
-                    const horaFinal =
-                        formatearHoraFinal(
-                            hora.value,
-                            duracionMinutos
-                        );
-
-                    opcion.textContent =
-                        `${horaFinal} — `
-                        + `${duracionMinutos} minutos`;
-
-                    if (
-                        duracionMinutos
-                        === valorAnterior
-                    ) {
-                        opcion.selected = true;
-                    }
-
-                    primeraOpcion ??= opcion;
-
-                    duracion.appendChild(opcion);
-                }
-            );
-
-            if (duracion.options.length === 0) {
-                duracion.disabled = true;
-
-                duracion.innerHTML =
-                    '<option value="">'
-                    + 'No hay una duración disponible'
-                    + '</option>';
-
-                mensajeDuracion.textContent =
-                    'El siguiente horario se encuentra ocupado.';
-
-                return;
             }
 
-            /*
-             * Si la duración guardada dejó de estar
-             * disponible, seleccionamos la primera.
+            /**
+             * Genera las duraciones que caben antes
+             * del siguiente bloque ocupado.
              */
-            if (
-                !duracion.value
-                && primeraOpcion
-            ) {
-                primeraOpcion.selected = true;
-            }
-
-            duracion.disabled = false;
-
-            mensajeDuracion.textContent =
-                'La cita terminará a las '
-                + formatearHoraFinal(
-                    hora.value,
-                    Number(duracion.value)
-                )
-                + '.';
-        }
-
-        /**
-         * Consulta los bloques disponibles.
-         */
-        async function cargarHorarios() {
-            if (
-                !medico.value
-                || !fecha.value
-            ) {
-                hora.disabled = true;
-
-                hora.innerHTML =
-                    '<option value="">'
-                    + 'Selecciona primero médico y fecha'
-                    + '</option>';
-
-                mensajeHorarios.textContent =
-                    'Selecciona un médico y una fecha.';
-
-                bloquesHorarios = [];
-
-                generarOpcionesDuracion();
-
-                return;
-            }
-
-            solicitudHorarios?.abort();
-
-            solicitudHorarios =
-                new AbortController();
-
-            hora.disabled = true;
-
-            hora.innerHTML =
-                '<option value="">'
-                + 'Consultando horarios...'
-                + '</option>';
-
-            mensajeHorarios.textContent =
-                'Consultando la agenda del médico...';
-
-            try {
-                const url = new URL(
-                    "{{ route('citas.horarios-disponibles', [], false) }}",
-                    window.location.origin
-                );
-
-                url.searchParams.set(
-                    'medico_id',
-                    medico.value
-                );
-
-                url.searchParams.set(
-                    'fecha',
-                    fecha.value
-                );
-
-                /*
-                 * Ignoramos la propia cita para que
-                 * conserve disponibles sus bloques.
-                 */
-                url.searchParams.set(
-                    'ignorar_cita',
-                    "{{ $cita->id }}"
-                );
-
-                const respuesta =
-                    await fetch(
-                        url,
-                        {
-                            headers: {
-                                Accept:
-                                    'application/json',
-
-                                'X-Requested-With':
-                                    'XMLHttpRequest',
-                            },
-
-                            signal:
-                                solicitudHorarios.signal,
-                        }
-                    );
-
-                if (!respuesta.ok) {
-                    throw new Error(
-                        'No se pudieron consultar '
-                        + 'los horarios.'
-                    );
-                }
-
-                const datos =
-                    await respuesta.json();
-
-                bloquesHorarios =
-                    datos.horarios;
-
-                const horariosDisponibles =
-                    bloquesHorarios.filter(
-                        bloque =>
-                            bloque.disponible
-                    );
-
-                hora.innerHTML = '';
+            function generarOpcionesDuracion() {
+                duracion.innerHTML = '';
 
                 if (
-                    horariosDisponibles.length === 0
+                    !hora.value ||
+                    bloquesHorarios.length === 0
                 ) {
-                    hora.innerHTML =
-                        '<option value="">'
-                        + 'No hay horarios disponibles'
-                        + '</option>';
+                    duracion.disabled = true;
 
-                    mensajeHorarios.textContent =
-                        'La agenda del médico está '
-                        + 'llena para esta fecha.';
+                    duracion.innerHTML =
+                        '<option value="">' +
+                        'Selecciona primero la hora de inicio' +
+                        '</option>';
 
-                    generarOpcionesDuracion();
+                    mensajeDuracion.textContent =
+                        'La duración puede ser de ' +
+                        '15 minutos hasta 2 horas.';
+
+                    return;
+                }
+
+                const indiceInicio =
+                    bloquesHorarios.findIndex(
+                        bloque =>
+                        bloque.hora === hora.value
+                    );
+
+                if (indiceInicio === -1) {
+                    duracion.disabled = true;
+
+                    duracion.innerHTML =
+                        '<option value="">' +
+                        'Horario de inicio no disponible' +
+                        '</option>';
 
                     return;
                 }
 
                 const valorAnterior =
-                    hora.dataset.valorAnterior;
-
-                const opcionInicial =
-                    document.createElement(
-                        'option'
+                    Number(
+                        duracion.dataset.valorAnterior ||
+                        15
                     );
 
-                opcionInicial.value = '';
+                const duracionesPermitidas = [
+                    15,
+                    30,
+                    45,
+                    60,
+                    75,
+                    90,
+                    105,
+                    120,
+                ];
 
-                opcionInicial.textContent =
-                    'Selecciona un horario';
+                let primeraOpcion = null;
 
-                hora.appendChild(
-                    opcionInicial
-                );
+                duracionesPermitidas.forEach(
+                    duracionMinutos => {
+                        const bloquesNecesarios =
+                            duracionMinutos / 15;
 
-                horariosDisponibles.forEach(
-                    bloque => {
+                        const bloquesRequeridos =
+                            bloquesHorarios.slice(
+                                indiceInicio,
+                                indiceInicio +
+                                bloquesNecesarios
+                            );
+
+                        const estaDisponible =
+                            bloquesRequeridos.length ===
+                            bloquesNecesarios &&
+                            bloquesRequeridos.every(
+                                bloque =>
+                                bloque.disponible
+                            );
+
+                        if (!estaDisponible) {
+                            return;
+                        }
+
                         const opcion =
                             document.createElement(
                                 'option'
                             );
 
                         opcion.value =
-                            bloque.hora;
+                            String(duracionMinutos);
+
+                        const horaFinal =
+                            formatearHoraFinal(
+                                hora.value,
+                                duracionMinutos
+                            );
 
                         opcion.textContent =
-                            bloque.texto;
+                            `${horaFinal} — ` +
+                            `${duracionMinutos} minutos`;
 
                         if (
-                            valorAnterior ===
-                            bloque.hora
+                            duracionMinutos ===
+                            valorAnterior
                         ) {
                             opcion.selected = true;
                         }
 
-                        hora.appendChild(
-                            opcion
-                        );
+                        primeraOpcion ??= opcion;
+
+                        duracion.appendChild(opcion);
                     }
                 );
 
-                hora.disabled = false;
+                if (duracion.options.length === 0) {
+                    duracion.disabled = true;
 
-                const opcionSeleccionada =
-                    hora.options[
-                        hora.selectedIndex
-                    ]?.text;
+                    duracion.innerHTML =
+                        '<option value="">' +
+                        'No hay una duración disponible' +
+                        '</option>';
 
-                mensajeHorarios.textContent =
-                    opcionSeleccionada
-                        ? 'Horario seleccionado: '
-                            + opcionSeleccionada
-                            + '.'
-                        : 'Selecciona uno de los '
-                            + 'horarios disponibles.';
+                    mensajeDuracion.textContent =
+                        'El siguiente horario se encuentra ocupado.';
 
-                generarOpcionesDuracion();
-            } catch (error) {
-                if (
-                    error.name === 'AbortError'
-                ) {
                     return;
                 }
 
-                bloquesHorarios = [];
+                /*
+                 * Si la duración guardada dejó de estar
+                 * disponible, seleccionamos la primera.
+                 */
+                if (
+                    !duracion.value &&
+                    primeraOpcion
+                ) {
+                    primeraOpcion.selected = true;
+                }
+
+                duracion.disabled = false;
+
+                mensajeDuracion.textContent =
+                    'La cita terminará a las ' +
+                    formatearHoraFinal(
+                        hora.value,
+                        Number(duracion.value)
+                    ) +
+                    '.';
+            }
+
+            /**
+             * Consulta los bloques disponibles.
+             */
+            async function cargarHorarios() {
+                if (
+                    !medico.value ||
+                    !fecha.value
+                ) {
+                    hora.disabled = true;
+
+                    hora.innerHTML =
+                        '<option value="">' +
+                        'Selecciona primero médico y fecha' +
+                        '</option>';
+
+                    mensajeHorarios.textContent =
+                        'Selecciona un médico y una fecha.';
+
+                    bloquesHorarios = [];
+
+                    generarOpcionesDuracion();
+
+                    return;
+                }
+
+                solicitudHorarios?.abort();
+
+                solicitudHorarios =
+                    new AbortController();
 
                 hora.disabled = true;
 
                 hora.innerHTML =
-                    '<option value="">'
-                    + 'No se pudieron cargar los horarios'
-                    + '</option>';
+                    '<option value="">' +
+                    'Consultando horarios...' +
+                    '</option>';
 
                 mensajeHorarios.textContent =
-                    'Ocurrió un error al consultar '
-                    + 'la disponibilidad.';
+                    'Consultando la agenda del médico...';
 
-                generarOpcionesDuracion();
-            }
-        }
+                try {
+                    const url = new URL(
+                        "{{ route('citas.horarios-disponibles', [], false) }}",
+                        window.location.origin
+                    );
 
-        hora.addEventListener(
-            'change',
-            () => {
-                hora.dataset.valorAnterior =
-                    hora.value;
+                    url.searchParams.set(
+                        'medico_id',
+                        medico.value
+                    );
 
-                generarOpcionesDuracion();
-            }
-        );
+                    url.searchParams.set(
+                        'fecha',
+                        fecha.value
+                    );
 
-        duracion.addEventListener(
-            'change',
-            () => {
-                duracion.dataset.valorAnterior =
-                    duracion.value;
+                    /*
+                     * Ignoramos la propia cita para que
+                     * conserve disponibles sus bloques.
+                     */
+                    url.searchParams.set(
+                        'ignorar_cita',
+                        "{{ $cita->id }}"
+                    );
 
-                if (
-                    !hora.value
-                    || !duracion.value
-                ) {
-                    return;
+                    const respuesta =
+                        await fetch(
+                            url, {
+                                headers: {
+                                    Accept: 'application/json',
+
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+
+                                signal: solicitudHorarios.signal,
+                            }
+                        );
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            'No se pudieron consultar ' +
+                            'los horarios.'
+                        );
+                    }
+
+                    const datos =
+                        await respuesta.json();
+
+                    bloquesHorarios =
+                        datos.horarios;
+
+                    const horariosDisponibles =
+                        bloquesHorarios.filter(
+                            bloque =>
+                            bloque.disponible
+                        );
+
+                    hora.innerHTML = '';
+
+                    if (
+                        horariosDisponibles.length === 0
+                    ) {
+                        hora.innerHTML =
+                            '<option value="">' +
+                            'No hay horarios disponibles' +
+                            '</option>';
+
+                        mensajeHorarios.textContent =
+                            'La agenda del médico está ' +
+                            'llena para esta fecha.';
+
+                        generarOpcionesDuracion();
+
+                        return;
+                    }
+
+                    const valorAnterior =
+                        hora.dataset.valorAnterior;
+
+                    const opcionInicial =
+                        document.createElement(
+                            'option'
+                        );
+
+                    opcionInicial.value = '';
+
+                    opcionInicial.textContent =
+                        'Selecciona un horario';
+
+                    hora.appendChild(
+                        opcionInicial
+                    );
+
+                    horariosDisponibles.forEach(
+                        bloque => {
+                            const opcion =
+                                document.createElement(
+                                    'option'
+                                );
+
+                            opcion.value =
+                                bloque.hora;
+
+                            opcion.textContent =
+                                bloque.texto;
+
+                            if (
+                                valorAnterior ===
+                                bloque.hora
+                            ) {
+                                opcion.selected = true;
+                            }
+
+                            hora.appendChild(
+                                opcion
+                            );
+                        }
+                    );
+
+                    hora.disabled = false;
+
+                    const opcionSeleccionada =
+                        hora.options[
+                            hora.selectedIndex
+                        ]?.text;
+
+                    mensajeHorarios.textContent =
+                        opcionSeleccionada ?
+                        'Horario seleccionado: ' +
+                        opcionSeleccionada +
+                        '.' :
+                        'Selecciona uno de los ' +
+                        'horarios disponibles.';
+
+                    generarOpcionesDuracion();
+                } catch (error) {
+                    if (
+                        error.name === 'AbortError'
+                    ) {
+                        return;
+                    }
+
+                    bloquesHorarios = [];
+
+                    hora.disabled = true;
+
+                    hora.innerHTML =
+                        '<option value="">' +
+                        'No se pudieron cargar los horarios' +
+                        '</option>';
+
+                    mensajeHorarios.textContent =
+                        'Ocurrió un error al consultar ' +
+                        'la disponibilidad.';
+
+                    generarOpcionesDuracion();
                 }
-
-                mensajeDuracion.textContent =
-                    'La cita terminará a las '
-                    + formatearHoraFinal(
-                        hora.value,
-                        Number(duracion.value)
-                    )
-                    + '.';
             }
-        );
 
-        medico.addEventListener(
-            'change',
-            cargarHorarios
-        );
+            hora.addEventListener(
+                'change',
+                () => {
+                    hora.dataset.valorAnterior =
+                        hora.value;
 
-        fecha.addEventListener(
-            'change',
-            cargarHorarios
-        );
+                    generarOpcionesDuracion();
+                }
+            );
 
-        cargarHorarios();
-    });
-</script>
+            duracion.addEventListener(
+                'change',
+                () => {
+                    duracion.dataset.valorAnterior =
+                        duracion.value;
+
+                    if (
+                        !hora.value ||
+                        !duracion.value
+                    ) {
+                        return;
+                    }
+
+                    mensajeDuracion.textContent =
+                        'La cita terminará a las ' +
+                        formatearHoraFinal(
+                            hora.value,
+                            Number(duracion.value)
+                        ) +
+                        '.';
+                }
+            );
+
+            medico.addEventListener(
+                'change',
+                cargarHorarios
+            );
+
+            fecha.addEventListener(
+                'change',
+                cargarHorarios
+            );
+
+            cargarHorarios();
+        });
+    </script>
 </x-app-layout>

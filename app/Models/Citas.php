@@ -20,6 +20,7 @@ class Citas extends Model
         'hora',
         'duracion_minutos',
         'modalidad',
+        'direccion_cita',
         'google_event_id',
         'google_meet_url',
         'google_calendar_url',

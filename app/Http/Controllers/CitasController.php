@@ -243,6 +243,13 @@ class CitasController extends Controller
                 ]),
             ],
 
+            'direccion_cita' => [
+                'required_if:modalidad,fuera_instalaciones',
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
             'motivo' => [
                 'required',
                 Rule::in([
@@ -265,6 +272,10 @@ class CitasController extends Controller
                     . 'finalizada,cancelada',
             ],
         ]);
+
+        if ($datos['modalidad'] !== 'fuera_instalaciones') {
+            $datos['direccion_cita'] = null;
+        }
 
         $medicoValido = Medicos::query()
             ->whereKey(
@@ -665,6 +676,13 @@ class CitasController extends Controller
                 ]),
             ],
 
+            'direccion_cita' => [
+                'required_if:modalidad,fuera_instalaciones',
+                'nullable',
+                'string',
+                'max:500',
+            ],
+
             'motivo' => [
                 'required',
                 'string',
@@ -699,6 +717,10 @@ class CitasController extends Controller
                     . 'finalizada,cancelada',
             ],
         ]);
+
+        if ($datos['modalidad'] !== 'fuera_instalaciones') {
+            $datos['direccion_cita'] = null;
+        }
 
         $medicoValido = Medicos::query()
             ->whereKey(

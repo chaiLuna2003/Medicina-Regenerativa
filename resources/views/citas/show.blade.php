@@ -337,6 +337,134 @@
                 @endif
             </section>
             @endif
+            @if (
+    $cita->modalidad === 'fuera_instalaciones'
+    && $cita->direccion_cita
+)
+    @php
+        $direccionCodificada = rawurlencode(
+            $cita->direccion_cita
+        );
+
+        $googleMapsUrl =
+            'https://www.google.com/maps/search/?api=1&query='
+            . $direccionCodificada;
+
+        $wazeUrl =
+            'https://waze.com/ul?q='
+            . $direccionCodificada
+            . '&navigate=yes';
+
+        $telefonoMedicoDireccion = preg_replace(
+            '/\D+/',
+            '',
+            (string) $cita->medico?->telefono
+        );
+
+        if (strlen($telefonoMedicoDireccion) === 10) {
+            $telefonoMedicoDireccion =
+                '52' . $telefonoMedicoDireccion;
+        }
+
+        $fechaCitaExterna =
+            $cita->fecha->format('d/m/Y');
+
+        $horaCitaExterna =
+            \Carbon\Carbon::parse($cita->hora)
+                ->format('h:i A');
+
+        $mensajeDireccionMedico = rawurlencode(
+            "Doctor {$cita->medico?->nombre}, "
+            . "la cita fuera de las instalaciones "
+            . "del {$fechaCitaExterna} "
+            . "a las {$horaCitaExterna} "
+            . "será en: {$cita->direccion_cita}. "
+            . "Google Maps: {$googleMapsUrl} "
+            . "Waze: {$wazeUrl}"
+        );
+    @endphp
+
+    <section
+        class="mb-6 rounded-2xl border border-amber-200
+               bg-amber-50 p-6 shadow-sm"
+    >
+        <p
+            class="text-xs font-semibold uppercase
+                   tracking-wide text-amber-700"
+        >
+            Cita fuera de las instalaciones
+        </p>
+
+        <h3 class="mt-2 text-lg font-bold text-amber-950">
+            Dirección de la cita
+        </h3>
+
+        <p
+            class="mt-2 whitespace-pre-line
+                   text-sm text-amber-950"
+        >{{ $cita->direccion_cita }}</p>
+
+        <div class="mt-5 flex flex-wrap gap-3">
+            <a
+                href="{{ $googleMapsUrl }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center
+                       rounded-xl bg-[#0D3B7F] px-4 py-2.5
+                       text-sm font-semibold text-white transition
+                       hover:bg-[#082a5d]"
+            >
+                Abrir en Google Maps
+            </a>
+
+            <a
+                href="{{ $wazeUrl }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center justify-center
+                       rounded-xl border border-sky-300 bg-white
+                       px-4 py-2.5 text-sm font-semibold text-sky-700
+                       transition hover:bg-sky-50"
+            >
+                Abrir en Waze
+            </a>
+
+            @if (
+                in_array(
+                    auth()->user()->role,
+                    ['admin', 'recepcionista'],
+                    true
+                )
+                && $telefonoMedicoDireccion !== ''
+            )
+                <a
+                    href="https://wa.me/{{ $telefonoMedicoDireccion }}?text={{ $mensajeDireccionMedico }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center
+                           rounded-xl bg-green-600 px-4 py-2.5
+                           text-sm font-semibold text-white transition
+                           hover:bg-green-700"
+                >
+                    Enviar dirección al médico
+                </a>
+            @endif
+        </div>
+
+        @if (
+            in_array(
+                auth()->user()->role,
+                ['admin', 'recepcionista'],
+                true
+            )
+            && $telefonoMedicoDireccion === ''
+        )
+            <p class="mt-4 text-sm font-medium text-amber-800">
+                El médico no tiene un teléfono registrado para WhatsApp.
+            </p>
+        @endif
+    </section>
+@endif
             <div class="grid gap-6 lg:grid-cols-3">
 
                 {{-- Información principal --}}
