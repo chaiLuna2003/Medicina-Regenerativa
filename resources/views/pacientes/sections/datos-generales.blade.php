@@ -1,12 +1,16 @@
-<section
-    class="overflow-hidden rounded-2xl
+<details
+    name="informacion-paciente"
+    class="group overflow-hidden rounded-2xl
            border border-slate-200
            bg-white shadow-sm">
 
-    <div
+    <summary
         class="flex items-center justify-between
-               border-b border-slate-100
-               px-5 py-4">
+               cursor-pointer list-none px-5 py-4
+               transition hover:bg-slate-50
+               focus:outline-none focus-visible:ring-2
+               focus-visible:ring-inset focus-visible:ring-blue-500
+               [&::-webkit-details-marker]:hidden">
 
         <div>
             <h3 class="text-sm font-semibold text-slate-900">
@@ -18,56 +22,36 @@
             </p>
         </div>
 
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5 shrink-0 text-slate-400
+                   transition-transform duration-200
+                   group-open:rotate-180 motion-reduce:transition-none"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19 9-7 7-7-7" />
+        </svg>
+    </summary>
+
+    <div class="border-t border-slate-100">
         @if (request()->user()->isAdmin())
-
-            <button
-                type="button"
-                onclick="abrirModalDatosGenerales()"
-                class="inline-flex items-center gap-1.5
-                       rounded-lg px-2.5 py-1.5
-                       text-xs font-semibold text-blue-600
-                       transition hover:bg-blue-50
-                       hover:text-blue-800">
-
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2">
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M16.862 4.487
-                           18.55 2.8a1.875 1.875 0 1 1
-                           2.652 2.652L10.582 16.07
-                           a4.5 4.5 0 0 1-1.897 1.13
-                           L6 18l.8-2.685
-                           a4.5 4.5 0 0 1
-                           1.13-1.897l8.932-8.931Z" />
-
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M19.5 7.125V16.5
-                           A2.25 2.25 0 0 1
-                           17.25 18.75H5.625
-                           A2.25 2.25 0 0 1
-                           3.375 16.5V4.875
-                           A2.25 2.25 0 0 1
-                           5.625 2.625H15" />
-                </svg>
-
-                Editar
-            </button>
-
+            <div class="flex justify-end px-5 pt-4">
+                <button
+                    type="button"
+                    onclick="abrirModalDatosGenerales()"
+                    class="rounded-lg px-2.5 py-1.5 text-xs
+                           font-semibold text-blue-600 transition
+                           hover:bg-blue-50 hover:text-blue-800">
+                    Editar
+                </button>
+            </div>
         @endif
-    </div>
 
-    <dl
-        class="grid grid-cols-1 gap-4 p-5
+        <dl
+            class="grid grid-cols-1 gap-4 p-5
                sm:grid-cols-2
                lg:grid-cols-1
                xl:grid-cols-2">
@@ -185,5 +169,6 @@
             </div>
 
         @endunless
-    </dl>
-</section>
+        </dl>
+    </div>
+</details>

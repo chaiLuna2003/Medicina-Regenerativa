@@ -17,7 +17,7 @@
 
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
                 {{ auth()->user()->isRecepcionista()
-                    ? 'Actualizar contacto'
+                    ? 'Actualizar datos del paciente'
                     : 'Editar paciente' }}
             </h2>
         </div>
@@ -44,7 +44,7 @@
                                transition hover:bg-emerald-700"
                     >
                         {{ auth()->user()->isRecepcionista()
-                            ? 'Guardar contacto'
+                            ? 'Guardar cambios'
                             : 'Actualizar paciente' }}
                     </button>
 

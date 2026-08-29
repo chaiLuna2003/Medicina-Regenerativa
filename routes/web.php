@@ -168,41 +168,44 @@ Route::middleware(
             )->name('pacientes.historia-clinica.update');
         });
 
-    Route::put(
-        '/pacientes/{paciente}/historia-clinica/'
-            . 'antecedentes-heredofamiliares',
-        [
-            HistoriaClinicaController::class,
-            'updateHeredofamiliares',
-        ]
-    )->name(
-        'pacientes.historia-clinica.'
-            . 'heredofamiliares.update'
-    );
+    Route::middleware('role:admin,medico')
+        ->group(function () {
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica/'
+                    . 'antecedentes-heredofamiliares',
+                [
+                    HistoriaClinicaController::class,
+                    'updateHeredofamiliares',
+                ]
+            )->name(
+                'pacientes.historia-clinica.'
+                    . 'heredofamiliares.update'
+            );
 
-    Route::put(
-        '/pacientes/{paciente}/historia-clinica/'
-            . 'antecedentes-personales-patologicos',
-        [
-            HistoriaClinicaController::class,
-            'updatePersonalesPatologicos',
-        ]
-    )->name(
-        'pacientes.historia-clinica.'
-            . 'personales-patologicos.update'
-    );
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica/'
+                    . 'antecedentes-personales-patologicos',
+                [
+                    HistoriaClinicaController::class,
+                    'updatePersonalesPatologicos',
+                ]
+            )->name(
+                'pacientes.historia-clinica.'
+                    . 'personales-patologicos.update'
+            );
 
-    Route::put(
-        '/pacientes/{paciente}/historia-clinica/'
-            . 'antecedentes-personales-no-patologicos',
-        [
-            HistoriaClinicaController::class,
-            'updatePersonalesNoPatologicos',
-        ]
-    )->name(
-        'pacientes.historia-clinica.'
-            . 'personales-no-patologicos.update'
-    );
+            Route::put(
+                '/pacientes/{paciente}/historia-clinica/'
+                    . 'antecedentes-personales-no-patologicos',
+                [
+                    HistoriaClinicaController::class,
+                    'updatePersonalesNoPatologicos',
+                ]
+            )->name(
+                'pacientes.historia-clinica.'
+                    . 'personales-no-patologicos.update'
+            );
+        });
 
     /*
 |--------------------------------------------------------------------------

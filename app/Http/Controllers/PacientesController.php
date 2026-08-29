@@ -732,12 +732,22 @@ class PacientesController extends Controller
     |--------------------------------------------------------------------------
     |
     | Recepción modifica información administrativa y de contacto,
-    | pero no nombre, nacimiento, fotografía, estado ni notas.
+    | pero no nombre, apellidos, fecha de nacimiento ni sexo.
     |--------------------------------------------------------------------------
     */
 
         if ($user->isRecepcionista()) {
             $validated = $request->validate([
+                'categoria' => [
+                    'required',
+                    Rule::in(array_keys(Pacientes::CATEGORIAS)),
+                ],
+
+                'status' => [
+                    'required',
+                    'boolean',
+                ],
+
                 'telefono' => [
                     'nullable',
                     'string',
@@ -836,10 +846,35 @@ class PacientesController extends Controller
                     'nullable',
                     'boolean',
                 ],
+
+                'notas' => [
+                    'nullable',
+                    'string',
+                    'max:5000',
+                ],
+
+                'foto' => [
+                    'nullable',
+                    'image',
+                    'max:4096',
+                ],
             ]);
 
             $validated['finado'] =
                 $request->boolean('finado');
+
+            if ($request->hasFile('foto')) {
+                $fotoAnterior = $pacientes->foto;
+
+                $validated['foto'] = $request
+                    ->file('foto')
+                    ->store('pacientes', 'public');
+
+                if ($fotoAnterior) {
+                    Storage::disk('public')
+                        ->delete($fotoAnterior);
+                }
+            }
 
             $pacientes->update($validated);
 

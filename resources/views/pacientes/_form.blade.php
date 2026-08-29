@@ -25,7 +25,6 @@ $tiposSangrePaciente =
 {{-- FOTO --}}
 {{-- ===================================================== --}}
 
-@unless ($edicionLimitadaRecepcion)
 <section class="mb-8">
     <div class="mb-4">
         <h3 class="text-base font-semibold text-slate-900">
@@ -89,7 +88,6 @@ $tiposSangrePaciente =
         </div>
     </div>
 </section>
-@endunless
 
 
 {{-- ===================================================== --}}
@@ -144,9 +142,41 @@ $tiposSangrePaciente =
         </div>
 
         <p class="mt-4 text-sm text-slate-500">
-            Recepción puede modificar únicamente
-            la información de contacto.
+            Recepción puede actualizar los datos administrativos.
         </p>
+
+        <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+                <label for="categoria" class="mb-1.5 block text-sm font-medium text-slate-700">
+                    Categoría
+                </label>
+                <select id="categoria" name="categoria" required
+                    class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    @foreach ($categoriasPaciente as $valor => $configuracion)
+                        <option value="{{ $valor }}" @selected(old('categoria', $pacientes->categoria ?? 'sin_categoria') === $valor)>
+                            {{ $configuracion['etiqueta'] }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('categoria')
+                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="status" class="mb-1.5 block text-sm font-medium text-slate-700">
+                    Estado del paciente
+                </label>
+                <select id="status" name="status" required
+                    class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="1" @selected(old('status', $pacientes->status ?? 1) == 1)>Activo</option>
+                    <option value="0" @selected(old('status', $pacientes->status ?? 1) == 0)>Inactivo</option>
+                </select>
+                @error('status')
+                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
     </div>
 
     @else
@@ -906,7 +936,6 @@ $tiposSangrePaciente =
 {{-- NOTAS --}}
 {{-- ===================================================== --}}
 
-@unless ($edicionLimitadaRecepcion)
 <section>
     <div class="mb-4">
         <h3 class="text-base font-semibold text-slate-900">
@@ -949,14 +978,11 @@ $tiposSangrePaciente =
     </p>
     @enderror
 </section>
-@endunless
 
 
 {{-- ===================================================== --}}
 {{-- JAVASCRIPT --}}
 {{-- ===================================================== --}}
-
-@unless ($edicionLimitadaRecepcion)
 
 <script>
     document.addEventListener(
@@ -1189,5 +1215,3 @@ $tiposSangrePaciente =
         }
     );
 </script>
-
-@endunless

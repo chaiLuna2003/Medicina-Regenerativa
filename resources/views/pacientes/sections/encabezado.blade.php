@@ -76,6 +76,20 @@
             request()->user()->isAdmin()
             || request()->user()->isRecepcionista()
         )
+            <a
+                href="{{ route('pacientes.edit', $pacientes) }}"
+                class="inline-flex items-center justify-center gap-2
+                       rounded-xl border border-slate-300 bg-white px-4 py-2
+                       text-sm font-semibold text-slate-700 shadow-sm
+                       transition hover:bg-slate-50">
+                Editar datos
+            </a>
+        @endif
+
+        @if (
+            request()->user()->isAdmin()
+            || request()->user()->isRecepcionista()
+        )
             <button
                 type="button"
                 onclick="abrirModalEstudiosPaciente()"
