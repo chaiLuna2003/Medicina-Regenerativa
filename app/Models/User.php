@@ -90,4 +90,26 @@ class User extends Authenticatable
     {
         return $this->hasMany(SignoVital::class, 'enfermero_id');
     }
+
+    /**
+     * Casos clínicos abiertos por el usuario médico.
+     */
+    public function casosClinicosCreados(): HasMany
+    {
+        return $this->hasMany(
+            CasoClinico::class,
+            'created_by'
+        );
+    }
+
+    /**
+     * Evoluciones clínicas creadas por el usuario médico.
+     */
+    public function evolucionesClinicasCreadas(): HasMany
+    {
+        return $this->hasMany(
+            EvolucionClinica::class,
+            'created_by'
+        );
+    }
 }

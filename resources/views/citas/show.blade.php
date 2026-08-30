@@ -338,42 +338,42 @@
             </section>
             @endif
             @if (
-    $cita->modalidad === 'fuera_instalaciones'
-    && $cita->direccion_cita
-)
-    @php
-        $direccionCodificada = rawurlencode(
+            $cita->modalidad === 'fuera_instalaciones'
+            && $cita->direccion_cita
+            )
+            @php
+            $direccionCodificada = rawurlencode(
             $cita->direccion_cita
-        );
+            );
 
-        $googleMapsUrl =
+            $googleMapsUrl =
             'https://www.google.com/maps/search/?api=1&query='
             . $direccionCodificada;
 
-        $wazeUrl =
+            $wazeUrl =
             'https://waze.com/ul?q='
             . $direccionCodificada
             . '&navigate=yes';
 
-        $telefonoMedicoDireccion = preg_replace(
+            $telefonoMedicoDireccion = preg_replace(
             '/\D+/',
             '',
             (string) $cita->medico?->telefono
-        );
+            );
 
-        if (strlen($telefonoMedicoDireccion) === 10) {
+            if (strlen($telefonoMedicoDireccion) === 10) {
             $telefonoMedicoDireccion =
-                '52' . $telefonoMedicoDireccion;
-        }
+            '52' . $telefonoMedicoDireccion;
+            }
 
-        $fechaCitaExterna =
+            $fechaCitaExterna =
             $cita->fecha->format('d/m/Y');
 
-        $horaCitaExterna =
+            $horaCitaExterna =
             \Carbon\Carbon::parse($cita->hora)
-                ->format('h:i A');
+            ->format('h:i A');
 
-        $mensajeDireccionMedico = rawurlencode(
+            $mensajeDireccionMedico = rawurlencode(
             "Doctor {$cita->medico?->nombre}, "
             . "la cita fuera de las instalaciones "
             . "del {$fechaCitaExterna} "
@@ -381,90 +381,84 @@
             . "será en: {$cita->direccion_cita}. "
             . "Google Maps: {$googleMapsUrl} "
             . "Waze: {$wazeUrl}"
-        );
-    @endphp
+            );
+            @endphp
 
-    <section
-        class="mb-6 rounded-2xl border border-amber-200
-               bg-amber-50 p-6 shadow-sm"
-    >
-        <p
-            class="text-xs font-semibold uppercase
-                   tracking-wide text-amber-700"
-        >
-            Cita fuera de las instalaciones
-        </p>
+            <section
+                class="mb-6 rounded-2xl border border-amber-200
+               bg-amber-50 p-6 shadow-sm">
+                <p
+                    class="text-xs font-semibold uppercase
+                   tracking-wide text-amber-700">
+                    Cita fuera de las instalaciones
+                </p>
 
-        <h3 class="mt-2 text-lg font-bold text-amber-950">
-            Dirección de la cita
-        </h3>
+                <h3 class="mt-2 text-lg font-bold text-amber-950">
+                    Dirección de la cita
+                </h3>
 
-        <p
-            class="mt-2 whitespace-pre-line
-                   text-sm text-amber-950"
-        >{{ $cita->direccion_cita }}</p>
+                <p
+                    class="mt-2 whitespace-pre-line
+                   text-sm text-amber-950">{{ $cita->direccion_cita }}</p>
 
-        <div class="mt-5 flex flex-wrap gap-3">
-            <a
-                href="{{ $googleMapsUrl }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center justify-center
+                <div class="mt-5 flex flex-wrap gap-3">
+                    <a
+                        href="{{ $googleMapsUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center justify-center
                        rounded-xl bg-[#0D3B7F] px-4 py-2.5
                        text-sm font-semibold text-white transition
-                       hover:bg-[#082a5d]"
-            >
-                Abrir en Google Maps
-            </a>
+                       hover:bg-[#082a5d]">
+                        Abrir en Google Maps
+                    </a>
 
-            <a
-                href="{{ $wazeUrl }}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center justify-center
+                    <a
+                        href="{{ $wazeUrl }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center justify-center
                        rounded-xl border border-sky-300 bg-white
                        px-4 py-2.5 text-sm font-semibold text-sky-700
-                       transition hover:bg-sky-50"
-            >
-                Abrir en Waze
-            </a>
+                       transition hover:bg-sky-50">
+                        Abrir en Waze
+                    </a>
 
-            @if (
-                in_array(
+                    @if (
+                    in_array(
                     auth()->user()->role,
                     ['admin', 'recepcionista'],
                     true
-                )
-                && $telefonoMedicoDireccion !== ''
-            )
-                <a
-                    href="https://wa.me/{{ $telefonoMedicoDireccion }}?text={{ $mensajeDireccionMedico }}"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center justify-center
+                    )
+                    && $telefonoMedicoDireccion !== ''
+                    )
+                    <a
+                        href="https://wa.me/{{ $telefonoMedicoDireccion }}?text={{ $mensajeDireccionMedico }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center justify-center
                            rounded-xl bg-green-600 px-4 py-2.5
                            text-sm font-semibold text-white transition
-                           hover:bg-green-700"
-                >
-                    Enviar dirección al médico
-                </a>
-            @endif
-        </div>
+                           hover:bg-green-700">
+                        Enviar dirección al médico
+                    </a>
+                    @endif
+                </div>
 
-        @if (
-            in_array(
+                @if (
+                in_array(
                 auth()->user()->role,
                 ['admin', 'recepcionista'],
                 true
-            )
-            && $telefonoMedicoDireccion === ''
-        )
-            <p class="mt-4 text-sm font-medium text-amber-800">
-                El médico no tiene un teléfono registrado para WhatsApp.
-            </p>
-        @endif
-    </section>
-@endif
+                )
+                && $telefonoMedicoDireccion === ''
+                )
+                <p class="mt-4 text-sm font-medium text-amber-800">
+                    El médico no tiene un teléfono registrado para WhatsApp.
+                </p>
+                @endif
+            </section>
+            @endif
             <div class="grid gap-6 lg:grid-cols-3">
 
                 {{-- Información principal --}}
@@ -781,367 +775,54 @@
                     </div>
                 </div>
             </div>
+
+            @include(
+            'citas.sections.panel-clinico'
+            )
         </div>
     </div>
 
-    @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
-    <div
-        id="modal-estudios"
-        class="fixed inset-0 z-50 hidden"
-        role="dialog"
-        aria-modal="true">
-        {{-- Fondo --}}
-        <div
-            class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
-            onclick="cerrarModalEstudios()"></div>
+    @include(
+    'citas.modals.estudios'
+    )
 
-        {{-- Centrado --}}
-        <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4">
+    @include(
+    'citas.modals.historia-clinica'
+    )
 
-            {{-- Modal --}}
-            <div
-                class="relative flex max-h-[90vh] w-full max-w-[600px]
-                   flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+    @include(
+    'citas.modals.enfermeria'
+    )
 
-                {{-- Encabezado --}}
-                <div class="flex shrink-0 items-start justify-between border-b border-gray-200 px-5 py-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-[#0D3B7F]">
-                            Expediente clínico
-                        </p>
+    @include(
+    'citas.modals.crear-evolucion'
+    )
 
-                        <h2 class="mt-1 text-xl font-bold text-gray-900">
-                            Agregar estudios
-                        </h2>
+    @include(
+    'citas.modals.evolucion-clinica'
+    )
 
-                        <p class="mt-1 text-sm text-gray-500">
-                            {{ $cita->paciente->nombre }}
-                            {{ $cita->paciente->apellido }}
-                        </p>
-                    </div>
+    @include(
+    'citas.modals.aparatos-evolucion'
+    )
 
-                    <button
-                        type="button"
-                        onclick="cerrarModalEstudios()"
-                        class="rounded-lg p-2 text-gray-400 transition
-                           hover:bg-gray-100 hover:text-gray-700">
-                        ✕
-                    </button>
-                </div>
+    @include(
+    'citas.modals.historial-caso-clinico'
+    )
 
-                <form
-                    action="{{ route('estudios.store', $cita) }}"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    class="flex min-h-0 flex-1 flex-col">
-                    @csrf
-
-                    {{-- Contenido con scroll --}}
-                    <div class="min-h-0 flex-1 overflow-y-auto p-5">
-
-                        <div class="grid gap-5 md:grid-cols-[190px_1fr]">
-
-                            {{-- COLUMNA IZQUIERDA --}}
-                            <div class="space-y-4">
-
-                                <div>
-                                    <h3 class="text-sm font-bold text-gray-900">
-                                        Información de la cita
-                                    </h3>
-
-                                    <p class="mt-1 text-xs text-gray-500">
-                                        Datos asociados al estudio.
-                                    </p>
-                                </div>
-
-                                <div class="rounded-xl border border-blue-100 bg-blue-50 p-4">
-
-                                    <div>
-                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
-                                            Paciente
-                                        </p>
-
-                                        <p class="mt-1 text-sm font-bold text-blue-950">
-                                            {{ $cita->paciente->nombre }}
-                                            {{ $cita->paciente->apellido }}
-                                        </p>
-                                    </div>
-
-                                    <div class="mt-4 border-t border-blue-100 pt-4">
-                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
-                                            Cita
-                                        </p>
-
-                                        <p class="mt-1 text-sm font-bold text-blue-950">
-                                            {{ $cita->fecha->format('d/m/Y') }}
-                                        </p>
-
-                                        <p class="mt-1 text-sm text-blue-900">
-                                            {{ \Carbon\Carbon::parse($cita->hora)->format('h:i A') }}
-                                        </p>
-                                    </div>
-
-                                    <div class="mt-4 border-t border-blue-100 pt-4">
-                                        <p class="text-[11px] font-semibold uppercase tracking-wide text-blue-500">
-                                            Médico
-                                        </p>
-
-                                        <p class="mt-1 text-sm font-semibold text-blue-950">
-                                            Dr.
-                                            {{ $cita->medico?->nombre }}
-                                            {{ $cita->medico?->apellido_paterno }}
-                                        </p>
-
-                                        <p class="mt-1 text-xs text-blue-700">
-                                            {{ $cita->medico?->especialidad ?? 'Sin especialidad registrada' }}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div class="rounded-xl border border-amber-100 bg-amber-50 p-3">
-                                    <p class="text-xs leading-relaxed text-amber-800">
-                                        Los documentos quedarán asociados a esta cita y al historial del paciente.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {{-- COLUMNA DERECHA --}}
-                            <div class="space-y-4">
-
-                                {{-- Nombre --}}
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700">
-                                        Nombre del estudio
-                                    </label>
-
-                                    <input
-                                        type="text"
-                                        name="nombre"
-                                        value="{{ old('nombre') }}"
-                                        required
-                                        maxlength="150"
-                                        placeholder="Ej. Resonancia magnética"
-                                        class="mt-1.5 block w-full rounded-xl
-                                           border-gray-300 px-3 py-2.5
-                                           text-sm shadow-sm
-                                           focus:border-[#0D3B7F]
-                                           focus:ring-[#0D3B7F]">
-
-                                    @error('nombre')
-                                    <p class="mt-1 text-xs text-red-600">
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </div>
-
-                                {{-- Fecha y descripción --}}
-                                <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-1">
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700">
-                                            Fecha del estudio
-                                        </label>
-
-                                        <input
-                                            type="date"
-                                            name="fecha_estudio"
-                                            value="{{ old('fecha_estudio', now()->format('Y-m-d')) }}"
-                                            max="{{ now()->format('Y-m-d') }}"
-                                            required
-                                            class="mt-1.5 block w-full rounded-xl
-                                               border-gray-300 px-3 py-2.5
-                                               text-sm shadow-sm
-                                               focus:border-[#0D3B7F]
-                                               focus:ring-[#0D3B7F]">
-
-                                        @error('fecha_estudio')
-                                        <p class="mt-1 text-xs text-red-600">
-                                            {{ $message }}
-                                        </p>
-                                        @enderror
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700">
-                                            Descripción
-                                            <span class="font-normal text-gray-400">
-                                                (opcional)
-                                            </span>
-                                        </label>
-
-                                        <textarea
-                                            name="descripcion"
-                                            rows="2"
-                                            maxlength="1000"
-                                            placeholder="Detalles del estudio..."
-                                            class="mt-1.5 block w-full resize-none rounded-xl
-                                               border-gray-300 px-3 py-2.5
-                                               text-sm shadow-sm
-                                               focus:border-[#0D3B7F]
-                                               focus:ring-[#0D3B7F]">{{ old('descripcion') }}</textarea>
-
-                                        @error('descripcion')
-                                        <p class="mt-1 text-xs text-red-600">
-                                            {{ $message }}
-                                        </p>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                {{-- Archivos --}}
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700">
-                                        Archivos PDF
-                                    </label>
-
-                                    <div
-                                        class="mt-1.5 rounded-xl border-2 border-dashed
-                                           border-gray-300 bg-gray-50 p-4 text-center">
-                                        <input
-                                            id="archivos-estudios"
-                                            type="file"
-                                            name="archivos[]"
-                                            accept="application/pdf,.pdf"
-                                            multiple
-                                            required
-                                            onchange="mostrarArchivosSeleccionados(this)"
-                                            class="block w-full text-xs text-gray-600
-                                               file:mr-3 file:rounded-lg
-                                               file:border-0
-                                               file:bg-[#0D3B7F]
-                                               file:px-3 file:py-2
-                                               file:text-xs file:font-semibold
-                                               file:text-white">
-
-                                        <p class="mt-2 text-[11px] text-gray-500">
-                                            Hasta 10 PDFs · Máximo 15 MB por archivo
-                                        </p>
-                                    </div>
-
-                                    <div
-                                        id="lista-archivos-estudios"
-                                        class="mt-2 max-h-24 space-y-2 overflow-y-auto"></div>
-
-                                    @error('archivos')
-                                    <p class="mt-1 text-xs text-red-600">
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-
-                                    @error('archivos.*')
-                                    <p class="mt-1 text-xs text-red-600">
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {{-- Footer --}}
-                    <div class="flex shrink-0 flex-col-reverse gap-2 border-t
-                            border-gray-200 bg-gray-50 px-5 py-3
-                            sm:flex-row sm:justify-end">
-
-                        <button
-                            type="button"
-                            onclick="cerrarModalEstudios()"
-                            class="rounded-xl border border-gray-300 bg-white
-                               px-4 py-2 text-sm font-semibold
-                               text-gray-700 hover:bg-gray-50">
-                            Cancelar
-                        </button>
-
-                        <button
-                            type="submit"
-                            class="rounded-xl bg-[#0D3B7F]
-                               px-4 py-2 text-sm font-semibold
-                               text-white transition hover:bg-[#082a5d]">
-                            Guardar estudios
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
+    @include(
+    'citas.modals.graficas-evolucion'
+)
 </x-app-layout>
 
-<script>
-    const modalEstudios = document.getElementById('modal-estudios');
-
-    function abrirModalEstudios() {
-        if (!modalEstudios) return;
-
-        modalEstudios.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
-    }
-
-    function cerrarModalEstudios() {
-        if (!modalEstudios) return;
-
-        modalEstudios.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
-    }
-
-    function mostrarArchivosSeleccionados(input) {
-        const contenedor = document.getElementById(
-            'lista-archivos-estudios'
-        );
-
-        if (!contenedor) return;
-
-        contenedor.innerHTML = '';
-
-        Array.from(input.files).forEach((archivo) => {
-            const elemento = document.createElement('div');
-
-            const megabytes =
-                (archivo.size / 1024 / 1024).toFixed(2);
-
-            elemento.className =
-                'flex items-center justify-between ' +
-                'rounded-lg border border-gray-200 ' +
-                'bg-white px-3 py-2 text-sm';
-
-            const nombre = document.createElement('span');
-
-            nombre.className =
-                'truncate font-medium text-gray-700';
-
-            nombre.textContent = archivo.name;
-
-            const peso = document.createElement('span');
-
-            peso.className =
-                'ml-3 shrink-0 text-xs text-gray-400';
-
-            peso.textContent = megabytes + ' MB';
-
-            elemento.appendChild(nombre);
-            elemento.appendChild(peso);
-
-            contenedor.appendChild(elemento);
-        });
-    }
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            cerrarModalEstudios();
-        }
-    });
-</script>
-@if (
-$errors->has('nombre')
-|| $errors->has('descripcion')
-|| $errors->has('fecha_estudio')
-|| $errors->has('archivos')
-|| $errors->has('archivos.*')
+@include(
+'citas.scripts.estudios'
 )
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        abrirModalEstudios();
-    });
-</script>
-@endif
+
+@include(
+'citas.scripts.clinicos'
+)
+
+@include(
+    'citas.scripts.graficas-evolucion'
+)

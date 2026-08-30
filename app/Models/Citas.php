@@ -152,6 +152,17 @@ class Citas extends Model
     }
 
     /**
+     * Evolución clínica registrada durante la cita.
+     */
+    public function evolucionClinica(): HasOne
+    {
+        return $this->hasOne(
+            EvolucionClinica::class,
+            'cita_id'
+        );
+    }
+
+    /**
      * Receta médica asociada con la cita.
      */
     public function receta(): HasOne

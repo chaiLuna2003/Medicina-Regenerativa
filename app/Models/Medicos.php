@@ -45,6 +45,17 @@ class Medicos extends Model
         );
     }
 
+    /**
+     * Evoluciones registradas en citas asignadas al médico.
+     */
+    public function evolucionesClinicas(): HasMany
+    {
+        return $this->hasMany(
+            EvolucionClinica::class,
+            'medico_id'
+        );
+    }
+
     public function universidad(): BelongsTo
     {
         return $this->belongsTo(

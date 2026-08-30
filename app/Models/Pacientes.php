@@ -25,37 +25,37 @@ class Pacientes extends Model
 
 
     public const ESTADOS_CIVILES = [
-    'soltero' => 'Soltero(a)',
-    'casado' => 'Casado(a)',
-    'union_libre' => 'Unión libre',
-    'divorciado' => 'Divorciado(a)',
-    'separado' => 'Separado(a)',
-    'viudo' => 'Viudo(a)',
-    'no_especificado' => 'No especificado',
-];
+        'soltero' => 'Soltero(a)',
+        'casado' => 'Casado(a)',
+        'union_libre' => 'Unión libre',
+        'divorciado' => 'Divorciado(a)',
+        'separado' => 'Separado(a)',
+        'viudo' => 'Viudo(a)',
+        'no_especificado' => 'No especificado',
+    ];
 
-public const ESCOLARIDADES = [
-    'sin_escolaridad' => 'Sin escolaridad',
-    'primaria' => 'Primaria',
-    'secundaria' => 'Secundaria',
-    'bachillerato' => 'Bachillerato',
-    'tecnico' => 'Carrera técnica',
-    'licenciatura' => 'Licenciatura',
-    'posgrado' => 'Posgrado',
-    'no_especificado' => 'No especificado',
-];
+    public const ESCOLARIDADES = [
+        'sin_escolaridad' => 'Sin escolaridad',
+        'primaria' => 'Primaria',
+        'secundaria' => 'Secundaria',
+        'bachillerato' => 'Bachillerato',
+        'tecnico' => 'Carrera técnica',
+        'licenciatura' => 'Licenciatura',
+        'posgrado' => 'Posgrado',
+        'no_especificado' => 'No especificado',
+    ];
 
-public const TIPOS_SANGRE = [
-    'A+' => 'A+',
-    'A-' => 'A-',
-    'B+' => 'B+',
-    'B-' => 'B-',
-    'AB+' => 'AB+',
-    'AB-' => 'AB-',
-    'O+' => 'O+',
-    'O-' => 'O-',
-    'desconocido' => 'Desconocido',
-];
+    public const TIPOS_SANGRE = [
+        'A+' => 'A+',
+        'A-' => 'A-',
+        'B+' => 'B+',
+        'B-' => 'B-',
+        'AB+' => 'AB+',
+        'AB-' => 'AB-',
+        'O+' => 'O+',
+        'O-' => 'O-',
+        'desconocido' => 'Desconocido',
+    ];
     /**
      * Catálogo oficial de categorías de pacientes.
      */
@@ -167,14 +167,14 @@ public const TIPOS_SANGRE = [
     |--------------------------------------------------------------------------
     */
 
-       'ocupacion',
-'religion',
-'estado_civil',
-'escolaridad',
-'tipo_sangre',
-'alergias',
-'costo_consulta_personalizado',
-'finado',
+        'ocupacion',
+        'religion',
+        'estado_civil',
+        'escolaridad',
+        'tipo_sangre',
+        'alergias',
+        'costo_consulta_personalizado',
+        'finado',
 
         /*
     |--------------------------------------------------------------------------
@@ -239,6 +239,28 @@ public const TIPOS_SANGRE = [
     public function citas(): HasMany
     {
         return $this->hasMany(Citas::class, 'paciente_id');
+    }
+
+    /**
+     * Casos clínicos abiertos para el paciente.
+     */
+    public function casosClinicos(): HasMany
+    {
+        return $this->hasMany(
+            CasoClinico::class,
+            'paciente_id'
+        );
+    }
+
+    /**
+     * Registros de evolución clínica del paciente.
+     */
+    public function evolucionesClinicas(): HasMany
+    {
+        return $this->hasMany(
+            EvolucionClinica::class,
+            'paciente_id'
+        );
     }
 
     public function signosVitales(): HasMany

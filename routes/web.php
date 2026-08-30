@@ -14,6 +14,8 @@ use App\Http\Controllers\ExploracionesFisicasController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HojaDiariaController;
+use App\Http\Controllers\CasosClinicosController;
+use App\Http\Controllers\EvolucionesClinicasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,20 +90,20 @@ Route::middleware([
 |
 */
 
-Route::middleware(
-    'role:admin,recepcionista,medico,enfermero'
-)->group(function () {
+    Route::middleware(
+        'role:admin,recepcionista,medico,enfermero'
+    )->group(function () {
 
-    Route::get(
-        '/hoja-diaria',
-        [HojaDiariaController::class, 'index']
-    )->name('hoja-diaria.index');
+        Route::get(
+            '/hoja-diaria',
+            [HojaDiariaController::class, 'index']
+        )->name('hoja-diaria.index');
 
-    Route::get(
-        '/hoja-diaria/pdf',
-        [HojaDiariaController::class, 'pdf']
-    )->name('hoja-diaria.pdf');
-});
+        Route::get(
+            '/hoja-diaria/pdf',
+            [HojaDiariaController::class, 'pdf']
+        )->name('hoja-diaria.pdf');
+    });
 
 
     /*
@@ -401,6 +403,75 @@ Route::middleware(
 
     /*
     |--------------------------------------------------------------------------
+    | Casos clínicos - Apertura
+    |--------------------------------------------------------------------------
+    |
+    | Solamente el médico asignado a la cita puede abrir un caso
+    | y registrar su primera evolución.
+    |
+    */
+
+    Route::middleware('role:medico')
+        ->group(function () {
+            /*
+         * Abrir un caso clínico y crear
+         * su primera evolución.
+         */
+            Route::post(
+                '/citas/{cita}/casos-clinicos',
+                [
+                    CasosClinicosController::class,
+                    'store',
+                ]
+            )->name(
+                'citas.casos-clinicos.store'
+            );
+
+            /*
+         * Agregar la cita actual como seguimiento
+         * de un caso clínico existente.
+         */
+            Route::post(
+                '/citas/{cita}/casos-clinicos/'
+                    . '{casoClinico}/evoluciones',
+                [
+                    EvolucionesClinicasController::class,
+                    'store',
+                ]
+            )->name(
+                'citas.casos-clinicos.evoluciones.store'
+            );
+
+            /*
+ * Actualizar el contenido de una evolución.
+ */
+            Route::put(
+                '/evoluciones/{evolucionClinica}',
+                [
+                    EvolucionesClinicasController::class,
+                    'update',
+                ]
+            )->name(
+                'evoluciones.update'
+            );
+
+            /*
+ * Crear o actualizar la valoración completa
+ * de aparatos de una evolución.
+ */
+            Route::put(
+                '/evoluciones/{evolucionClinica}/aparatos',
+                [
+                    EvolucionesClinicasController::class,
+                    'updateAparatos',
+                ]
+            )->name(
+                'evoluciones.aparatos.update'
+            );
+        });
+
+    /*
+    |--------------------------------------------------------------------------
     | Signos vitales - Consulta
     |--------------------------------------------------------------------------
     |
@@ -454,25 +525,25 @@ Route::middleware(
     | directamente a una cita.
     |
     */
-Route::middleware('role:admin,recepcionista')
-    ->group(function () {
+    Route::middleware('role:admin,recepcionista')
+        ->group(function () {
 
-        /*
+            /*
          * Cargar estudios desde una cita.
          */
-        Route::post(
-            '/citas/{cita}/estudios',
-            [EstudiosController::class, 'store']
-        )->name('estudios.store');
+            Route::post(
+                '/citas/{cita}/estudios',
+                [EstudiosController::class, 'store']
+            )->name('estudios.store');
 
-        /*
+            /*
          * Cargar estudios desde la ficha del paciente.
          */
-        Route::post(
-            '/pacientes/{paciente}/estudios',
-            [EstudiosController::class, 'storeDesdePaciente']
-        )->name('pacientes.estudios.store');
-    });
+            Route::post(
+                '/pacientes/{paciente}/estudios',
+                [EstudiosController::class, 'storeDesdePaciente']
+            )->name('pacientes.estudios.store');
+        });
 
     /*
     |--------------------------------------------------------------------------
