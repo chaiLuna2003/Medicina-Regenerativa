@@ -34,7 +34,7 @@ $casoHistorial->evoluciones;
                 class="flex shrink-0 items-start
                            justify-between gap-5 border-b
                            border-slate-200 px-5 py-4 sm:px-6">
-                <div>
+                <div class="min-w-0 flex-1">
                     <p
                         class="text-xs font-semibold uppercase
                                    tracking-wide text-[#0D3B7F]">
@@ -446,52 +446,60 @@ $casoHistorial->evoluciones;
 
                                     {{-- Aparatos --}}
                                     <section
-                                        class="mt-4 rounded-xl
-                                                       border
-                                                       border-amber-200
-                                                       bg-amber-50 p-4">
-                                        <p
-                                            class="font-bold
-                                                           text-amber-950">
-                                            Aparatos
-                                        </p>
+                                        class="mt-4 rounded-xl border
+           border-amber-200 bg-amber-50 p-4">
 
                                         <div
-                                            class="mt-3 flex
-                                                           flex-wrap gap-2">
-                                            <span
-                                                class="rounded-full
-                                                               bg-emerald-100
-                                                               px-3 py-1.5
-                                                               text-xs
-                                                               font-semibold
-                                                               text-emerald-700">
-                                                Normales:
-                                                {{ $normales }}
-                                            </span>
+                                            class="flex flex-col gap-3
+               sm:flex-row sm:items-start
+               sm:justify-between">
 
-                                            <span
-                                                class="rounded-full
-                                                               bg-amber-100
-                                                               px-3 py-1.5
-                                                               text-xs
-                                                               font-semibold
-                                                               text-amber-700">
-                                                Atención:
-                                                {{ $atencion }}
-                                            </span>
+                                            <div>
+                                                <p class="font-bold text-amber-950">
+                                                    Aparatos
+                                                </p>
 
-                                            <span
-                                                class="rounded-full
-                                                               bg-red-100
-                                                               px-3 py-1.5
-                                                               text-xs
-                                                               font-semibold
-                                                               text-red-700">
-                                                Críticos:
-                                                {{ $criticos }}
-                                            </span>
+                                                <p
+                                                    class="mt-1 text-xs
+                       text-amber-800/70">
+                                                    Valoración correspondiente a esta
+                                                    fecha y cita.
+                                                </p>
+                                            </div>
+
+                                            <div class="flex flex-wrap gap-2">
+                                                <span
+                                                    class="rounded-full bg-emerald-100
+                       px-3 py-1.5 text-xs
+                       font-semibold text-emerald-700">
+                                                    Normales:
+                                                    {{ $normales }}
+                                                </span>
+
+                                                <span
+                                                    class="rounded-full bg-amber-100
+                       px-3 py-1.5 text-xs
+                       font-semibold text-amber-700">
+                                                    Atención:
+                                                    {{ $atencion }}
+                                                </span>
+
+                                                <span
+                                                    class="rounded-full bg-red-100
+                       px-3 py-1.5 text-xs
+                       font-semibold text-red-700">
+                                                    Críticos:
+                                                    {{ $criticos }}
+                                                </span>
+                                            </div>
                                         </div>
+
+                                        @include(
+                                        'citas.partials.historial-aparatos',
+                                        [
+                                        'aparatos' => $aparatos,
+                                        ]
+                                        )
                                     </section>
                                 </div>
                             </details>

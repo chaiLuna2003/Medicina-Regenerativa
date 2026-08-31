@@ -714,6 +714,7 @@ class CitasController extends Controller
 
             $cita->load([
                 'evolucionClinica.casoClinico',
+                'evolucionClinica.casoClinico.cerradoPor',
                 'evolucionClinica.aparatos',
                 'evolucionClinica.creadoPor',
 

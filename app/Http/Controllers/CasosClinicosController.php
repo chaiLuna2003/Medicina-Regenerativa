@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCasoClinicoRequest;
 use App\Models\CasoClinico;
+use App\Http\Requests\CerrarCasoClinicoRequest;
 use App\Models\Citas;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -64,23 +65,23 @@ class CasosClinicosController extends Controller
                  */
                 $casoClinico = CasoClinico::create([
                     'paciente_id' =>
-                        $citaBloqueada->paciente_id,
+                    $citaBloqueada->paciente_id,
 
                     'nombre' =>
-                        $datos['nombre'],
+                    $datos['nombre'],
 
                     'descripcion_inicial' =>
-                        $datos['descripcion_inicial']
-                            ?? null,
+                    $datos['descripcion_inicial']
+                        ?? null,
 
                     'fecha_inicio' =>
-                        $citaBloqueada->fecha,
+                    $citaBloqueada->fecha,
 
                     'estado' =>
-                        CasoClinico::ESTADO_ACTIVO,
+                    CasoClinico::ESTADO_ACTIVO,
 
                     'created_by' =>
-                        $usuario->id,
+                    $usuario->id,
                 ]);
 
                 /*
@@ -93,42 +94,42 @@ class CasosClinicosController extends Controller
                     ->evoluciones()
                     ->create([
                         'cita_id' =>
-                            $citaBloqueada->id,
+                        $citaBloqueada->id,
 
                         'paciente_id' =>
-                            $citaBloqueada->paciente_id,
+                        $citaBloqueada->paciente_id,
 
                         'medico_id' =>
-                            $citaBloqueada->medico_id,
+                        $citaBloqueada->medico_id,
 
                         'fecha' =>
-                            $citaBloqueada->fecha,
+                        $citaBloqueada->fecha,
 
                         'evolucion_clinica' =>
-                            $datos['evolucion_clinica'],
+                        $datos['evolucion_clinica'],
 
                         'diagnostico' =>
-                            $datos['diagnostico']
-                                ?? null,
+                        $datos['diagnostico']
+                            ?? null,
 
                         'tratamiento' =>
-                            $datos['tratamiento']
-                                ?? null,
+                        $datos['tratamiento']
+                            ?? null,
 
                         'plan_recomendaciones' =>
-                            $datos['plan_recomendaciones']
-                                ?? null,
+                        $datos['plan_recomendaciones']
+                            ?? null,
 
                         'indicaciones_enfermeria' =>
-                            $datos['indicaciones_enfermeria']
-                                ?? null,
+                        $datos['indicaciones_enfermeria']
+                            ?? null,
 
                         'observaciones' =>
-                            $datos['observaciones']
-                                ?? null,
+                        $datos['observaciones']
+                            ?? null,
 
                         'created_by' =>
-                            $usuario->id,
+                        $usuario->id,
                     ]);
             }
         );
@@ -141,6 +142,65 @@ class CasosClinicosController extends Controller
             ->with(
                 'success',
                 'El caso clínico y su primera evolución se registraron correctamente.'
+            );
+    }
+
+    /**
+     * Cierra un caso clínico sin eliminar su información.
+     */
+    public function cerrar(
+        CerrarCasoClinicoRequest $request,
+        CasoClinico $casoClinico
+    ): RedirectResponse {
+        Gate::authorize(
+            'cerrar',
+            $casoClinico
+        );
+
+        $motivoCierre = $request->validated(
+            'motivo_cierre'
+        );
+
+        DB::transaction(
+            function () use (
+                $casoClinico,
+                $motivoCierre,
+                $request
+            ): void {
+                $casoBloqueado =
+                    CasoClinico::query()
+                    ->whereKey(
+                        $casoClinico->id
+                    )
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                abort_unless(
+                    $casoBloqueado->estaActivo(),
+                    409,
+                    'El caso clínico ya se encuentra cerrado.'
+                );
+
+                $casoBloqueado->update([
+                    'estado' =>
+                    CasoClinico::ESTADO_CERRADO,
+
+                    'fecha_cierre' => now(),
+
+                    'cerrado_por' =>
+                    $request->user()->id,
+
+                    'motivo_cierre' =>
+                    $motivoCierre,
+                ]);
+            }
+        );
+
+        return redirect()
+            ->back()
+            ->with(
+                'success',
+                'El caso clínico se cerró correctamente.'
             );
     }
 }

@@ -26,12 +26,16 @@ class CasoClinico extends Model
         'fecha_inicio',
         'estado',
         'created_by',
+        'fecha_cierre',
+        'cerrado_por',
+        'motivo_cierre',
     ];
 
     protected function casts(): array
     {
         return [
             'fecha_inicio' => 'date',
+            'fecha_cierre' => 'datetime',
         ];
     }
 
@@ -58,6 +62,17 @@ class CasoClinico extends Model
     }
 
     /**
+     * Usuario médico que cerró el caso clínico.
+     */
+    public function cerradoPor(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'cerrado_por'
+        );
+    }
+
+    /**
      * Evoluciones registradas durante el seguimiento.
      */
     public function evoluciones(): HasMany
@@ -73,6 +88,16 @@ class CasoClinico extends Model
      */
     public function estaActivo(): bool
     {
-        return $this->estado === self::ESTADO_ACTIVO;
+        return $this->estado
+            === self::ESTADO_ACTIVO;
+    }
+
+    /**
+     * Determina si el seguimiento ya fue cerrado.
+     */
+    public function estaCerrado(): bool
+    {
+        return $this->estado
+            === self::ESTADO_CERRADO;
     }
 }

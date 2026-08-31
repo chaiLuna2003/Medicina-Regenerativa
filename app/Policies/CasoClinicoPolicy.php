@@ -102,6 +102,21 @@ class CasoClinicoPolicy
                 ->exists();
     }
 
+        /**
+     * Solamente el médico que abrió el caso puede cerrarlo.
+     * Un caso cerrado no admite repetir la operación.
+     */
+    public function cerrar(
+        User $user,
+        CasoClinico $casoClinico
+    ): bool {
+        return $user->isMedico()
+            && $user->medico !== null
+            && $casoClinico->estaActivo()
+            && (int) $casoClinico->created_by
+                === (int) $user->id;
+    }
+
     /**
      * Solamente el médico que abrió el caso puede modificar
      * su nombre, descripción o estado.

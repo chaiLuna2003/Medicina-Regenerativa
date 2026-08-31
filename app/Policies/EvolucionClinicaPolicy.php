@@ -98,6 +98,10 @@ class EvolucionClinicaPolicy
             && $user->medico !== null
             && (int) $evolucionClinica->medico_id
                 === (int) $user->medico->id
+                        && $evolucionClinica->casoClinico !== null
+            && $evolucionClinica
+                ->casoClinico
+                ->estaActivo()
             && $evolucionClinica->cita !== null
             && $evolucionClinica->cita->estado
                 !== 'cancelada';

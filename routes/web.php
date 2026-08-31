@@ -427,6 +427,19 @@ Route::middleware([
                 'citas.casos-clinicos.store'
             );
 
+                        /*
+             * Cerrar un caso clínico activo sin eliminarlo.
+             */
+            Route::patch(
+                '/casos-clinicos/{casoClinico}/cerrar',
+                [
+                    CasosClinicosController::class,
+                    'cerrar',
+                ]
+            )->name(
+                'casos-clinicos.cerrar'
+            );
+
             /*
          * Agregar la cita actual como seguimiento
          * de un caso clínico existente.

@@ -17,6 +17,7 @@ request()->user()->isMedico()
 && request()->user()->medico
 && (int) request()->user()->medico->id
 === (int) $evolucionCita->medico_id
+&& $casoEvolucion?->estaActivo()
 && $cita->estado !== 'cancelada';
 
 $valorEvolucion =
@@ -199,6 +200,101 @@ return $erroresEvolucion->any()
                         </div>
                         @endif
                     </section>
+
+                    @if ($casoEvolucion?->estaCerrado())
+                    <section
+                        class="mt-5 rounded-2xl border
+               border-red-200 bg-red-50 p-5">
+
+                        <div
+                            class="flex flex-col gap-4
+                   sm:flex-row sm:items-start
+                   sm:justify-between">
+
+                            <div>
+                                <p
+                                    class="text-xs font-semibold
+                           uppercase tracking-wide
+                           text-red-600">
+                                    Seguimiento finalizado
+                                </p>
+
+                                <h3
+                                    class="mt-1 font-bold
+                           text-red-950">
+                                    Caso clínico cerrado
+                                </h3>
+                            </div>
+
+                            <span
+                                class="w-fit rounded-full
+                       bg-red-100 px-3 py-1
+                       text-xs font-semibold
+                       text-red-700">
+                                Solo lectura
+                            </span>
+                        </div>
+
+                        <dl
+                            class="mt-4 grid gap-4
+                   border-t border-red-200
+                   pt-4 sm:grid-cols-2">
+
+                            <div>
+                                <dt
+                                    class="text-xs font-semibold
+                           uppercase tracking-wide
+                           text-red-500">
+                                    Fecha de cierre
+                                </dt>
+
+                                <dd
+                                    class="mt-1 text-sm
+                           font-semibold text-red-950">
+                                    {{ $casoEvolucion
+                        ->fecha_cierre
+                        ?->format('d/m/Y H:i')
+                        ?? 'No disponible' }}
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt
+                                    class="text-xs font-semibold
+                           uppercase tracking-wide
+                           text-red-500">
+                                    Cerrado por
+                                </dt>
+
+                                <dd
+                                    class="mt-1 text-sm
+                           font-semibold text-red-950">
+                                    {{ $casoEvolucion
+                        ->cerradoPor
+                        ?->name
+                        ?? 'Usuario no disponible' }}
+                                </dd>
+                            </div>
+                        </dl>
+
+                        <div class="mt-4">
+                            <p
+                                class="text-xs font-semibold
+                       uppercase tracking-wide
+                       text-red-500">
+                                Motivo de cierre
+                            </p>
+
+                            <p
+                                class="mt-1 whitespace-pre-line
+                       text-sm leading-6
+                       text-red-900">
+                                {{ $casoEvolucion->motivo_cierre
+                    ?: 'No disponible' }}
+                            </p>
+                        </div>
+                    </section>
+                    @endif
 
                     {{-- Campos clínicos --}}
                     <section

@@ -803,6 +803,10 @@
     )
 
     @include(
+    'citas.modals.cerrar-caso-clinico'
+    )
+
+    @include(
     'citas.modals.aparatos-evolucion'
     )
 
@@ -812,7 +816,7 @@
 
     @include(
     'citas.modals.graficas-evolucion'
-)
+    )
 </x-app-layout>
 
 @include(
@@ -824,5 +828,5 @@
 )
 
 @include(
-    'citas.scripts.graficas-evolucion'
+'citas.scripts.graficas-evolucion'
 )
