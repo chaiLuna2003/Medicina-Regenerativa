@@ -1,18 +1,28 @@
 <script>
-    const modalEstudios = document.getElementById('modal-estudios');
+    function abrirModalEstudios(disparador = null) {
+        const botonApertura =
+            disparador instanceof HTMLElement
+                ? disparador
+                : document.querySelector(
+                    '[data-abrir-estudios]'
+                );
 
-    function abrirModalEstudios() {
-        if (!modalEstudios) return;
-
-        modalEstudios.classList.remove('hidden');
-        document.body.classList.add('overflow-hidden');
+        abrirModalClinico(
+            'estudios',
+            botonApertura
+        );
     }
 
     function cerrarModalEstudios() {
-        if (!modalEstudios) return;
+        const modal = document.getElementById(
+            'modal-estudios'
+        );
 
-        modalEstudios.classList.add('hidden');
-        document.body.classList.remove('overflow-hidden');
+        if (!modal || modal.classList.contains('hidden')) {
+            return;
+        }
+
+        cerrarModalClinico(modal);
     }
 
     function mostrarArchivosSeleccionados(input) {
@@ -20,58 +30,50 @@
             'lista-archivos-estudios'
         );
 
-        if (!contenedor) return;
+        if (!contenedor) {
+            return;
+        }
 
-        contenedor.innerHTML = '';
+        contenedor.replaceChildren();
 
-        Array.from(input.files).forEach((archivo) => {
+        Array.from(input.files ?? []).forEach(function (archivo) {
             const elemento = document.createElement('div');
 
-            const megabytes =
-                (archivo.size / 1024 / 1024).toFixed(2);
-
             elemento.className =
-                'flex items-center justify-between ' +
+                'flex min-w-0 flex-col gap-1 ' +
                 'rounded-lg border border-gray-200 ' +
                 'bg-white px-3 py-2 text-sm';
 
             const nombre = document.createElement('span');
 
             nombre.className =
-                'truncate font-medium text-gray-700';
+                'min-w-0 font-medium text-gray-700 ' +
+                '[overflow-wrap:anywhere]';
 
             nombre.textContent = archivo.name;
 
             const peso = document.createElement('span');
 
-            peso.className =
-                'ml-3 shrink-0 text-xs text-gray-400';
+            peso.className = 'text-xs text-gray-600';
 
-            peso.textContent = megabytes + ' MB';
+            peso.textContent =
+                (archivo.size / 1024 / 1024).toFixed(2)
+                + ' MB';
 
             elemento.appendChild(nombre);
             elemento.appendChild(peso);
-
             contenedor.appendChild(elemento);
         });
     }
+</script>
 
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            cerrarModalEstudios();
-        }
-    });
-</script>
-@if (
-$errors->has('nombre')
-|| $errors->has('descripcion')
-|| $errors->has('fecha_estudio')
-|| $errors->has('archivos')
-|| $errors->has('archivos.*')
-)
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        abrirModalEstudios();
-    });
-</script>
+@if ($errors->getBag('estudiosCita')->any())
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function () {
+                abrirModalEstudios();
+            }
+        );
+    </script>
 @endif

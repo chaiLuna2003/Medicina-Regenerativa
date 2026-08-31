@@ -58,6 +58,18 @@ class EvolucionesClinicasController extends Controller
                     ->firstOrFail();
 
                 /*
+ * Revalidar con los datos actuales de la cita,
+ * una vez adquirido el bloqueo.
+ */
+                Gate::authorize(
+                    'crearDesdeCita',
+                    [
+                        CasoClinico::class,
+                        $citaBloqueada,
+                    ]
+                );
+
+                /*
                  * Bloquear el caso evita agregar información
                  * mientras otra solicitud intenta cerrarlo.
                  */
@@ -151,28 +163,60 @@ class EvolucionesClinicasController extends Controller
      * Actualiza únicamente el contenido clínico
      * de una evolución existente.
      */
+    /**
+     * Actualiza únicamente el contenido clínico de una evolución.
+     * El caso permanece bloqueado hasta terminar la actualización.
+     */
     public function update(
         UpdateEvolucionClinicaRequest $request,
         EvolucionClinica $evolucionClinica
     ): RedirectResponse {
-        /*
-     * Solamente el médico responsable de la cita
-     * puede modificar esta evolución.
-     */
         Gate::authorize(
             'update',
             $evolucionClinica
         );
 
-        /*
-     * El Form Request solamente devuelve campos clínicos.
-     *
-     * Caso, cita, paciente, médico, fecha y creador
-     * permanecen inmutables.
-     */
-        $evolucionClinica->update(
-            $request->validated()
-        );
+        $datos = $request->validated();
+
+        DB::transaction(function () use (
+            $evolucionClinica,
+            $datos
+        ): void {
+            /*
+         * El cierre utiliza este mismo bloqueo.
+         * Así, cerrar el caso y editar su evolución
+         * no pueden ejecutarse al mismo tiempo.
+         */
+            $casoBloqueado = CasoClinico::query()
+                ->whereKey($evolucionClinica->caso_clinico_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $evolucionBloqueada = EvolucionClinica::query()
+                ->whereKey($evolucionClinica->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            /*
+         * La Policy debe consultar el estado recién leído,
+         * no una relación cargada antes de la transacción.
+         */
+            $evolucionBloqueada->setRelation(
+                'casoClinico',
+                $casoBloqueado
+            );
+
+            Gate::authorize(
+                'update',
+                $evolucionBloqueada
+            );
+
+            /*
+         * Solo se actualizan los campos clínicos validados.
+         * Las relaciones y los datos de auditoría no cambian.
+         */
+            $evolucionBloqueada->update($datos);
+        });
 
         return redirect()
             ->route(
@@ -186,46 +230,53 @@ class EvolucionesClinicasController extends Controller
     }
 
     /**
- * Crea o actualiza la valoración completa de aparatos
- * perteneciente a una evolución clínica.
- */
-public function updateAparatos(
-    UpdateEvolucionAparatosRequest $request,
-    EvolucionClinica $evolucionClinica
-): RedirectResponse {
-    /*
-     * Solamente el médico responsable de la cita
-     * puede administrar los aparatos.
+     * Crea o actualiza la valoración de aparatos.
+     * Impide guardar cambios después de un cierre concurrente.
      */
-    Gate::authorize(
-        'gestionarAparatos',
-        $evolucionClinica
-    );
+    public function updateAparatos(
+        UpdateEvolucionAparatosRequest $request,
+        EvolucionClinica $evolucionClinica
+    ): RedirectResponse {
+        Gate::authorize(
+            'gestionarAparatos',
+            $evolucionClinica
+        );
 
-    $aparatos = $request
-        ->validated('aparatos');
+        $aparatos = $request->validated('aparatos');
 
-    DB::transaction(
-        function () use (
+        DB::transaction(function () use (
             $evolucionClinica,
             $aparatos
         ): void {
             /*
-             * Evita que dos solicitudes actualicen
-             * simultáneamente la misma valoración.
-             */
-            $evolucionBloqueada =
-                EvolucionClinica::query()
-                    ->whereKey(
-                        $evolucionClinica->id
-                    )
-                    ->lockForUpdate()
-                    ->firstOrFail();
+         * Conservamos el mismo orden de bloqueo que en update():
+         * primero el caso y después la evolución.
+         */
+            $casoBloqueado = CasoClinico::query()
+                ->whereKey($evolucionClinica->caso_clinico_id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            foreach (
-                $aparatos
-                as $clave => $valoracion
-            ) {
+            $evolucionBloqueada = EvolucionClinica::query()
+                ->whereKey($evolucionClinica->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            /*
+         * Revalidamos usando el estado actual del caso,
+         * leído dentro de la transacción.
+         */
+            $evolucionBloqueada->setRelation(
+                'casoClinico',
+                $casoBloqueado
+            );
+
+            Gate::authorize(
+                'gestionarAparatos',
+                $evolucionBloqueada
+            );
+
+            foreach ($aparatos as $clave => $valoracion) {
                 $evolucionBloqueada
                     ->aparatos()
                     ->updateOrCreate(
@@ -233,27 +284,22 @@ public function updateAparatos(
                             'aparato' => $clave,
                         ],
                         [
-                            'estado' =>
-                                $valoracion['estado'],
-
+                            'estado' => $valoracion['estado'],
                             'observaciones' =>
-                                $valoracion[
-                                    'observaciones'
-                                ] ?? null,
+                            $valoracion['observaciones'] ?? null,
                         ]
                     );
             }
-        }
-    );
+        });
 
-    return redirect()
-        ->route(
-            'citas.show',
-            $evolucionClinica->cita_id
-        )
-        ->with(
-            'success',
-            'La valoración de aparatos se actualizó correctamente.'
-        );
-}
+        return redirect()
+            ->route(
+                'citas.show',
+                $evolucionClinica->cita_id
+            )
+            ->with(
+                'success',
+                'La valoración de aparatos se actualizó correctamente.'
+            );
+    }
 }

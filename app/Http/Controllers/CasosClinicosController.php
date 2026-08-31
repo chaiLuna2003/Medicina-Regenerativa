@@ -52,6 +52,18 @@ class CasosClinicosController extends Controller
                     ->lockForUpdate()
                     ->firstOrFail();
 
+                /*
+ * Revalidar con los datos actuales de la cita,
+ * una vez adquirido el bloqueo.
+ */
+                Gate::authorize(
+                    'crearDesdeCita',
+                    [
+                        CasoClinico::class,
+                        $citaBloqueada,
+                    ]
+                );
+
                 abort_if(
                     $citaBloqueada
                         ->evolucionClinica()

@@ -39,7 +39,11 @@ class EstudiosController extends Controller
         /*
          * Validación de los datos recibidos.
          */
-        $datos = $request->validate([
+        $bolsaErrores = $request->routeIs('pacientes.estudios.store')
+            ? 'default'
+            : 'estudiosCita';
+
+        $datos = $request->validateWithBag($bolsaErrores, [
             'nombre' => [
                 'required',
                 'string',
@@ -72,6 +76,29 @@ class EstudiosController extends Controller
                 'mimetypes:application/pdf',
                 'max:15360',
             ],
+        ], [
+            'nombre.required' => 'Escribe el nombre del estudio.',
+            'nombre.string' => 'El nombre del estudio debe ser texto.',
+            'nombre.max' => 'El nombre no debe superar los 150 caracteres.',
+
+            'descripcion.string' => 'La descripción debe ser texto.',
+            'descripcion.max' => 'La descripción no debe superar los 1000 caracteres.',
+
+            'fecha_estudio.required' => 'Indica la fecha del estudio.',
+            'fecha_estudio.date' => 'Indica una fecha válida.',
+            'fecha_estudio.before_or_equal' => 'La fecha del estudio no puede ser futura.',
+
+            'archivos.required' => 'Selecciona al menos un archivo PDF.',
+            'archivos.array' => 'La selección de archivos no es válida.',
+            'archivos.min' => 'Selecciona al menos un archivo PDF.',
+            'archivos.max' => 'Puedes adjuntar como máximo 10 archivos PDF por envío.',
+
+            'archivos.*.required' => 'El archivo número :position es obligatorio.',
+            'archivos.*.file' => 'El archivo número :position no es válido.',
+            'archivos.*.uploaded' => 'No se pudo subir el archivo número :position.',
+            'archivos.*.mimes' => 'El archivo número :position debe ser un PDF.',
+            'archivos.*.mimetypes' => 'El archivo número :position debe ser un PDF.',
+            'archivos.*.max' => 'El archivo número :position no debe superar los 15 MB.',
         ]);
 
         /*
@@ -131,70 +158,70 @@ class EstudiosController extends Controller
     }
 
     /**
- * Guarda estudios desde la ficha del paciente.
- *
- * La cita seleccionada debe pertenecer realmente
- * al paciente mostrado en la ficha.
- */
-public function storeDesdePaciente(
-    Request $request,
-    Pacientes $paciente
-): RedirectResponse {
+     * Guarda estudios desde la ficha del paciente.
+     *
+     * La cita seleccionada debe pertenecer realmente
+     * al paciente mostrado en la ficha.
+     */
+    public function storeDesdePaciente(
+        Request $request,
+        Pacientes $paciente
+    ): RedirectResponse {
 
-    /*
+        /*
      * Segunda capa de protección.
      */
-    abort_unless(
-        in_array(
-            $request->user()->role,
-            ['admin', 'recepcionista'],
-            true
-        ),
-        403
-    );
+        abort_unless(
+            in_array(
+                $request->user()->role,
+                ['admin', 'recepcionista'],
+                true
+            ),
+            403
+        );
 
-    /*
+        /*
      * Validar que la cita exista y pertenezca
      * al paciente recibido en la URL.
      */
-    $datos = $request->validate([
-        'cita_id' => [
-            'required',
-            'integer',
+        $datos = $request->validate([
+            'cita_id' => [
+                'required',
+                'integer',
 
-            Rule::exists('citas', 'id')
-                ->where(
-                    fn ($query) => $query->where(
-                        'paciente_id',
-                        $paciente->id
-                    )
-                ),
-        ],
-    ], [
-        'cita_id.required' =>
+                Rule::exists('citas', 'id')
+                    ->where(
+                        fn($query) => $query->where(
+                            'paciente_id',
+                            $paciente->id
+                        )
+                    ),
+            ],
+        ], [
+            'cita_id.required' =>
             'Debes seleccionar una cita.',
 
-        'cita_id.exists' =>
+            'cita_id.exists' =>
             'La cita seleccionada no pertenece a este paciente.',
-    ]);
+        ]);
 
-    /*
+        /*
      * Recuperar la cita ya validada.
      */
-    $cita = Citas::findOrFail(
-        $datos['cita_id']
-    );
+        $cita = Citas::findOrFail(
+            $datos['cita_id']
+        );
 
-    /*
+        /*
      * Reutilizamos exactamente el flujo existente:
      * permisos, validación, almacenamiento privado
      * y creación de los estudios.
      */
-    return $this->store(
-        $request,
-        $cita
-    );
-}
+        return $this->store(
+            $request,
+            $cita
+        );
+    }
 
     /**
      * Mostrar el historial de estudios de un paciente.

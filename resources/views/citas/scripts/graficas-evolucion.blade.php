@@ -377,7 +377,7 @@
                         === claveActiva;
 
                     boton.setAttribute(
-                        'aria-selected',
+                        'aria-pressed',
                         activo
                             ? 'true'
                             : 'false'

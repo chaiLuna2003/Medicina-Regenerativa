@@ -75,7 +75,7 @@
         );
     }
 
-    function abrirModalClinico(
+       function abrirModalClinico(
         nombre,
         disparador = null
     ) {
@@ -87,10 +87,27 @@
             return;
         }
 
+        let disparadorRetorno =
+            disparador instanceof HTMLElement
+                ? disparador
+                : null;
+
         if (
             modalClinicoActivo
             && modalClinicoActivo !== modal
         ) {
+            // Si abrimos desde otro modal, conservamos
+            // el botón original de la página.
+            if (
+                disparadorRetorno
+                && modalClinicoActivo.contains(
+                    disparadorRetorno
+                )
+            ) {
+                disparadorRetorno =
+                    disparadorModalClinico;
+            }
+
             cerrarModalClinico(
                 modalClinicoActivo,
                 false
@@ -100,9 +117,7 @@
         modalClinicoActivo = modal;
 
         disparadorModalClinico =
-            disparador instanceof HTMLElement
-                ? disparador
-                : null;
+            disparadorRetorno;
 
         modal.classList.remove('hidden');
 

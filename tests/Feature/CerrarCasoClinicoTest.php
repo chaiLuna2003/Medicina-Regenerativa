@@ -35,7 +35,7 @@ class CerrarCasoClinicoTest extends TestCase
                 ),
                 [
                     'motivo_cierre' =>
-                        'Alta médica por cumplimiento de objetivos.',
+                    'Alta médica por cumplimiento de objetivos.',
 
                     'confirmacion_cierre' => '1',
                 ]
@@ -108,7 +108,7 @@ class CerrarCasoClinicoTest extends TestCase
             [
                 'id' => $datos['caso']->id,
                 'estado' =>
-                    CasoClinico::ESTADO_ACTIVO,
+                CasoClinico::ESTADO_ACTIVO,
                 'fecha_cierre' => null,
                 'cerrado_por' => null,
                 'motivo_cierre' => null,
@@ -131,7 +131,7 @@ class CerrarCasoClinicoTest extends TestCase
                 ),
                 [
                     'motivo_cierre' =>
-                        'Intento de cierre por otro médico.',
+                    'Intento de cierre por otro médico.',
 
                     'confirmacion_cierre' => '1',
                 ]
@@ -143,7 +143,7 @@ class CerrarCasoClinicoTest extends TestCase
             [
                 'id' => $datos['caso']->id,
                 'estado' =>
-                    CasoClinico::ESTADO_ACTIVO,
+                CasoClinico::ESTADO_ACTIVO,
             ]
         );
     }
@@ -168,7 +168,7 @@ class CerrarCasoClinicoTest extends TestCase
                 ),
                 [
                     'motivo_cierre' =>
-                        'Administración intenta cerrar el caso.',
+                    'Administración intenta cerrar el caso.',
 
                     'confirmacion_cierre' => '1',
                 ]
@@ -180,7 +180,7 @@ class CerrarCasoClinicoTest extends TestCase
             [
                 'id' => $datos['caso']->id,
                 'estado' =>
-                    CasoClinico::ESTADO_ACTIVO,
+                CasoClinico::ESTADO_ACTIVO,
             ]
         );
     }
@@ -212,7 +212,7 @@ class CerrarCasoClinicoTest extends TestCase
                     ),
                     [
                         'motivo_cierre' =>
-                            'Intento de cierre sin autorización.',
+                        'Intento de cierre sin autorización.',
 
                         'confirmacion_cierre' => '1',
                     ]
@@ -225,7 +225,7 @@ class CerrarCasoClinicoTest extends TestCase
             [
                 'id' => $datos['caso']->id,
                 'estado' =>
-                    CasoClinico::ESTADO_ACTIVO,
+                CasoClinico::ESTADO_ACTIVO,
             ]
         );
     }
@@ -249,7 +249,7 @@ class CerrarCasoClinicoTest extends TestCase
                 ),
                 [
                     'motivo_cierre' =>
-                        'Segundo intento de cierre del caso.',
+                    'Segundo intento de cierre del caso.',
 
                     'confirmacion_cierre' => '1',
                 ]
@@ -262,7 +262,7 @@ class CerrarCasoClinicoTest extends TestCase
                 'id' => $datos['caso']->id,
 
                 'motivo_cierre' =>
-                    'Cierre previo para prueba automatizada.',
+                'Cierre previo para prueba automatizada.',
             ]
         );
     }
@@ -286,7 +286,7 @@ class CerrarCasoClinicoTest extends TestCase
                 ),
                 [
                     'evolucion_clinica' =>
-                        'Este cambio no debe guardarse.',
+                    'Este cambio no debe guardarse.',
                 ]
             )
             ->assertForbidden();
@@ -297,7 +297,7 @@ class CerrarCasoClinicoTest extends TestCase
                 'id' => $datos['evolucion']->id,
 
                 'evolucion_clinica' =>
-                    'Evolución clínica inicial de prueba.',
+                'Evolución clínica inicial de prueba.',
             ]
         );
     }
@@ -318,7 +318,7 @@ class CerrarCasoClinicoTest extends TestCase
         ) {
             $aparatos[$clave] = [
                 'estado' =>
-                    EvolucionAparato::ESTADO_NORMAL,
+                EvolucionAparato::ESTADO_NORMAL,
 
                 'observaciones' => null,
             ];
@@ -356,10 +356,10 @@ class CerrarCasoClinicoTest extends TestCase
         $citaPosterior =
             Citas::query()->create([
                 'paciente_id' =>
-                    $datos['paciente']->id,
+                $datos['paciente']->id,
 
                 'medico_id' =>
-                    $datos['medico']->id,
+                $datos['medico']->id,
 
                 'fecha' => now()
                     ->addDays(2)
@@ -372,15 +372,15 @@ class CerrarCasoClinicoTest extends TestCase
                 'modalidad' => 'presencial',
 
                 'motivo' =>
-                    'consulta_subsecuente',
+                'consulta_subsecuente',
 
                 'notas' =>
-                    'Cita posterior de prueba.',
+                'Cita posterior de prueba.',
 
                 'estado' => 'programada',
 
                 'created_by' =>
-                    $datos['usuario_medico']->id,
+                $datos['usuario_medico']->id,
             ]);
 
         $this
@@ -392,15 +392,15 @@ class CerrarCasoClinicoTest extends TestCase
                     'citas.casos-clinicos.evoluciones.store',
                     [
                         'cita' =>
-                            $citaPosterior,
+                        $citaPosterior,
 
                         'casoClinico' =>
-                            $datos['caso'],
+                        $datos['caso'],
                     ]
                 ),
                 [
                     'evolucion_clinica' =>
-                        'Seguimiento que no debe crearse.',
+                    'Seguimiento que no debe crearse.',
                 ]
             )
             ->assertForbidden();
@@ -421,7 +421,7 @@ class CerrarCasoClinicoTest extends TestCase
         $usuarioMedico =
             User::factory()->create([
                 'name' =>
-                    'Médico responsable',
+                'Médico responsable',
 
                 'role' => 'medico',
 
@@ -440,27 +440,27 @@ class CerrarCasoClinicoTest extends TestCase
         $medico =
             Medicos::query()->create([
                 'user_id' =>
-                    $usuarioMedico->id,
+                $usuarioMedico->id,
 
                 'nombre' => 'Médico',
 
                 'apellido_paterno' =>
-                    'Responsable',
+                'Responsable',
 
                 'apellido_materno' =>
-                    'Prueba',
+                'Prueba',
 
                 'especialidad' =>
-                    'Medicina general',
+                'Medicina general',
 
                 'cedula' =>
-                    'CED-CIERRE-1',
+                'CED-CIERRE-1',
 
                 'telefono' =>
-                    '5550000101',
+                '5550000101',
 
                 'consultorio' =>
-                    'Consultorio 1',
+                'Consultorio 1',
 
                 'status' => true,
             ]);
@@ -468,27 +468,27 @@ class CerrarCasoClinicoTest extends TestCase
         $medicoAjeno =
             Medicos::query()->create([
                 'user_id' =>
-                    $usuarioMedicoAjeno->id,
+                $usuarioMedicoAjeno->id,
 
                 'nombre' => 'Médico',
 
                 'apellido_paterno' =>
-                    'Ajeno',
+                'Ajeno',
 
                 'apellido_materno' =>
-                    'Prueba',
+                'Prueba',
 
                 'especialidad' =>
-                    'Medicina general',
+                'Medicina general',
 
                 'cedula' =>
-                    'CED-CIERRE-2',
+                'CED-CIERRE-2',
 
                 'telefono' =>
-                    '5550000102',
+                '5550000102',
 
                 'consultorio' =>
-                    'Consultorio 2',
+                'Consultorio 2',
 
                 'status' => true,
             ]);
@@ -500,12 +500,12 @@ class CerrarCasoClinicoTest extends TestCase
                 'apellido' => 'Cierre',
 
                 'fecha_nacimiento' =>
-                    '1990-01-01',
+                '1990-01-01',
 
                 'sexo' => 'masculino',
 
                 'categoria' =>
-                    'sin_categoria',
+                'sin_categoria',
 
                 'status' => true,
             ]);
@@ -517,10 +517,10 @@ class CerrarCasoClinicoTest extends TestCase
         $cita =
             Citas::query()->create([
                 'paciente_id' =>
-                    $paciente->id,
+                $paciente->id,
 
                 'medico_id' =>
-                    $medico->id,
+                $medico->id,
 
                 'fecha' => $fecha,
 
@@ -529,91 +529,234 @@ class CerrarCasoClinicoTest extends TestCase
                 'duracion_minutos' => 30,
 
                 'modalidad' =>
-                    'presencial',
+                'presencial',
 
                 'motivo' =>
-                    'consulta_inicial',
+                'consulta_inicial',
 
                 'notas' =>
-                    'Cita para probar cierre de caso.',
+                'Cita para probar cierre de caso.',
 
                 'estado' => 'programada',
 
                 'created_by' =>
-                    $usuarioMedico->id,
+                $usuarioMedico->id,
             ]);
 
         $caso =
             CasoClinico::query()->create([
                 'paciente_id' =>
-                    $paciente->id,
+                $paciente->id,
 
                 'nombre' =>
-                    'Caso clínico de prueba',
+                'Caso clínico de prueba',
 
                 'descripcion_inicial' =>
-                    'Seguimiento creado para pruebas automatizadas.',
+                'Seguimiento creado para pruebas automatizadas.',
 
                 'fecha_inicio' => $fecha,
 
                 'estado' =>
-                    CasoClinico::ESTADO_ACTIVO,
+                CasoClinico::ESTADO_ACTIVO,
 
                 'created_by' =>
-                    $usuarioMedico->id,
+                $usuarioMedico->id,
             ]);
 
         $evolucion =
             EvolucionClinica::query()->create([
                 'caso_clinico_id' =>
-                    $caso->id,
+                $caso->id,
 
                 'cita_id' =>
-                    $cita->id,
+                $cita->id,
 
                 'paciente_id' =>
-                    $paciente->id,
+                $paciente->id,
 
                 'medico_id' =>
-                    $medico->id,
+                $medico->id,
 
                 'fecha' => $fecha,
 
                 'evolucion_clinica' =>
-                    'Evolución clínica inicial de prueba.',
+                'Evolución clínica inicial de prueba.',
 
                 'diagnostico' =>
-                    'Diagnóstico de prueba.',
+                'Diagnóstico de prueba.',
 
                 'created_by' =>
-                    $usuarioMedico->id,
+                $usuarioMedico->id,
             ]);
 
         return [
             'usuario_medico' =>
-                $usuarioMedico,
+            $usuarioMedico,
 
             'usuario_medico_ajeno' =>
-                $usuarioMedicoAjeno,
+            $usuarioMedicoAjeno,
 
             'medico' =>
-                $medico,
+            $medico,
 
             'medico_ajeno' =>
-                $medicoAjeno,
+            $medicoAjeno,
 
             'paciente' =>
-                $paciente,
+            $paciente,
 
             'cita' =>
-                $cita,
+            $cita,
 
             'caso' =>
-                $caso,
+            $caso,
 
             'evolucion' =>
-                $evolucion,
+            $evolucion,
         ];
+    }
+
+    public function test_cierre_entre_autorizacion_y_guardado_impide_editar_evolucion(): void
+    {
+        $datos = $this->crearEscenario();
+
+        $contenidoOriginal = $datos['evolucion']->evolucion_clinica;
+        $cierreSimulado = false;
+
+        \Illuminate\Support\Facades\Gate::after(
+            function ($usuario, $habilidad, $resultado, $argumentos) use (
+                $datos,
+                &$cierreSimulado
+            ): void {
+                if (
+                    $cierreSimulado
+                    || $habilidad !== 'update'
+                    || $resultado !== true
+                    || ! (($argumentos[0] ?? null) instanceof EvolucionClinica)
+                    || (int) $argumentos[0]->id
+                    !== (int) $datos['evolucion']->id
+                ) {
+                    return;
+                }
+
+                /*
+             * La autorización inicial ya aprobó la operación.
+             * Simulamos que el cierre ocurre antes del guardado.
+             */
+                $cierreSimulado = true;
+
+                $this->marcarCasoComoCerrado($datos);
+            }
+        );
+
+        $respuesta = $this
+            ->actingAs($datos['usuario_medico'])
+            ->put(
+                route('evoluciones.update', $datos['evolucion']),
+                [
+                    'evolucion_clinica' =>
+                    'Este cambio no debe guardarse después del cierre.',
+                ]
+            );
+
+        $respuesta->assertForbidden();
+
+        $this->assertTrue(
+            $cierreSimulado,
+            'La prueba debe cerrar el caso después de autorizar inicialmente.'
+        );
+
+        $this->assertTrue(
+            $datos['caso']->fresh()->estaCerrado()
+        );
+
+        $this->assertSame(
+            $contenidoOriginal,
+            $datos['evolucion']->fresh()->evolucion_clinica
+        );
+    }
+
+    public function test_cierre_entre_autorizacion_y_guardado_impide_editar_aparatos(): void
+    {
+        $datos = $this->crearEscenario();
+
+        $claves = array_keys(EvolucionAparato::APARATOS);
+        $primeraClave = $claves[0];
+
+        $valoracionOriginal = $datos['evolucion']
+            ->aparatos()
+            ->create([
+                'aparato' => $primeraClave,
+                'estado' => EvolucionAparato::ESTADO_NORMAL,
+                'observaciones' => 'Observación original que debe conservarse.',
+            ]);
+
+        $atributosOriginales = $valoracionOriginal
+    ->fresh()
+    ->getAttributes();
+
+        $aparatos = [];
+
+        foreach ($claves as $clave) {
+            $aparatos[$clave] = [
+                'estado' => EvolucionAparato::ESTADO_NORMAL,
+                'observaciones' => 'Este cambio no debe guardarse.',
+            ];
+        }
+
+        $cierreSimulado = false;
+
+        \Illuminate\Support\Facades\Gate::after(
+            function ($usuario, $habilidad, $resultado, $argumentos) use (
+                $datos,
+                &$cierreSimulado
+            ): void {
+                if (
+                    $cierreSimulado
+                    || $habilidad !== 'gestionarAparatos'
+                    || $resultado !== true
+                    || ! (($argumentos[0] ?? null) instanceof EvolucionClinica)
+                    || (int) $argumentos[0]->id
+                    !== (int) $datos['evolucion']->id
+                ) {
+                    return;
+                }
+
+                $cierreSimulado = true;
+
+                $this->marcarCasoComoCerrado($datos);
+            }
+        );
+
+        $respuesta = $this
+            ->actingAs($datos['usuario_medico'])
+            ->put(
+                route('evoluciones.aparatos.update', $datos['evolucion']),
+                [
+                    'aparatos' => $aparatos,
+                ]
+            );
+
+        $respuesta->assertForbidden();
+
+        $this->assertTrue(
+            $cierreSimulado,
+            'La prueba debe cerrar el caso después de autorizar inicialmente.'
+        );
+
+        $this->assertTrue(
+            $datos['caso']->fresh()->estaCerrado()
+        );
+
+        $this->assertSame(
+            $atributosOriginales,
+            $valoracionOriginal->fresh()->getAttributes()
+        );
+
+        $this->assertSame(
+            1,
+            $datos['evolucion']->aparatos()->count()
+        );
     }
 
     /**
@@ -626,15 +769,15 @@ class CerrarCasoClinicoTest extends TestCase
     ): void {
         $datos['caso']->update([
             'estado' =>
-                CasoClinico::ESTADO_CERRADO,
+            CasoClinico::ESTADO_CERRADO,
 
             'fecha_cierre' => now(),
 
             'cerrado_por' =>
-                $datos['usuario_medico']->id,
+            $datos['usuario_medico']->id,
 
             'motivo_cierre' =>
-                'Cierre previo para prueba automatizada.',
+            'Cierre previo para prueba automatizada.',
         ]);
     }
 }

@@ -26,9 +26,10 @@ $casoHistorial->evoluciones;
         class="relative flex min-h-full items-center
                    justify-center p-2 sm:p-5">
         <div
-            class="relative flex max-h-[96vh] w-full
-                       max-w-6xl flex-col overflow-hidden
-                       rounded-2xl bg-white shadow-2xl">
+            class="relative flex max-h-[96vh] w-full min-w-0
+           max-w-6xl flex-col overflow-hidden
+           [overflow-wrap:anywhere]
+           rounded-2xl bg-white shadow-2xl">
 
             <header
                 class="flex shrink-0 items-start
@@ -43,8 +44,8 @@ $casoHistorial->evoluciones;
 
                     <h2
                         id="titulo-modal-historial-caso"
-                        class="mt-1 text-xl font-bold
-                                   text-slate-900">
+                        class="mt-1 break-words [overflow-wrap:anywhere]
+           text-xl font-bold text-slate-900">
                         {{ $casoHistorial->nombre }}
                     </h2>
 
@@ -58,9 +59,13 @@ $casoHistorial->evoluciones;
                     type="button"
                     data-cerrar-modal-clinico
                     aria-label="Cerrar historial"
-                    class="rounded-lg p-2 text-slate-400
-                               transition hover:bg-slate-100
-                               hover:text-slate-700">
+                    class="shrink-0 rounded-lg p-2 text-slate-600
+           transition hover:bg-slate-100
+           hover:text-slate-900
+           focus-visible:outline-none
+           focus-visible:ring-2
+           focus-visible:ring-[#0D3B7F]
+           focus-visible:ring-offset-2">
                     ✕
                 </button>
             </header>
@@ -171,6 +176,67 @@ $casoHistorial->evoluciones;
                     </div>
                     @endif
                 </section>
+
+                {{-- Información del cierre --}}
+                @if ($casoHistorial->estaCerrado())
+                <section
+                    aria-labelledby="titulo-cierre-historial"
+                    class="mt-4 min-w-0 rounded-2xl border
+               border-slate-300 bg-slate-100 p-5
+               [overflow-wrap:anywhere]">
+
+                    <h3
+                        id="titulo-cierre-historial"
+                        class="font-bold text-slate-900">
+                        Cierre del caso
+                    </h3>
+
+                    <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+                        <div class="min-w-0">
+                            <dt
+                                class="text-xs font-semibold uppercase
+                           tracking-wide text-slate-600">
+                                Fecha de cierre
+                            </dt>
+
+                            <dd
+                                class="mt-1 text-sm font-semibold text-slate-900">
+                                {{ $casoHistorial->fecha_cierre
+                        ?->format('d/m/Y H:i')
+                        ?? 'No disponible' }}
+                            </dd>
+                        </div>
+
+                        <div class="min-w-0">
+                            <dt
+                                class="text-xs font-semibold uppercase
+                           tracking-wide text-slate-600">
+                                Cerrado por
+                            </dt>
+
+                            <dd
+                                class="mt-1 text-sm font-semibold text-slate-900">
+                                {{ $casoHistorial->cerradoPor?->name
+                        ?? 'Usuario no disponible' }}
+                            </dd>
+                        </div>
+
+                        <div
+                            class="min-w-0 border-t border-slate-300
+                       pt-4 sm:col-span-2">
+                            <dt
+                                class="text-xs font-semibold uppercase
+                           tracking-wide text-slate-600">
+                                Motivo de cierre
+                            </dt>
+
+                            <dd
+                                class="mt-1 whitespace-pre-line
+                           text-sm leading-6 text-slate-800">{{ $casoHistorial->motivo_cierre ?: 'No disponible' }}</dd>
+                        </div>
+                    </dl>
+                </section>
+                @endif
 
                 {{-- Línea cronológica --}}
                 <div class="mt-6">
@@ -510,26 +576,34 @@ $casoHistorial->evoluciones;
             </div>
 
             <footer
-                class="flex shrink-0 justify-end border-t
-                           border-slate-200 bg-white px-5 py-4
-                           sm:px-6">
+                class="flex shrink-0 flex-col gap-3 border-t
+           border-slate-200 bg-white px-5 py-4
+           sm:flex-row sm:justify-end sm:px-6">
 
                 <button
                     type="button"
                     data-modal-clinico="graficas-evolucion"
-                    class="rounded-xl border border-[#0D3B7F]
-           px-5 py-2.5 text-sm font-semibold
-           text-[#0D3B7F] transition
-           hover:bg-[#0D3B7F] hover:text-white">
+                    class="w-full rounded-xl border border-[#0D3B7F]
+               px-5 py-2.5 text-sm font-semibold
+               text-[#0D3B7F] transition
+               hover:bg-[#0D3B7F] hover:text-white
+               focus-visible:outline-none
+               focus-visible:ring-2
+               focus-visible:ring-[#0D3B7F]
+               focus-visible:ring-offset-2 sm:w-auto">
                     Ver gráficas
                 </button>
+
                 <button
                     type="button"
                     data-cerrar-modal-clinico
-                    class="rounded-xl bg-slate-900 px-5
-                               py-2.5 text-sm font-semibold
-                               text-white transition
-                               hover:bg-slate-700">
+                    class="w-full rounded-xl bg-slate-900 px-5
+               py-2.5 text-sm font-semibold
+               text-white transition hover:bg-slate-700
+               focus-visible:outline-none
+               focus-visible:ring-2
+               focus-visible:ring-slate-900
+               focus-visible:ring-offset-2 sm:w-auto">
                     Cerrar
                 </button>
             </footer>

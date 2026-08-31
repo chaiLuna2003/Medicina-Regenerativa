@@ -1,53 +1,39 @@
 @if ($puedeConsultarInformacionClinica)
     @php
-        $historia =
-            $cita->paciente?->historiaClinica;
+        $historia = $cita->paciente?->historiaClinica;
 
-        $heredofamiliares =
-            collect(
-                $historia
-                    ?->antecedentesHeredofamiliares
-                    ?->antecedentes
-                    ?? []
-            )->filter(
-                fn($valor) => filled($valor)
-            );
+        $heredofamiliares = collect(
+            $historia?->antecedentesHeredofamiliares?->antecedentes ?? []
+        )->filter(
+            fn ($valor) => filled($valor)
+        );
 
-        $personalesPatologicos =
-            collect(
-                $historia
-                    ?->antecedentesPersonalesPatologicos
-                    ?->antecedentes
-                    ?? []
-            )->filter(
-                fn($valor) => filled($valor)
-            );
+        $personalesPatologicos = collect(
+            $historia?->antecedentesPersonalesPatologicos?->antecedentes ?? []
+        )->filter(
+            fn ($valor) => filled($valor)
+        );
 
-        $personalesNoPatologicos =
-            collect(
-                $historia
-                    ?->antecedentesPersonalesNoPatologicos
-                    ?->antecedentes
-                    ?? []
-            )->filter(
-                fn($valor) => filled($valor)
-            );
+        $personalesNoPatologicos = collect(
+            $historia?->antecedentesPersonalesNoPatologicos?->antecedentes ?? []
+        )->filter(
+            fn ($valor) => filled($valor)
+        );
 
-        $formatearValorClinico =
-            function ($valor): string {
-                if (is_bool($valor)) {
-                    return $valor ? 'Sí' : 'No';
-                }
+        $formatearValorClinico = function ($valor): string {
+            if (is_bool($valor)) {
+                return $valor ? 'Sí' : 'No';
+            }
 
-                if (is_array($valor)) {
-                    return implode(
-                        ', ',
-                        array_filter($valor)
-                    );
-                }
+            if (is_array($valor)) {
+                return implode(
+                    ', ',
+                    array_filter($valor)
+                );
+            }
 
-                return (string) $valor;
-            };
+            return (string) $valor;
+        };
     @endphp
 
     <div
@@ -57,26 +43,29 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-modal-historia">
+
         <div
-            class="absolute inset-0 bg-slate-950/60
-                   backdrop-blur-sm"
-            data-cerrar-modal-clinico></div>
+            class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            data-cerrar-modal-clinico>
+        </div>
 
         <div
             class="relative flex min-h-full items-center
                    justify-center p-3 sm:p-6">
+
             <div
-                class="relative flex max-h-[92vh] w-full
+                class="relative flex max-h-[92vh] w-full min-w-0
                        max-w-5xl flex-col overflow-hidden
-                       rounded-2xl bg-white shadow-2xl">
+                       rounded-2xl bg-white shadow-2xl
+                       [overflow-wrap:anywhere]">
 
                 {{-- Encabezado --}}
                 <header
-                    class="flex shrink-0 items-start
-                           justify-between gap-5 border-b
-                           border-slate-200 px-5 py-4
-                           sm:px-6">
-                    <div>
+                    class="flex shrink-0 items-start justify-between
+                           gap-5 border-b border-slate-200
+                           px-5 py-4 sm:px-6">
+
+                    <div class="min-w-0 flex-1">
                         <p
                             class="text-xs font-semibold uppercase
                                    tracking-wide text-[#0D3B7F]">
@@ -85,12 +74,11 @@
 
                         <h2
                             id="titulo-modal-historia"
-                            class="mt-1 text-xl font-bold
-                                   text-slate-900">
+                            class="mt-1 text-xl font-bold text-slate-900">
                             Historia clínica
                         </h2>
 
-                        <p class="mt-1 text-sm text-slate-500">
+                        <p class="mt-1 text-sm text-slate-600">
                             {{ $cita->paciente?->nombre }}
                             {{ $cita->paciente?->apellido }}
                         </p>
@@ -100,16 +88,20 @@
                         type="button"
                         data-cerrar-modal-clinico
                         aria-label="Cerrar Historia clínica"
-                        class="rounded-lg p-2 text-slate-400
+                        class="shrink-0 rounded-lg p-2 text-slate-600
                                transition hover:bg-slate-100
-                               hover:text-slate-700">
+                               hover:text-slate-900
+                               focus-visible:outline-none
+                               focus-visible:ring-2
+                               focus-visible:ring-[#0D3B7F]
+                               focus-visible:ring-offset-2">
                         ✕
                     </button>
                 </header>
 
                 {{-- Contenido --}}
                 <div
-                    class="min-h-0 flex-1 overflow-y-auto
+                    class="min-h-0 min-w-0 flex-1 overflow-y-auto
                            bg-slate-50/70 p-5 sm:p-6">
 
                     @if (
@@ -120,31 +112,25 @@
                             class="rounded-2xl border border-dashed
                                    border-slate-300 bg-white
                                    px-6 py-12 text-center">
-                            <p
-                                class="font-semibold
-                                       text-slate-700">
+
+                            <p class="font-semibold text-slate-700">
                                 No existe Historia clínica registrada.
                             </p>
 
-                            <p
-                                class="mt-1 text-sm
-                                       text-slate-500">
+                            <p class="mt-1 text-sm text-slate-600">
                                 El expediente aparecerá aquí cuando
                                 sea capturado.
                             </p>
                         </div>
                     @else
-                        <div
-                            class="grid gap-4
-                                   md:grid-cols-2">
+                        <div class="grid gap-4 md:grid-cols-2">
 
                             {{-- Resumen principal --}}
                             <section
-                                class="rounded-2xl border
+                                class="min-w-0 rounded-2xl border
                                        border-slate-200 bg-white p-5">
-                                <h3
-                                    class="font-bold
-                                           text-slate-900">
+
+                                <h3 class="font-bold text-slate-900">
                                     Resumen clínico
                                 </h3>
 
@@ -153,92 +139,74 @@
                                         <dt
                                             class="text-xs font-semibold
                                                    uppercase tracking-wide
-                                                   text-slate-400">
+                                                   text-slate-600">
                                             Patología base
                                         </dt>
 
                                         <dd
                                             class="mt-1 whitespace-pre-line
-                                                   text-sm text-slate-700">
-                                            {{ $historia?->patologia_base
-                                                ?: 'No registrada' }}
-                                        </dd>
+                                                   text-sm text-slate-700">{{ $historia?->patologia_base ?: 'No registrada' }}</dd>
                                     </div>
 
                                     <div>
                                         <dt
                                             class="text-xs font-semibold
                                                    uppercase tracking-wide
-                                                   text-slate-400">
+                                                   text-slate-600">
                                             Padecimiento actual
                                         </dt>
 
                                         <dd
                                             class="mt-1 whitespace-pre-line
-                                                   text-sm text-slate-700">
-                                            {{ $historia?->padecimiento_actual
-                                                ?: 'No registrado' }}
-                                        </dd>
+                                                   text-sm text-slate-700">{{ $historia?->padecimiento_actual ?: 'No registrado' }}</dd>
                                     </div>
 
                                     <div>
                                         <dt
                                             class="text-xs font-semibold
                                                    uppercase tracking-wide
-                                                   text-slate-400">
+                                                   text-slate-600">
                                             Tratamientos actuales
                                         </dt>
 
                                         <dd
                                             class="mt-1 whitespace-pre-line
-                                                   text-sm text-slate-700">
-                                            {{ $historia?->tratamientos_actuales
-                                                ?: 'No registrados' }}
-                                        </dd>
+                                                   text-sm text-slate-700">{{ $historia?->tratamientos_actuales ?: 'No registrados' }}</dd>
                                     </div>
 
                                     <div>
                                         <dt
                                             class="text-xs font-semibold
                                                    uppercase tracking-wide
-                                                   text-slate-400">
+                                                   text-slate-600">
                                             Prioridad de análisis médico
                                         </dt>
 
                                         <dd
                                             class="mt-1 whitespace-pre-line
-                                                   text-sm text-slate-700">
-                                            {{ $historia
-                                                ?->prioridad_analisis_medico
-                                                ?: 'No registrada' }}
-                                        </dd>
+                                                   text-sm text-slate-700">{{ $historia?->prioridad_analisis_medico ?: 'No registrada' }}</dd>
                                     </div>
                                 </dl>
                             </section>
 
                             {{-- Alertas --}}
                             <section
-                                class="rounded-2xl border
+                                class="min-w-0 rounded-2xl border
                                        border-rose-200 bg-rose-50 p-5">
-                                <h3
-                                    class="font-bold
-                                           text-rose-950">
+
+                                <h3 class="font-bold text-rose-950">
                                     Alertas clínicas
                                 </h3>
 
                                 <p
-                                    class="mt-4 text-xs font-semibold
-                                           uppercase tracking-wide
-                                           text-rose-500">
+                                    class="mt-4 text-xs font-semibold uppercase
+                                           tracking-wide text-rose-700">
                                     Alergias
                                 </p>
 
                                 <p
                                     class="mt-2 whitespace-pre-line
-                                           text-sm text-rose-900">
-                                    {{ $cita->paciente?->alergias
-                                        ?: 'No se registraron alergias.' }}
-                                </p>
+                                           text-sm text-rose-900">{{ $cita->paciente?->alergias ?: 'No se registraron alergias.' }}</p>
                             </section>
                         </div>
 
@@ -265,48 +233,33 @@
                                 ],
                             ] as $grupo)
                                 <section
-                                    class="rounded-2xl border
+                                    class="min-w-0 rounded-2xl border
                                            border-slate-200 bg-white p-5">
-                                    <h3
-                                        class="font-bold
-                                               text-slate-900">
+
+                                    <h3 class="font-bold text-slate-900">
                                         {{ $grupo['titulo'] }}
                                     </h3>
 
                                     @if ($grupo['datos']->isEmpty())
-                                        <p
-                                            class="mt-4 text-sm
-                                                   text-slate-500">
+                                        <p class="mt-4 text-sm text-slate-600">
                                             Sin antecedentes registrados.
                                         </p>
                                     @else
                                         <dl class="mt-4 space-y-3">
-                                            @foreach (
-                                                $grupo['datos']
-                                                as $clave => $valor
-                                            )
+                                            @foreach ($grupo['datos'] as $clave => $valor)
                                                 <div>
                                                     <dt
-                                                        class="text-xs
-                                                               font-semibold
-                                                               text-slate-500">
+                                                        class="text-xs font-semibold
+                                                               text-slate-600">
                                                         {{ $grupo['catalogo'][$clave]
                                                             ?? ucfirst(
-                                                                str_replace(
-                                                                    '_',
-                                                                    ' ',
-                                                                    $clave
-                                                                )
+                                                                str_replace('_', ' ', $clave)
                                                             ) }}
                                                     </dt>
 
                                                     <dd
-                                                        class="mt-0.5 text-sm
-                                                               text-slate-800">
-                                                        {{ $formatearValorClinico(
-                                                            $valor
-                                                        ) }}
-                                                    </dd>
+                                                        class="mt-0.5 whitespace-pre-line
+                                                               text-sm text-slate-800">{{ $formatearValorClinico($valor) }}</dd>
                                                 </div>
                                             @endforeach
                                         </dl>
@@ -319,15 +272,19 @@
 
                 <footer
                     class="flex shrink-0 justify-end border-t
-                           border-slate-200 bg-white px-5 py-4
-                           sm:px-6">
+                           border-slate-200 bg-white
+                           px-5 py-4 sm:px-6">
+
                     <button
                         type="button"
                         data-cerrar-modal-clinico
-                        class="rounded-xl bg-slate-900
+                        class="w-full rounded-xl bg-slate-900
                                px-5 py-2.5 text-sm font-semibold
-                               text-white transition
-                               hover:bg-slate-700">
+                               text-white transition hover:bg-slate-700
+                               focus-visible:outline-none
+                               focus-visible:ring-2
+                               focus-visible:ring-slate-900
+                               focus-visible:ring-offset-2 sm:w-auto">
                         Cerrar
                     </button>
                 </footer>
