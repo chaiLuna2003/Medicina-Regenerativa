@@ -182,7 +182,7 @@ class CitasController extends Controller
         $medicoAutenticado =
             $this->medicoAutenticado();
 
-        $datos = $request->validate([
+        $datos = $request->validateWithBag('crearCita', [
             'paciente_id' => [
                 'required',
                 'integer',
@@ -294,7 +294,7 @@ class CitasController extends Controller
                     'medico_id' =>
                     'El usuario seleccionado '
                         . 'no es un médico activo.',
-                ])
+                ], 'crearCita')
                 ->withInput();
         }
 
@@ -304,13 +304,19 @@ class CitasController extends Controller
         * ocupa al médico durante toda la duración
         * seleccionada para la cita.
         */
-        $this->validarHorarioDisponible(
-            (int) $datos['medico_id'],
-            (int) $datos['paciente_id'],
-            $datos['fecha'],
-            $datos['hora'],
-            (int) $datos['duracion_minutos']
-        );
+                try {
+            $this->validarHorarioDisponible(
+                (int) $datos['medico_id'],
+                (int) $datos['paciente_id'],
+                $datos['fecha'],
+                $datos['hora'],
+                (int) $datos['duracion_minutos']
+            );
+        } catch (ValidationException $exception) {
+            $exception->errorBag = 'crearCita';
+
+            throw $exception;
+        }
 
         $datos['created_by'] =
             auth()->id();

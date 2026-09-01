@@ -1030,6 +1030,56 @@
                 );
             }
 
+            /*
+             * Si Laravel devolvió errores de creación,
+             * restauramos y reabrimos el mismo modal.
+             */
+                        const debeReabrirModal =
+                {{ $errors->getBag('crearCita')->any()
+                    ? 'true'
+                    : 'false' }};
+
+            if (debeReabrirModal) {
+                const opcionMedico =
+                    medicoFormulario.options[
+                        medicoFormulario.selectedIndex
+                    ];
+
+                const fechaAnterior =
+                    fechaFormulario.value;
+
+                const horaFormulario =
+                    document.getElementById('hora');
+
+                const horaAnterior =
+                    horaFormulario?.dataset
+                    .valorAnterior ||
+                    horaFormulario?.value ||
+                    '';
+
+                medicoTexto.textContent =
+                    opcionMedico?.value ?
+                    opcionMedico.textContent.trim() :
+                    'Médico pendiente';
+
+                fechaTexto.textContent =
+                    fechaAnterior ?
+                    formatearFecha(fechaAnterior) :
+                    'Fecha pendiente';
+
+                horaTexto.textContent =
+                    horaAnterior ?
+                    formatearHora(horaAnterior) :
+                    'Hora pendiente';
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+                document.body.classList.add(
+                    'overflow-hidden'
+                );
+            }
+
             botonesAbrir.forEach(boton => {
                 boton.addEventListener(
                     'click',

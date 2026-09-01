@@ -1,17 +1,20 @@
-@if ($errors->any())
+@if ($errors->getBag('crearCita')->any())
 <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
     <h3 class="font-semibold text-red-800">
         Revisa los siguientes campos:
     </h3>
 
     <ul class="mt-2 list-inside list-disc space-y-1 text-sm text-red-700">
-        @foreach ($errors->all() as $error)
+        @foreach ($errors->getBag('crearCita')->all() as $error)
         <li>{{ $error }}</li>
         @endforeach
     </ul>
 </div>
 @endif
-
+@php
+    $pacienteCitaAnterior =
+        $pacienteCitaAnterior ?? null;
+@endphp
 <form
     method="POST"
     action="{{ route('citas.store') }}"
@@ -43,6 +46,7 @@
                     id="buscar_paciente"
                     placeholder="Escribe el nombre o apellido del paciente..."
                     autocomplete="off"
+                    @disabled($pacienteCitaAnterior)
                     class="block w-full rounded-xl border-gray-300 bg-white
                    pr-11 text-gray-900 shadow-sm
                    focus:border-blue-500 focus:ring-blue-500">
@@ -81,8 +85,9 @@
             {{-- Paciente seleccionado --}}
             <div
                 id="paciente_seleccionado"
-                class="mt-3 hidden items-center justify-between gap-4
-               rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                class="mt-3 {{ $pacienteCitaAnterior ? 'flex' : 'hidden' }}
+       items-center justify-between gap-4
+       rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
                         Paciente seleccionado
@@ -90,7 +95,15 @@
 
                     <p
                         id="nombre_paciente_seleccionado"
-                        class="mt-1 font-semibold text-gray-900"></p>
+                        class="mt-1 font-semibold text-gray-900">
+                   {{ $pacienteCitaAnterior
+    ? trim(
+        $pacienteCitaAnterior->nombre
+        . ' '
+        . $pacienteCitaAnterior->apellido
+    )
+    : '' }}
+                    </p>
                 </div>
 
                 <button
@@ -105,10 +118,12 @@
             <p
                 id="mensaje_busqueda"
                 class="mt-2 text-sm text-gray-500">
-                Escribe al menos 2 caracteres para buscar.
+                {{ $pacienteCitaAnterior
+        ? 'El paciente quedó asignado a la cita.'
+        : 'Escribe al menos 2 caracteres para buscar.' }}
             </p>
 
-            @error('paciente_id')
+            @error('paciente_id', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -183,7 +198,7 @@
                     @endforeach
                 </div>
 
-                @error('modalidad')
+                @error('modalidad', 'crearCita')
                 <p class="mt-2 text-sm text-red-600">
                     {{ $message }}
                 </p>
@@ -210,14 +225,14 @@
                 placeholder="Calle, número, colonia, municipio, estado y referencias"
                 class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm
                focus:border-blue-500 focus:ring-blue-500
-               @error('direccion_cita') border-red-400 @enderror"
+               @error('direccion_cita', 'crearCita') border-red-400 @enderror"
                 @required(old('modalidad', 'presencial' )==='fuera_instalaciones' )>{{ old('direccion_cita') }}</textarea>
 
             <p class="mt-2 text-xs text-gray-500">
                 Incluye referencias suficientes para que el médico pueda llegar al lugar.
             </p>
 
-            @error('direccion_cita')
+            @error('direccion_cita', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -260,7 +275,7 @@
                 @endforeach
             </select>
 
-            @error('medico_id')
+            @error('medico_id', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -285,7 +300,7 @@
                 required
                 class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
 
-            @error('fecha')
+            @error('fecha', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -320,7 +335,7 @@
                 El sistema mostrará los bloques disponibles de 15 minutos.
             </p>
 
-            @error('hora')
+            @error('hora', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -364,7 +379,7 @@
                 La duración puede ser de 15 minutos hasta 2 horas.
             </p>
 
-            @error('duracion_minutos')
+            @error('duracion_minutos', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -433,7 +448,7 @@
                     @endforeach
                 </div>
 
-                @error('motivo')
+                @error('motivo', 'crearCita')
                 <p class="mt-2 text-sm text-red-600">
                     {{ $message }}
                 </p>
@@ -468,7 +483,7 @@
                 </option>
             </select>
 
-            @error('estado')
+            @error('estado', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>
@@ -491,7 +506,7 @@
                 placeholder="Información adicional sobre la cita..."
                 class="block w-full resize-none rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">{{ old('notas') }}</textarea>
 
-            @error('notas')
+            @error('notas', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
             </p>

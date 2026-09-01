@@ -273,6 +273,14 @@ class DashboardController extends Controller
         $citasAgenda = collect();
 
         foreach ($citasSeleccionadas as $cita) {
+            /*
+     * Las citas canceladas permanecen en el historial,
+     * pero no bloquean espacios en la cuadrícula.
+     */
+            if ($cita->estado === 'cancelada') {
+                continue;
+            }
+
             $inicioCita = Carbon::parse(
                 $cita->hora
             );
@@ -455,6 +463,23 @@ class DashboardController extends Controller
         $cumpleanosPacientes =
             $this->obtenerCumpleanosPacientes(7);
 
+        $pacienteCitaAnterior = null;
+
+        $pacienteCitaAnteriorId =
+            $request->session()->getOldInput(
+                'paciente_id'
+            );
+
+        if ($pacienteCitaAnteriorId) {
+            $pacienteCitaAnterior = Pacientes::query()
+                ->select([
+                    'id',
+                    'nombre',
+                    'apellido',
+                ])
+                ->find($pacienteCitaAnteriorId);
+        }
+
         return view(
             'dashboard.recepcion',
             compact(
@@ -476,6 +501,7 @@ class DashboardController extends Controller
                 'horasAgenda',
                 'medicosAgenda',
                 'cumpleanosPacientes',
+                'pacienteCitaAnterior',
             )
         );
     }
@@ -662,6 +688,14 @@ class DashboardController extends Controller
         */
 
             foreach ($citasSeleccionadas as $cita) {
+                /*
+     * Las citas canceladas permanecen en el historial,
+     * pero no bloquean espacios en la cuadrícula.
+     */
+                if ($cita->estado === 'cancelada') {
+                    continue;
+                }
+
                 $inicioCita = Carbon::parse(
                     $cita->hora
                 );

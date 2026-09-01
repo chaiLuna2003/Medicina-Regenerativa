@@ -25,7 +25,10 @@ class CitaDireccionTest extends TestCase
                 'direccion_cita' => '',
             ]);
 
-        $respuesta->assertSessionHasErrors('direccion_cita');
+        $respuesta->assertSessionHasErrorsIn(
+    'crearCita',
+    'direccion_cita'
+);
 
         $this->assertDatabaseCount('citas', 0);
     }
