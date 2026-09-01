@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -61,39 +62,33 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
-    public function test_user_can_delete_their_account(): void
-    {
-        $user = User::factory()->create();
+    public function test_profile_page_does_not_show_account_deletion(): void
+{
+    $user = User::factory()->create();
 
-        $response = $this
-            ->actingAs($user)
-            ->delete('/profile', [
-                'password' => 'password',
-            ]);
+    $this
+        ->actingAs($user)
+        ->get('/profile')
+        ->assertOk()
+        ->assertDontSee('Delete Account')
+        ->assertDontSee('Eliminar cuenta');
+}
 
-        $response
-            ->assertSessionHasNoErrors()
-            ->assertRedirect('/');
+public function test_user_cannot_delete_their_account(): void
+{
+    $user = User::factory()->create();
 
-        $this->assertGuest();
-        $this->assertNull($user->fresh());
-    }
+    $this->assertFalse(
+        Route::has('profile.destroy')
+    );
 
-    public function test_correct_password_must_be_provided_to_delete_account(): void
-    {
-        $user = User::factory()->create();
+    $this
+        ->actingAs($user)
+        ->delete('/profile', [
+            'password' => 'password',
+        ])
+        ->assertStatus(405);
 
-        $response = $this
-            ->actingAs($user)
-            ->from('/profile')
-            ->delete('/profile', [
-                'password' => 'wrong-password',
-            ]);
-
-        $response
-            ->assertSessionHasErrorsIn('userDeletion', 'password')
-            ->assertRedirect('/profile');
-
-        $this->assertNotNull($user->fresh());
-    }
+    $this->assertNotNull($user->fresh());
+}
 }

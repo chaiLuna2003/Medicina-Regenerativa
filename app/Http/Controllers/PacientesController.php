@@ -1098,16 +1098,4 @@ class PacientesController extends Controller
                 'Paciente actualizado correctamente.'
             );
     }
-
-    public function destroy(Pacientes $pacientes)
-    {
-        if ($pacientes->foto) {
-            Storage::disk('public')->delete($pacientes->foto);
-        }
-
-        $pacientes->delete();
-
-        return redirect()->route('pacientes.index')
-            ->with('success', 'Paciente eliminado correctamente.');
-    }
 }

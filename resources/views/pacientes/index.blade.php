@@ -151,22 +151,6 @@
                                                 class="inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
                                                 Editar
                                             </a>
-
-                                            @if (auth()->user()->isAdmin())
-                                                <form
-                                                    action="{{ route('pacientes.destroy', $paciente) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('¿Eliminar este paciente?');">
-                                                    @csrf
-                                                    @method('DELETE')
-
-                                                    <button
-                                                        type="submit"
-                                                        class="inline-flex items-center rounded-lg px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-700">
-                                                        Eliminar
-                                                    </button>
-                                                </form>
-                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -244,24 +228,6 @@
                                 class="flex flex-1 items-center justify-center py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-100">
                                 Editar
                             </a>
-
-                            @if (auth()->user()->isAdmin())
-                                <div class="w-px bg-slate-200"></div>
-                                <form
-                                    action="{{ route('pacientes.destroy', $paciente) }}"
-                                    method="POST"
-                                    class="flex flex-1"
-                                    onsubmit="return confirm('¿Eliminar este paciente?');">
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button
-                                        type="submit"
-                                        class="flex flex-1 items-center justify-center py-3 text-sm font-semibold text-red-600 transition hover:bg-red-50">
-                                        Eliminar
-                                    </button>
-                                </form>
-                            @endif
                         </div>
                     </article>
                 @empty
