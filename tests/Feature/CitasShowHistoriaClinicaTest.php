@@ -8,6 +8,8 @@ use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\AntecedenteGinecoobstetrico;
+use App\Models\HabitoAlimenticio;
 use Tests\TestCase;
 
 class CitasShowHistoriaClinicaTest extends TestCase
@@ -114,7 +116,7 @@ class CitasShowHistoriaClinicaTest extends TestCase
                 ),
                 [
                     'patologia_base' =>
-                        'Alteración no autorizada',
+                    'Alteración no autorizada',
                 ]
             )
             ->assertForbidden();
@@ -122,7 +124,7 @@ class CitasShowHistoriaClinicaTest extends TestCase
         $this->assertDatabaseHas('historias_clinicas', [
             'paciente_id' => $this->paciente->id,
             'patologia_base' =>
-                'Patología clínica protegida',
+            'Patología clínica protegida',
         ]);
     }
 
@@ -137,9 +139,9 @@ class CitasShowHistoriaClinicaTest extends TestCase
                 ),
                 [
                     'patologia_base' =>
-                        'Patología actualizada por el médico',
+                    'Patología actualizada por el médico',
                     'padecimiento_actual' =>
-                        'Padecimiento actualizado',
+                    'Padecimiento actualizado',
                 ]
             )
             ->assertRedirect(
@@ -149,9 +151,118 @@ class CitasShowHistoriaClinicaTest extends TestCase
         $this->assertDatabaseHas('historias_clinicas', [
             'paciente_id' => $this->paciente->id,
             'patologia_base' =>
-                'Patología actualizada por el médico',
+            'Patología actualizada por el médico',
             'padecimiento_actual' =>
-                'Padecimiento actualizado',
+            'Padecimiento actualizado',
         ]);
+    }
+
+    public function test_medico_consulta_habitos_alimenticios_en_cita(): void
+    {
+        $historiaClinica = $this->paciente
+            ->historiaClinica()
+            ->firstOrFail();
+
+        HabitoAlimenticio::query()->create([
+            'historia_clinica_id' => $historiaClinica->id,
+
+            'comidas' => [
+                'desayuno' => true,
+                'comida' => true,
+                'cena' => false,
+            ],
+
+            'alimentos' => [
+                'frutas' => 'Diario',
+                'agua_natural' => 'Dos litros al día',
+            ],
+        ]);
+
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertSee('Hábitos alimenticios')
+            ->assertSee('Desayuno')
+            ->assertSee('Comida')
+            ->assertDontSee('Cena')
+            ->assertSee('Frutas')
+            ->assertSee('Diario')
+            ->assertSee('Agua natural')
+            ->assertSee('Dos litros al día');
+    }
+
+    public function test_medico_ve_estado_vacio_de_habitos_en_cita(): void
+    {
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertSee('Sin hábitos alimenticios registrados.');
+    }
+
+    public function test_medico_consulta_ginecoobstetricos_de_paciente_femenina(): void
+    {
+        $this->paciente->update([
+            'sexo' => 'femenino',
+        ]);
+
+        $historiaClinica = $this->paciente
+            ->historiaClinica()
+            ->firstOrFail();
+
+        AntecedenteGinecoobstetrico::query()->create([
+            'historia_clinica_id' => $historiaClinica->id,
+            'edad_menarca' => 12,
+            'ritmo_menstrual' => '28 x 5, regular',
+            'gestas' => 2,
+            'partos' => 1,
+            'cesareas' => 1,
+            'abortos' => 0,
+            'embarazo_actual' => false,
+            'fecha_ultimo_papanicolaou' => '2026-06-15',
+            'resultado_papanicolaou' =>
+            'Resultado preventivo normal',
+            'observaciones' =>
+            'Seguimiento ginecoobstétrico anual',
+        ]);
+
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertSee('Antecedentes ginecoobstétricos')
+            ->assertSee('28 x 5, regular')
+            ->assertSee('Resultado preventivo normal')
+            ->assertSee('15/06/2026')
+            ->assertSee('Seguimiento ginecoobstétrico anual');
+    }
+
+    public function test_paciente_femenina_muestra_estado_vacio_ginecoobstetrico(): void
+    {
+        $this->paciente->update([
+            'sexo' => 'femenino',
+        ]);
+
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertSee('Antecedentes ginecoobstétricos')
+            ->assertSee(
+                'Sin antecedentes ginecoobstétricos registrados.'
+            );
+    }
+
+    public function test_paciente_masculino_no_muestra_seccion_ginecoobstetrica(): void
+    {
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertDontSee('Antecedentes ginecoobstétricos')
+            ->assertDontSee(
+                'Sin antecedentes ginecoobstétricos registrados.'
+            );
     }
 }
