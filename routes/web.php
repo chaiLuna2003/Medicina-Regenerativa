@@ -154,7 +154,7 @@ Route::middleware([
 |
 */
 
-    Route::middleware('role:admin,medico')
+    Route::middleware('role:medico')
         ->group(function () {
 
             Route::put(
@@ -163,7 +163,7 @@ Route::middleware([
             )->name('pacientes.historia-clinica.update');
         });
 
-    Route::middleware('role:admin,medico')
+    Route::middleware('role:medico')
         ->group(function () {
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
@@ -213,7 +213,7 @@ Route::middleware([
 |
 */
 
-    Route::middleware('role:admin,medico')
+    Route::middleware('role:medico')
         ->group(function () {
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
@@ -420,9 +420,9 @@ Route::middleware([
                 'citas.casos-clinicos.store'
             );
 
-                        /*
-             * Cerrar un caso clínico activo sin eliminarlo.
-             */
+                                    /*
+                         * Cerrar un caso clínico activo sin eliminarlo.
+                         */
             Route::patch(
                 '/casos-clinicos/{casoClinico}/cerrar',
                 [

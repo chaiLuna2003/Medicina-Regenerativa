@@ -783,11 +783,6 @@ class HistoriaClinicaController extends Controller
         Pacientes $paciente
     ): void {
         $user = $request->user();
-
-        if ($user->isAdmin()) {
-            return;
-        }
-
         $esMedicoAutorizado = false;
 
         if ($user->isMedico() && $user->medico) {
