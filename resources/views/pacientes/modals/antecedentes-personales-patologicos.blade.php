@@ -8,10 +8,7 @@
     ?? [];
     @endphp
 
-    @if (
-    request()->user()->isAdmin()
-    || request()->user()->isMedico()
-    )
+    @if (request()->user()->isMedico())
 
     <div
         id="modal-personales-patologicos"

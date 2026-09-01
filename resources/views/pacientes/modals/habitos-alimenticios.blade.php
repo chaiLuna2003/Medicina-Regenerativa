@@ -10,10 +10,7 @@
     $habitoAlimenticioModal?->alimentos ?? [];
     @endphp
 
-    @if (
-    request()->user()->isAdmin()
-    || request()->user()->isMedico()
-    )
+   @if (request()->user()->isMedico())
     <div
         id="modal-habitos-alimenticios"
         class="fixed inset-0 z-50 hidden

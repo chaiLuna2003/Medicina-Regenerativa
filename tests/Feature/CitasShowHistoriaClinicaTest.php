@@ -265,4 +265,67 @@ class CitasShowHistoriaClinicaTest extends TestCase
                 'Sin antecedentes ginecoobstétricos registrados.'
             );
     }
+
+    public function test_administracion_consulta_ficha_sin_formularios_clinicos(): void
+{
+    $this->paciente->update([
+        'sexo' => 'femenino',
+    ]);
+
+    $respuesta = $this
+        ->actingAs($this->administrador)
+        ->get(route('pacientes.show', $this->paciente));
+
+    $respuesta
+        ->assertOk()
+        ->assertSee('Patología clínica protegida')
+        ->assertDontSee('Editar historia clínica');
+
+    $rutasClinicas = [
+        'pacientes.historia-clinica.update',
+        'pacientes.historia-clinica.heredofamiliares.update',
+        'pacientes.historia-clinica.personales-patologicos.update',
+        'pacientes.historia-clinica.personales-no-patologicos.update',
+        'pacientes.historia-clinica.habitos-alimenticios.update',
+        'pacientes.historia-clinica.ginecoobstetricos.update',
+    ];
+
+    foreach ($rutasClinicas as $ruta) {
+        $respuesta->assertDontSee(
+            route($ruta, $this->paciente),
+            false
+        );
+    }
+}
+
+public function test_medico_asignado_recibe_formularios_clinicos_en_ficha(): void
+{
+    $this->paciente->update([
+        'sexo' => 'femenino',
+    ]);
+
+    $respuesta = $this
+        ->actingAs($this->usuarioMedico)
+        ->get(route('pacientes.show', $this->paciente));
+
+    $respuesta
+        ->assertOk()
+        ->assertSee('Editar historia clínica');
+
+    $rutasClinicas = [
+        'pacientes.historia-clinica.update',
+        'pacientes.historia-clinica.heredofamiliares.update',
+        'pacientes.historia-clinica.personales-patologicos.update',
+        'pacientes.historia-clinica.personales-no-patologicos.update',
+        'pacientes.historia-clinica.habitos-alimenticios.update',
+        'pacientes.historia-clinica.ginecoobstetricos.update',
+    ];
+
+    foreach ($rutasClinicas as $ruta) {
+        $respuesta->assertSee(
+            route($ruta, $this->paciente),
+            false
+        );
+    }
+}
 }

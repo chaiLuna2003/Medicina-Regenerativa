@@ -30,10 +30,7 @@
 
         <div class="flex items-center gap-3">
 
-            @if (
-                request()->user()->isAdmin()
-                || request()->user()->isMedico()
-            )
+            @if (request()->user()->isMedico())
                 <button
                     type="button"
                     onclick="

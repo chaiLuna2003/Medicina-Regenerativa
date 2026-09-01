@@ -141,10 +141,7 @@
 
         <div class="flex items-center gap-3">
 
-            @if (
-                request()->user()->isAdmin()
-                || request()->user()->isMedico()
-            )
+          @if (request()->user()->isMedico())
                 <button
                     type="button"
                     onclick="
@@ -252,10 +249,7 @@
 {{-- MODAL --}}
 {{-- ===================================================== --}}
 
-@if (
-    request()->user()->isAdmin()
-    || request()->user()->isMedico()
-)
+@if (request()->user()->isMedico())
     <div
         id="modal-ginecoobstetricos"
         class="fixed inset-0 z-50 hidden
