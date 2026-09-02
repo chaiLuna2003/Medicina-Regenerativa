@@ -14,21 +14,21 @@ class SignosVitalesController extends Controller
      * Mostrar el historial de signos vitales registrados.
      */
     public function index(): View
-{
-    $signosVitales = SignoVital::query()
-        ->with([
-            'paciente',
-            'cita.medico',
-            'enfermero',
-        ])
-        ->latest()
-        ->paginate(15);
+    {
+        $signosVitales = SignoVital::query()
+            ->with([
+                'paciente',
+                'cita.medico',
+                'enfermero',
+            ])
+            ->latest()
+            ->paginate(15);
 
-    return view(
-        'signos-vitales.index',
-        compact('signosVitales')
-    );
-}
+        return view(
+            'signos-vitales.index',
+            compact('signosVitales')
+        );
+    }
 
     /**
      * Mostrar el formulario para registrar los signos vitales de una cita.
@@ -82,6 +82,15 @@ class SignosVitalesController extends Controller
             ->first();
 
         if ($signoVitalExistente !== null) {
+            if ($request->boolean('desde_dashboard_enfermeria')) {
+                return redirect()
+                    ->route('dashboard')
+                    ->with(
+                        'info',
+                        'Esta cita ya tiene signos vitales registrados.'
+                    );
+            }
+
             return redirect()
                 ->route(
                     'signos-vitales.show',
@@ -173,19 +182,19 @@ class SignosVitalesController extends Controller
             'estatura.numeric' => 'La estatura debe ser un valor numérico.',
 
             'presion_sistolica.required_with' =>
-                'Debes ingresar también la presión sistólica.',
+            'Debes ingresar también la presión sistólica.',
 
             'presion_diastolica.required_with' =>
-                'Debes ingresar también la presión diastólica.',
+            'Debes ingresar también la presión diastólica.',
 
             'presion_diastolica.lt' =>
-                'La presión diastólica debe ser menor que la presión sistólica.',
+            'La presión diastólica debe ser menor que la presión sistólica.',
 
             'saturacion_oxigeno.max' =>
-                'La saturación de oxígeno no puede ser mayor a 100%.',
+            'La saturación de oxígeno no puede ser mayor a 100%.',
 
             'observaciones.max' =>
-                'Las observaciones no pueden superar los 2000 caracteres.',
+            'Las observaciones no pueden superar los 2000 caracteres.',
         ]);
 
         $datos['paciente_id'] = $cita->paciente_id;
@@ -193,6 +202,15 @@ class SignosVitalesController extends Controller
         $datos['enfermero_id'] = auth()->id();
 
         $signoVital = SignoVital::create($datos);
+
+        if ($request->boolean('desde_dashboard_enfermeria')) {
+            return redirect()
+                ->route('dashboard')
+                ->with(
+                    'success',
+                    'Los signos vitales se registraron correctamente.'
+                );
+        }
 
         return redirect()
             ->route(
