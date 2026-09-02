@@ -16,15 +16,8 @@
                 </p>
             </div>
 
-            <div class="flex flex-col gap-3 sm:flex-row">
-                {{-- Volver --}}
-                <a
-                    href="{{ route('citas.index') }}"
-                    class="inline-flex items-center justify-center rounded-xl border
-               border-gray-300 bg-white px-5 py-2.5 text-sm font-semibold
-               text-gray-700 transition hover:bg-gray-50">
-                    Volver a la agenda
-                </a>
+            <div class="flex flex-wrap items-center gap-3 sm:justify-end">
+
 
                 {{-- Acciones exclusivas de administración y recepción --}}
                 @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
@@ -49,10 +42,46 @@
 
                 @endif
                 @if (auth()->user()->role === 'medico')
+                @if ($cita->paciente)
+                <a
+                    href="{{ route('pacientes.show', $cita->paciente) }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center justify-center
+               whitespace-nowrap rounded-xl
+               bg-emerald-600 px-5 py-2.5
+               text-sm font-semibold text-white
+               shadow-sm transition
+               hover:bg-emerald-700
+               focus-visible:outline-none
+               focus-visible:ring-2
+               focus-visible:ring-emerald-600
+               focus-visible:ring-offset-2">
+
+                    <svg
+                        class="mr-2 h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true">
+
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12h6m-6 4h6M7 3h7l4 4v14H7
+                   a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5
+                   a2 2 0 0 1 2-2h5l5 5v11
+                   a2 2 0 0 1-2 2z" />
+                    </svg>
+
+                    Ver ficha del paciente
+                </a>
+                @endif
                 @if ($cita->receta)
                 <a
                     href="{{ route('recetas.show', $cita->receta) }}"
-                    class="inline-flex w-full items-center justify-center rounded-xl
+                    class="inline-flex whitespace-nowrap items-center justify-center rounded-xl
                    border border-[#0D3B7F] bg-white px-4 py-2.5
                    text-sm font-semibold text-[#0D3B7F]
                    transition hover:bg-[#0D3B7F] hover:text-white">
@@ -61,10 +90,11 @@
                 @else
                 <a
                     href="{{ route('citas.receta.create', $cita) }}"
-                    class="inline-flex w-full items-center justify-center rounded-xl
-                   bg-[#0D3B7F] px-4 py-2.5
-                   text-sm font-semibold text-white
-                   transition hover:bg-[#082a5d]">
+                    class="inline-flex items-center justify-center
+           whitespace-nowrap rounded-xl
+           bg-[#0D3B7F] px-5 py-2.5
+           text-sm font-semibold text-white
+           shadow-sm transition hover:bg-[#082a5d]">
                     Crear receta
                 </a>
                 @endif
@@ -785,14 +815,6 @@
 
     @include(
     'citas.modals.estudios'
-    )
-
-    @include(
-    'citas.modals.historia-clinica'
-    )
-
-    @include(
-    'citas.modals.enfermeria'
     )
 
     @include(

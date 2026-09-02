@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Models\AntecedenteGinecoobstetrico;
 use App\Models\Citas;
+use App\Models\HabitoAlimenticio;
 use App\Models\HistoriaClinica;
 use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use App\Models\AntecedenteGinecoobstetrico;
-use App\Models\HabitoAlimenticio;
 use Tests\TestCase;
 
 class CitasShowHistoriaClinicaTest extends TestCase
@@ -17,9 +17,13 @@ class CitasShowHistoriaClinicaTest extends TestCase
     use RefreshDatabase;
 
     private User $administrador;
+
     private User $usuarioMedico;
+
     private User $recepcion;
+
     private Pacientes $paciente;
+
     private Citas $cita;
 
     protected function setUp(): void
@@ -76,18 +80,22 @@ class CitasShowHistoriaClinicaTest extends TestCase
 
         HistoriaClinica::query()->create([
             'paciente_id' => $this->paciente->id,
-            'patologia_base' => 'Patología clínica protegida',
-            'padecimiento_actual' => 'Padecimiento visible autorizado',
-            'tratamientos_actuales' => 'Tratamiento de prueba',
-            'prioridad_analisis_medico' => 'Prioridad de prueba',
+            'patologia_base' =>
+            'Patología clínica protegida',
+            'padecimiento_actual' =>
+            'Padecimiento visible autorizado',
+            'tratamientos_actuales' =>
+            'Tratamiento de prueba',
+            'prioridad_analisis_medico' =>
+            'Prioridad de prueba',
         ]);
     }
 
-    public function test_administracion_consulta_historia_en_cita(): void
+    public function test_administracion_consulta_historia_en_ficha(): void
     {
         $this
             ->actingAs($this->administrador)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
             ->assertSee('Historia clínica')
             ->assertSee('Patología clínica protegida')
@@ -140,6 +148,7 @@ class CitasShowHistoriaClinicaTest extends TestCase
                 [
                     'patologia_base' =>
                     'Patología actualizada por el médico',
+
                     'padecimiento_actual' =>
                     'Padecimiento actualizado',
                 ]
@@ -150,14 +159,16 @@ class CitasShowHistoriaClinicaTest extends TestCase
 
         $this->assertDatabaseHas('historias_clinicas', [
             'paciente_id' => $this->paciente->id,
+
             'patologia_base' =>
             'Patología actualizada por el médico',
+
             'padecimiento_actual' =>
             'Padecimiento actualizado',
         ]);
     }
 
-    public function test_medico_consulta_habitos_alimenticios_en_cita(): void
+    public function test_medico_consulta_habitos_alimenticios_en_ficha(): void
     {
         $historiaClinica = $this->paciente
             ->historiaClinica()
@@ -180,25 +191,26 @@ class CitasShowHistoriaClinicaTest extends TestCase
 
         $this
             ->actingAs($this->usuarioMedico)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
             ->assertSee('Hábitos alimenticios')
             ->assertSee('Desayuno')
             ->assertSee('Comida')
-            ->assertDontSee('Cena')
             ->assertSee('Frutas')
             ->assertSee('Diario')
             ->assertSee('Agua natural')
             ->assertSee('Dos litros al día');
     }
 
-    public function test_medico_ve_estado_vacio_de_habitos_en_cita(): void
+    public function test_medico_ve_estado_vacio_de_habitos_en_ficha(): void
     {
         $this
             ->actingAs($this->usuarioMedico)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
-            ->assertSee('Sin hábitos alimenticios registrados.');
+            ->assertSee(
+                'Sin hábitos alimenticios registrados'
+            );
     }
 
     public function test_medico_consulta_ginecoobstetricos_de_paciente_femenina(): void
@@ -220,22 +232,29 @@ class CitasShowHistoriaClinicaTest extends TestCase
             'cesareas' => 1,
             'abortos' => 0,
             'embarazo_actual' => false,
-            'fecha_ultimo_papanicolaou' => '2026-06-15',
+
+            'fecha_ultimo_papanicolaou' =>
+            '2026-06-15',
+
             'resultado_papanicolaou' =>
             'Resultado preventivo normal',
+
             'observaciones' =>
             'Seguimiento ginecoobstétrico anual',
         ]);
 
         $this
             ->actingAs($this->usuarioMedico)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
             ->assertSee('Antecedentes ginecoobstétricos')
             ->assertSee('28 x 5, regular')
-            ->assertSee('Resultado preventivo normal')
-            ->assertSee('15/06/2026')
-            ->assertSee('Seguimiento ginecoobstétrico anual');
+            ->assertSee('Gestas')
+            ->assertSee('Partos')
+            ->assertSee('Cesáreas')
+            ->assertSee(
+                'Seguimiento ginecoobstétrico anual'
+            );
     }
 
     public function test_paciente_femenina_muestra_estado_vacio_ginecoobstetrico(): void
@@ -246,11 +265,11 @@ class CitasShowHistoriaClinicaTest extends TestCase
 
         $this
             ->actingAs($this->usuarioMedico)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
             ->assertSee('Antecedentes ginecoobstétricos')
             ->assertSee(
-                'Sin antecedentes ginecoobstétricos registrados.'
+                'Sin antecedentes ginecoobstétricos'
             );
     }
 
@@ -258,74 +277,128 @@ class CitasShowHistoriaClinicaTest extends TestCase
     {
         $this
             ->actingAs($this->usuarioMedico)
-            ->get(route('citas.show', $this->cita))
+            ->get(route('pacientes.show', $this->paciente))
             ->assertOk()
-            ->assertDontSee('Antecedentes ginecoobstétricos')
             ->assertDontSee(
-                'Sin antecedentes ginecoobstétricos registrados.'
+                'Historia menstrual, obstétrica y estudios preventivos'
+            )
+            ->assertDontSee(
+                'Sin antecedentes ginecoobstétricos'
             );
     }
 
     public function test_administracion_consulta_ficha_sin_formularios_clinicos(): void
-{
-    $this->paciente->update([
-        'sexo' => 'femenino',
-    ]);
+    {
+        $this->paciente->update([
+            'sexo' => 'femenino',
+        ]);
 
-    $respuesta = $this
-        ->actingAs($this->administrador)
-        ->get(route('pacientes.show', $this->paciente));
+        $respuesta = $this
+            ->actingAs($this->administrador)
+            ->get(route('pacientes.show', $this->paciente));
 
-    $respuesta
-        ->assertOk()
-        ->assertSee('Patología clínica protegida')
-        ->assertDontSee('Editar historia clínica');
+        $respuesta
+            ->assertOk()
+            ->assertSee('Patología clínica protegida')
+            ->assertDontSee('Editar historia clínica');
 
-    $rutasClinicas = [
-        'pacientes.historia-clinica.update',
-        'pacientes.historia-clinica.heredofamiliares.update',
-        'pacientes.historia-clinica.personales-patologicos.update',
-        'pacientes.historia-clinica.personales-no-patologicos.update',
-        'pacientes.historia-clinica.habitos-alimenticios.update',
-        'pacientes.historia-clinica.ginecoobstetricos.update',
-    ];
+        $rutasClinicas = [
+            'pacientes.historia-clinica.update',
 
-    foreach ($rutasClinicas as $ruta) {
-        $respuesta->assertDontSee(
-            route($ruta, $this->paciente),
-            false
-        );
+            'pacientes.historia-clinica.'
+                . 'heredofamiliares.update',
+
+            'pacientes.historia-clinica.'
+                . 'personales-patologicos.update',
+
+            'pacientes.historia-clinica.'
+                . 'personales-no-patologicos.update',
+
+            'pacientes.historia-clinica.'
+                . 'habitos-alimenticios.update',
+
+            'pacientes.historia-clinica.'
+                . 'ginecoobstetricos.update',
+        ];
+
+        foreach ($rutasClinicas as $ruta) {
+            $respuesta->assertDontSee(
+                route($ruta, $this->paciente),
+                false
+            );
+        }
     }
-}
 
-public function test_medico_asignado_recibe_formularios_clinicos_en_ficha(): void
-{
-    $this->paciente->update([
-        'sexo' => 'femenino',
-    ]);
+    public function test_medico_asignado_recibe_formularios_clinicos_en_ficha(): void
+    {
+        $this->paciente->update([
+            'sexo' => 'femenino',
+        ]);
 
-    $respuesta = $this
-        ->actingAs($this->usuarioMedico)
-        ->get(route('pacientes.show', $this->paciente));
+        $respuesta = $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('pacientes.show', $this->paciente));
 
-    $respuesta
-        ->assertOk()
-        ->assertSee('Editar historia clínica');
+        $respuesta
+            ->assertOk()
+            ->assertSee('Editar historia clínica');
 
-    $rutasClinicas = [
-        'pacientes.historia-clinica.update',
-        'pacientes.historia-clinica.heredofamiliares.update',
-        'pacientes.historia-clinica.personales-patologicos.update',
-        'pacientes.historia-clinica.personales-no-patologicos.update',
-        'pacientes.historia-clinica.habitos-alimenticios.update',
-        'pacientes.historia-clinica.ginecoobstetricos.update',
-    ];
+        $rutasClinicas = [
+            'pacientes.historia-clinica.update',
 
-    foreach ($rutasClinicas as $ruta) {
-        $respuesta->assertSee(
-            route($ruta, $this->paciente),
-            false
-        );
+            'pacientes.historia-clinica.'
+                . 'heredofamiliares.update',
+
+            'pacientes.historia-clinica.'
+                . 'personales-patologicos.update',
+
+            'pacientes.historia-clinica.'
+                . 'personales-no-patologicos.update',
+
+            'pacientes.historia-clinica.'
+                . 'habitos-alimenticios.update',
+
+            'pacientes.historia-clinica.'
+                . 'ginecoobstetricos.update',
+        ];
+
+        foreach ($rutasClinicas as $ruta) {
+            $respuesta->assertSee(
+                route($ruta, $this->paciente),
+                false
+            );
+        }
     }
-}
+
+    public function test_solo_medico_ve_boton_de_ficha_desde_cita(): void
+    {
+        $rutaPaciente = route(
+            'pacientes.show',
+            $this->paciente
+        );
+
+        $this
+            ->actingAs($this->usuarioMedico)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertSee('Ver ficha del paciente')
+            ->assertSee($rutaPaciente, false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee(
+                'rel="noopener noreferrer"',
+                false
+            );
+
+        $this
+            ->actingAs($this->administrador)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertDontSee('Ver ficha del paciente');
+
+        $this
+            ->actingAs($this->recepcion)
+            ->get(route('citas.show', $this->cita))
+            ->assertOk()
+            ->assertDontSee('Ver ficha del paciente');
+    }
 }
