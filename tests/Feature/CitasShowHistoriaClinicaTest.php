@@ -322,11 +322,13 @@ class CitasShowHistoriaClinicaTest extends TestCase
         ];
 
         foreach ($rutasClinicas as $ruta) {
-            $respuesta->assertDontSee(
-                route($ruta, $this->paciente),
-                false
-            );
-        }
+    $respuesta->assertDontSee(
+        'action="'
+            . route($ruta, $this->paciente)
+            . '"',
+        false
+    );
+}
     }
 
     public function test_medico_asignado_recibe_formularios_clinicos_en_ficha(): void

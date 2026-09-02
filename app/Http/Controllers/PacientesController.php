@@ -311,6 +311,7 @@ class PacientesController extends Controller
             'historiaClinica.antecedentesPersonalesNoPatologicos',
             'historiaClinica.habitoAlimenticio',
             'historiaClinica.antecedenteGinecoobstetrico',
+            'ultimoHistoriaClinicaDocumento.generadoPor',
 
             'historiaClinica.exploracionesFisicas' =>
             function ($query) {

@@ -12,6 +12,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\HistoriaClinicaController;
 use App\Http\Controllers\ExploracionesFisicasController;
 use App\Http\Middleware\PreventBackHistory;
+use App\Http\Controllers\HistoriaClinicaPdfController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HojaDiariaController;
 use App\Http\Controllers\CasosClinicosController;
@@ -142,6 +143,53 @@ Route::middleware([
                 '/pacientes/{pacientes}',
                 [PacientesController::class, 'show']
             )->name('pacientes.show');
+        });
+
+    /*
+|--------------------------------------------------------------------------
+| Documentos PDF de historia clínica
+|--------------------------------------------------------------------------
+|
+| Administración puede generar y consultar cualquier expediente.
+| El médico debe mantener relación clínica con el paciente.
+| Los archivos permanecen almacenados de forma privada.
+|
+*/
+
+    Route::middleware('role:admin,medico')
+        ->group(function () {
+
+            Route::post(
+                '/pacientes/{paciente}/historia-clinica/documentos',
+                [
+                    HistoriaClinicaPdfController::class,
+                    'store',
+                ]
+            )->name(
+                'pacientes.historia-clinica.documentos.store'
+            );
+
+            Route::get(
+                '/historia-clinica-documentos/'
+                    . '{documento}/archivo',
+                [
+                    HistoriaClinicaPdfController::class,
+                    'archivo',
+                ]
+            )->name(
+                'historias-clinicas.documentos.archivo'
+            );
+
+            Route::get(
+                '/historia-clinica-documentos/'
+                    . '{documento}/descargar',
+                [
+                    HistoriaClinicaPdfController::class,
+                    'descargar',
+                ]
+            )->name(
+                'historias-clinicas.documentos.descargar'
+            );
         });
 
     /*
@@ -420,7 +468,7 @@ Route::middleware([
                 'citas.casos-clinicos.store'
             );
 
-                                    /*
+            /*
                          * Cerrar un caso clínico activo sin eliminarlo.
                          */
             Route::patch(

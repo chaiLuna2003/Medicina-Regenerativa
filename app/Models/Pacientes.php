@@ -276,6 +276,30 @@ class Pacientes extends Model
         );
     }
 
+    /**
+     * Versiones PDF del expediente clínico.
+     */
+    public function historiaClinicaDocumentos(): HasMany
+    {
+        return $this->hasMany(
+            HistoriaClinicaDocumento::class,
+            'paciente_id'
+        );
+    }
+
+    /**
+     * Última versión generada del expediente clínico.
+     */
+    public function ultimoHistoriaClinicaDocumento(): HasOne
+    {
+        return $this->hasOne(
+            HistoriaClinicaDocumento::class,
+            'paciente_id'
+        )->latestOfMany(
+            'generado_en'
+        );
+    }
+
     protected function edad(): Attribute
     {
         return Attribute::make(
