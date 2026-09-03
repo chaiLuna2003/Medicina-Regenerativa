@@ -391,7 +391,14 @@
                         );
                         @endphp
 
-                        <article class="group px-6 py-5 transition hover:bg-slate-50">
+                        <article
+    class="abrir-modal-detalle-cita group
+           cursor-pointer px-6 py-5
+           transition hover:bg-slate-50"
+    data-cita-id="{{ $cita->id }}"
+    role="button"
+    tabindex="0"
+    aria-label="Ver cita de {{ $nombrePaciente }}">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {{-- Hora --}}
                                 <div class="flex w-24 shrink-0 items-center gap-2 sm:block">
@@ -537,13 +544,13 @@
                     </div>
 
                     {{-- Cuadrícula de médicos y horarios --}}
-
                     <x-agenda.cuadricula
                         :medicos-agenda="$medicosAgenda"
                         :horas-agenda="$horasAgenda"
                         :citas-agenda="$citasAgenda"
                         :fecha-seleccionada="$fechaSeleccionada"
                         :permitir-creacion="true"
+                        :abrir-citas-en-modal="true"
                         :mostrar-notas="false" />
                 </div>
 
@@ -801,6 +808,9 @@
             </section>
         </div>
     </div>
+    @include('citas.modals.detalle-recepcion', [
+    'citas' => $citasSeleccionadas,
+    ])
     {{-- Modal para crear cita desde la agenda --}}
     <div
         id="modal-crear-cita"
@@ -1034,10 +1044,9 @@
              * Si Laravel devolvió errores de creación,
              * restauramos y reabrimos el mismo modal.
              */
-                        const debeReabrirModal =
-                {{ $errors->getBag('crearCita')->any()
-                    ? 'true'
-                    : 'false' }};
+            const debeReabrirModal = @js(
+    $errors->getBag('crearCita')->any()
+);
 
             if (debeReabrirModal) {
                 const opcionMedico =

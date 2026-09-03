@@ -3,6 +3,7 @@
 'esInicio' => false,
 'esFinal' => false,
 'mostrarNotas' => false,
+'abrirEnModal' => false,
 ])
 
 @php
@@ -65,11 +66,14 @@ $titulo .= ' · ' . $cita->notas;
 @endphp
 
 <a
-    href="{{ route('citas.show', $cita) }}"
+    href="{{ $abrirEnModal ? '#' : route('citas.show', $cita) }}"
+    @if ($abrirEnModal)
+        data-cita-id="{{ $cita->id }}"
+    @endif
     title="{{ $titulo }}"
     {{ $attributes->class([
+        'abrir-modal-detalle-cita' => $abrirEnModal,
         'flex h-full items-center gap-2 overflow-hidden border px-2',
-        'text-xs font-semibold shadow-sm transition hover:brightness-95',
         $color,
         $bordes,
     ]) }}>

@@ -26,15 +26,15 @@ class AgendaMedicoAuthorizationTest extends TestCase
             );
 
         $respuesta
-    ->assertOk()
-    ->assertSee('Paciente Propio')
-    ->assertSee(
-        'Nota visible para el médico asignado.'
-    )
-    ->assertDontSee('Paciente Ajeno')
-    ->assertDontSee(
-        'Esta nota no debe ser visible.'
-    );
+            ->assertOk()
+            ->assertSee('Paciente Propio')
+            ->assertSee(
+                'Nota visible para el médico asignado.'
+            )
+            ->assertDontSee('Paciente Ajeno')
+            ->assertDontSee(
+                'Esta nota no debe ser visible.'
+            );
     }
 
     public function test_medico_no_puede_abrir_una_cita_ajena(): void
@@ -69,34 +69,42 @@ class AgendaMedicoAuthorizationTest extends TestCase
         $respuesta->assertForbidden();
     }
 
+    public function test_recepcion_recibe_notas_para_modal_de_cita(): void
+    {
+        $datos = $this->crearEscenarioClinico();
 
-    public function test_recepcion_no_ve_notas_en_la_agenda(): void
-{
-    $datos = $this->crearEscenarioClinico();
+        $recepcion = User::factory()->create([
+            'name' => 'Recepción',
+            'role' => 'recepcionista',
+            'status' => true,
+        ]);
 
-    $recepcion = User::factory()->create([
-        'name' => 'Recepción',
-        'role' => 'recepcionista',
-        'status' => true,
-    ]);
-
-    $respuesta = $this
-        ->actingAs($recepcion)
-        ->get(
-            route('dashboard', [
+        $respuesta = $this
+            ->actingAs($recepcion)
+            ->get(route('dashboard', [
                 'fecha' => $datos['fecha'],
-            ])
-        );
+            ]));
 
-    $respuesta
-        ->assertOk()
-        ->assertDontSee(
-            'Nota visible para el médico asignado.'
-        )
-        ->assertDontSee(
-            'Esta nota no debe ser visible.'
-        );
-}
+        $respuesta
+            ->assertOk()
+            ->assertSee(
+                'id="modal-detalle-cita"',
+                false
+            )
+            ->assertViewHas(
+                'citasSeleccionadas',
+                function ($citas): bool {
+                    $notas = $citas->pluck('notas');
+
+                    return $notas->contains(
+                        'Nota visible para el médico asignado.'
+                    ) && $notas->contains(
+                        'Esta nota no debe ser visible.'
+                    );
+                }
+            );
+    }
+
     /**
      * Crea dos médicos completamente independientes,
      * cada uno con su propio paciente y cita.

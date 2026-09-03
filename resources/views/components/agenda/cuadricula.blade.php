@@ -5,6 +5,7 @@
 'fechaSeleccionada',
 'permitirCreacion' => false,
 'mostrarNotas' => false,
+'abrirCitasEnModal' => false,
 ])
 
 <div
@@ -164,7 +165,8 @@
                     :cita="$citaAgenda"
                     :es-inicio="$esInicioAgenda"
                     :es-final="$esFinalAgenda"
-                    :mostrar-notas="$mostrarNotas" />
+                    :mostrar-notas="$mostrarNotas"
+                    :abrir-en-modal="$abrirCitasEnModal" />
                 @else
                 @php
                 $fechaHoraBloque =

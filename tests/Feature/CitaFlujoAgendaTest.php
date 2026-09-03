@@ -24,11 +24,9 @@ class CitaFlujoAgendaTest extends TestCase
             ->actingAs($datos['recepcion'])
             ->from(route('dashboard'))
             ->post(route('citas.store'), [
-                'paciente_id' =>
-                $datos['paciente']->id,
+                'paciente_id' => $datos['paciente']->id,
 
-                'medico_id' =>
-                $datos['medico']->id,
+                'medico_id' => $datos['medico']->id,
 
                 'fecha' => $fecha,
                 'hora' => '10:00',
@@ -40,8 +38,7 @@ class CitaFlujoAgendaTest extends TestCase
                  * Se omite motivo para provocar
                  * el error deliberadamente.
                  */
-                'notas' =>
-                'La información debe conservarse.',
+                'notas' => 'La información debe conservarse.',
 
                 'estado' => 'programada',
             ]);
@@ -112,11 +109,9 @@ class CitaFlujoAgendaTest extends TestCase
             ->toDateString();
 
         $citaCancelada = Citas::query()->create([
-            'paciente_id' =>
-            $datos['paciente']->id,
+            'paciente_id' => $datos['paciente']->id,
 
-            'medico_id' =>
-            $datos['medico']->id,
+            'medico_id' => $datos['medico']->id,
 
             'fecha' => $fecha,
             'hora' => '10:00',
@@ -125,8 +120,7 @@ class CitaFlujoAgendaTest extends TestCase
             'motivo' => 'consulta_inicial',
             'notas' => 'Cita cancelada conservada.',
             'estado' => 'cancelada',
-            'created_by' =>
-            $datos['recepcion']->id,
+            'created_by' => $datos['recepcion']->id,
         ]);
 
         $otroPaciente = Pacientes::query()->create([
@@ -142,8 +136,7 @@ class CitaFlujoAgendaTest extends TestCase
             ->actingAs($datos['recepcion'])
             ->get(route('dashboard', [
                 'fecha' => $fecha,
-                'medico_id' =>
-                $datos['medico']->id,
+                'medico_id' => $datos['medico']->id,
             ]));
 
         $dashboard
@@ -153,13 +146,13 @@ class CitaFlujoAgendaTest extends TestCase
                 function ($citasAgenda) use ($datos) {
                     $prefijo =
                         $datos['medico']->id
-                        . '|';
+                        .'|';
 
                     return ! $citasAgenda->has(
-                        $prefijo . '10:00'
+                        $prefijo.'10:00'
                     )
                         && ! $citasAgenda->has(
-                            $prefijo . '10:15'
+                            $prefijo.'10:15'
                         );
                 }
             );
@@ -169,8 +162,7 @@ class CitaFlujoAgendaTest extends TestCase
             ->getJson(route(
                 'citas.horarios-disponibles',
                 [
-                    'medico_id' =>
-                    $datos['medico']->id,
+                    'medico_id' => $datos['medico']->id,
 
                     'fecha' => $fecha,
                 ]
@@ -180,17 +172,17 @@ class CitaFlujoAgendaTest extends TestCase
 
         $bloqueDiez =
             collect($horarios)
-            ->firstWhere(
-                'hora',
-                '10:00'
-            );
+                ->firstWhere(
+                    'hora',
+                    '10:00'
+                );
 
         $bloqueDiezQuince =
             collect($horarios)
-            ->firstWhere(
-                'hora',
-                '10:15'
-            );
+                ->firstWhere(
+                    'hora',
+                    '10:15'
+                );
 
         $this->assertTrue(
             $bloqueDiez['disponible']
@@ -203,11 +195,9 @@ class CitaFlujoAgendaTest extends TestCase
         $respuesta = $this
             ->actingAs($datos['recepcion'])
             ->post(route('citas.store'), [
-                'paciente_id' =>
-                $otroPaciente->id,
+                'paciente_id' => $otroPaciente->id,
 
-                'medico_id' =>
-                $datos['medico']->id,
+                'medico_id' => $datos['medico']->id,
 
                 'fecha' => $fecha,
                 'hora' => '10:00',
@@ -215,8 +205,7 @@ class CitaFlujoAgendaTest extends TestCase
                 'modalidad' => 'presencial',
                 'direccion_cita' => null,
                 'motivo' => 'consulta_inicial',
-                'notas' =>
-                'Nueva cita en horario liberado.',
+                'notas' => 'Nueva cita en horario liberado.',
 
                 'estado' => 'programada',
             ]);
@@ -261,6 +250,64 @@ class CitaFlujoAgendaTest extends TestCase
         );
     }
 
+    public function test_recepcion_visualiza_datos_de_cita_en_modal(): void
+    {
+        $datos = $this->escenario();
+
+        $fecha = now()
+            ->addDays(2)
+            ->toDateString();
+
+        $datos['paciente']->update([
+            'telefono' => '5512345678',
+            'alergias' => 'Dextrometorfano',
+        ]);
+
+        $cita = Citas::query()->create([
+            'paciente_id' => $datos['paciente']->id,
+
+            'medico_id' => $datos['medico']->id,
+
+            'fecha' => $fecha,
+            'hora' => '10:15',
+            'duracion_minutos' => 30,
+            'modalidad' => 'presencial',
+            'motivo' => 'consulta_subsecuente',
+            'notas' => 'Control de tratamiento.',
+            'estado' => 'confirmada',
+
+            'created_by' => $datos['recepcion']->id,
+        ]);
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->get(route('dashboard', [
+                'fecha' => $fecha,
+            ]));
+
+        $respuesta
+            ->assertOk()
+            ->assertSee(
+                'id="modal-detalle-cita"',
+                false
+            )
+            ->assertSee(
+                'data-cita-id="'.$cita->id.'"',
+                false
+            )
+            ->assertSeeText('Ficha del paciente')
+            ->assertSeeText('Modificar cita')
+            ->assertSeeText('Todas sus citas')
+            ->assertSeeText('Detalle de la cita')
+            ->assertSeeText(
+                'Recordar cita por WhatsApp'
+            )
+            ->assertSee('Paciente Agenda')
+            ->assertSee('Dextrometorfano')
+            ->assertSee('Control de tratamiento.')
+            ->assertSee('5512345678');
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -302,8 +349,7 @@ class CitaFlujoAgendaTest extends TestCase
 
         return [
             'recepcion' => $recepcion,
-            'usuario_medico' =>
-            $usuarioMedico,
+            'usuario_medico' => $usuarioMedico,
 
             'medico' => $medico,
             'paciente' => $paciente,
