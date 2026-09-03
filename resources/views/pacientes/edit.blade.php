@@ -1,7 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('pacientes.index') }}"
+            <a href="{{ auth()->user()->isMedico()
+    ? route('pacientes.show', $pacientes)
+    : route('pacientes.index') }}"
                class="text-gray-400 transition hover:text-gray-600">
                 <svg xmlns="http://www.w3.org/2000/svg"
                      class="h-5 w-5"
@@ -49,7 +51,9 @@
                     </button>
 
                     <a
-                        href="{{ route('pacientes.index') }}"
+                        href="{{ auth()->user()->isMedico()
+    ? route('pacientes.show', $pacientes)
+    : route('pacientes.index') }}"
                         class="rounded-lg px-5 py-2.5 text-sm font-medium
                                text-gray-600 transition hover:bg-gray-100"
                     >

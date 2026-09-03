@@ -461,6 +461,7 @@ $tiposSangrePaciente =
            md:grid-cols-3">
 
     {{-- Celular / WhatsApp --}}
+    @unless(auth()->user()->isMedico())
     <div>
         <label
             for="telefono"
@@ -559,6 +560,8 @@ $tiposSangrePaciente =
             </p>
         @enderror
     </div>
+
+    @endunless
 
     {{-- Correo --}}
     <div class="md:col-span-2">

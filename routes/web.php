@@ -1,22 +1,22 @@
 <?php
 
+use App\Http\Controllers\CasosClinicosController;
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstudiosController;
+use App\Http\Controllers\EvolucionesClinicasController;
+use App\Http\Controllers\ExploracionesFisicasController;
+use App\Http\Controllers\HistoriaClinicaController;
+use App\Http\Controllers\HistoriaClinicaPdfController;
+use App\Http\Controllers\HojaDiariaController;
 use App\Http\Controllers\MedicosController;
 use App\Http\Controllers\PacientesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecetasController;
 use App\Http\Controllers\SignosVitalesController;
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\HistoriaClinicaController;
-use App\Http\Controllers\ExploracionesFisicasController;
 use App\Http\Middleware\PreventBackHistory;
-use App\Http\Controllers\HistoriaClinicaPdfController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HojaDiariaController;
-use App\Http\Controllers\CasosClinicosController;
-use App\Http\Controllers\EvolucionesClinicasController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,7 +99,6 @@ Route::middleware([
         )->name('hoja-diaria.pdf');
     });
 
-
     /*
 |--------------------------------------------------------------------------
 | Gestión administrativa de pacientes
@@ -112,14 +111,29 @@ Route::middleware([
 
     Route::middleware('role:admin,recepcionista')
         ->group(function () {
-
             Route::resource(
                 'pacientes',
                 PacientesController::class
             )
-                ->except([
-                    'show',
-                    'destroy',
+                ->only([
+                    'index',
+                    'create',
+                    'store',
+                ])
+                ->parameters([
+                    'pacientes' => 'pacientes',
+                ]);
+        });
+
+    Route::middleware('role:admin,medico,recepcionista')
+        ->group(function () {
+            Route::resource(
+                'pacientes',
+                PacientesController::class
+            )
+                ->only([
+                    'edit',
+                    'update',
                 ])
                 ->parameters([
                     'pacientes' => 'pacientes',
@@ -171,7 +185,7 @@ Route::middleware([
 
             Route::get(
                 '/historia-clinica-documentos/'
-                    . '{documento}/archivo',
+                    .'{documento}/archivo',
                 [
                     HistoriaClinicaPdfController::class,
                     'archivo',
@@ -182,7 +196,7 @@ Route::middleware([
 
             Route::get(
                 '/historia-clinica-documentos/'
-                    . '{documento}/descargar',
+                    .'{documento}/descargar',
                 [
                     HistoriaClinicaPdfController::class,
                     'descargar',
@@ -215,38 +229,38 @@ Route::middleware([
         ->group(function () {
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
-                    . 'antecedentes-heredofamiliares',
+                    .'antecedentes-heredofamiliares',
                 [
                     HistoriaClinicaController::class,
                     'updateHeredofamiliares',
                 ]
             )->name(
                 'pacientes.historia-clinica.'
-                    . 'heredofamiliares.update'
+                    .'heredofamiliares.update'
             );
 
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
-                    . 'antecedentes-personales-patologicos',
+                    .'antecedentes-personales-patologicos',
                 [
                     HistoriaClinicaController::class,
                     'updatePersonalesPatologicos',
                 ]
             )->name(
                 'pacientes.historia-clinica.'
-                    . 'personales-patologicos.update'
+                    .'personales-patologicos.update'
             );
 
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
-                    . 'antecedentes-personales-no-patologicos',
+                    .'antecedentes-personales-no-patologicos',
                 [
                     HistoriaClinicaController::class,
                     'updatePersonalesNoPatologicos',
                 ]
             )->name(
                 'pacientes.historia-clinica.'
-                    . 'personales-no-patologicos.update'
+                    .'personales-no-patologicos.update'
             );
         });
 
@@ -265,26 +279,26 @@ Route::middleware([
         ->group(function () {
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
-                    . 'habitos-alimenticios',
+                    .'habitos-alimenticios',
                 [
                     HistoriaClinicaController::class,
                     'updateHabitosAlimenticios',
                 ]
             )->name(
                 'pacientes.historia-clinica.'
-                    . 'habitos-alimenticios.update'
+                    .'habitos-alimenticios.update'
             );
 
             Route::put(
                 '/pacientes/{paciente}/historia-clinica/'
-                    . 'antecedentes-ginecoobstetricos',
+                    .'antecedentes-ginecoobstetricos',
                 [
                     HistoriaClinicaController::class,
                     'updateGinecoobstetricos',
                 ]
             )->name(
                 'pacientes.historia-clinica.'
-                    . 'ginecoobstetricos.update'
+                    .'ginecoobstetricos.update'
             );
         });
 
@@ -487,7 +501,7 @@ Route::middleware([
          */
             Route::post(
                 '/citas/{cita}/casos-clinicos/'
-                    . '{casoClinico}/evoluciones',
+                    .'{casoClinico}/evoluciones',
                 [
                     EvolucionesClinicasController::class,
                     'store',
@@ -656,4 +670,4 @@ Route::middleware([
         });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

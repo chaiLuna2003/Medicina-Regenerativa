@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Citas;
+use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,7 +78,7 @@ class PacienteRecepcionAuthorizationTest extends TestCase
         Storage::disk('public')->assertExists($paciente->foto);
     }
 
-    public function test_recepcion_no_modifica_identidad_del_paciente(): void
+    public function test_recepcion_actualiza_identidad_del_paciente(): void
     {
         $recepcion = $this->usuario('recepcionista');
         $paciente = $this->paciente();
@@ -84,21 +86,38 @@ class PacienteRecepcionAuthorizationTest extends TestCase
         $this
             ->actingAs($recepcion)
             ->put(route('pacientes.update', $paciente), [
-                'categoria' => 'sin_categoria',
-                'status' => '1',
-                'nombre' => 'Nombre alterado',
-                'apellido' => 'Apellido alterado',
+                'nombre' => 'Nombre actualizado',
+                'apellido' => 'Apellido actualizado',
                 'fecha_nacimiento' => '2001-02-03',
                 'sexo' => 'femenino',
+                'categoria' => 'sin_categoria',
+                'status' => '1',
             ])
-            ->assertRedirect(route('pacientes.show', $paciente));
+            ->assertRedirect(
+                route('pacientes.show', $paciente)
+            );
 
         $paciente->refresh();
 
-        $this->assertSame('Paciente', $paciente->nombre);
-        $this->assertSame('Prueba', $paciente->apellido);
-        $this->assertSame('1990-01-01', $paciente->fecha_nacimiento->toDateString());
-        $this->assertSame('masculino', $paciente->sexo);
+        $this->assertSame(
+            'Nombre actualizado',
+            $paciente->nombre
+        );
+
+        $this->assertSame(
+            'Apellido actualizado',
+            $paciente->apellido
+        );
+
+        $this->assertSame(
+            '2001-02-03',
+            $paciente->fecha_nacimiento->toDateString()
+        );
+
+        $this->assertSame(
+            'femenino',
+            $paciente->sexo
+        );
     }
 
     public function test_recepcion_no_puede_actualizar_rutas_clinicas(): void
@@ -123,7 +142,193 @@ class PacienteRecepcionAuthorizationTest extends TestCase
         }
     }
 
-    public function test_medico_no_puede_actualizar_datos_administrativos(): void
+    public function test_medico_vinculado_ve_edicion_sin_campos_telefonicos(): void
+    {
+        $medico = $this->medicoConPerfil();
+        $paciente = $this->paciente();
+
+        $this->vincularMedicoConPaciente(
+            $medico,
+            $paciente
+        );
+
+        $this
+            ->actingAs($medico)
+            ->get(route('pacientes.edit', $paciente))
+            ->assertOk()
+            ->assertDontSee(
+                'name="telefono"',
+                false
+            )
+            ->assertDontSee(
+                'name="telefono_fijo"',
+                false
+            )
+            ->assertDontSee(
+                'name="telefono_secundario"',
+                false
+            )
+            ->assertSee(
+                'name="email"',
+                false
+            )
+            ->assertDontSee(
+                'href="'.route('pacientes.index').'"',
+                false
+            )
+            ->assertSee(
+                'href="'.route(
+                    'pacientes.show',
+                    $paciente
+                ).'"',
+                false
+            );
+    }
+
+    public function test_medico_vinculado_actualiza_datos_no_telefonicos_del_paciente(): void
+    {
+        $medico = $this->medicoConPerfil();
+        $paciente = $this->paciente();
+
+        $paciente->update([
+            'telefono' => '5500000000',
+        ]);
+
+        $this->vincularMedicoConPaciente(
+            $medico,
+            $paciente
+        );
+
+        $this
+            ->actingAs($medico)
+            ->put(route('pacientes.update', $paciente), [
+                'nombre' => 'Paciente medico',
+                'apellido' => 'Actualizado',
+                'fecha_nacimiento' => '1985-06-15',
+                'sexo' => 'femenino',
+                'categoria' => 'unidem',
+                'status' => '1',
+                'email' => 'paciente.medico@example.com',
+                'alergias' => 'Penicilina',
+                'notas' => 'Informacion actualizada por medico.',
+            ])
+            ->assertRedirect(
+                route('pacientes.show', $paciente)
+            );
+
+        $paciente->refresh();
+
+        $this->assertSame(
+            'Paciente medico',
+            $paciente->nombre
+        );
+
+        $this->assertSame(
+            'Actualizado',
+            $paciente->apellido
+        );
+
+        $this->assertSame(
+            '1985-06-15',
+            $paciente->fecha_nacimiento->toDateString()
+        );
+
+        $this->assertSame(
+            'femenino',
+            $paciente->sexo
+        );
+
+        $this->assertSame(
+            'unidem',
+            $paciente->categoria
+        );
+
+        $this->assertSame(
+            '5500000000',
+            $paciente->telefono
+        );
+
+        $this->assertSame(
+            'paciente.medico@example.com',
+            $paciente->email
+        );
+
+        $this->assertSame(
+            'Penicilina',
+            $paciente->alergias
+        );
+
+        $this->assertSame(
+            'Informacion actualizada por medico.',
+            $paciente->notas
+        );
+    }
+
+    public function test_medico_vinculado_no_actualiza_telefonos_del_paciente(): void
+    {
+        $medico = $this->medicoConPerfil();
+        $paciente = $this->paciente();
+
+        $paciente->update([
+            'telefono' => '5500000000',
+            'telefono_fijo' => '5555555555',
+            'telefono_secundario' => '5511111111',
+        ]);
+
+        $this->vincularMedicoConPaciente(
+            $medico,
+            $paciente
+        );
+
+        $this
+            ->actingAs($medico)
+            ->put(route('pacientes.update', $paciente), [
+                'telefono' => '5599999999',
+            ])
+            ->assertForbidden();
+
+        $paciente->refresh();
+
+        $this->assertSame(
+            '5500000000',
+            $paciente->telefono
+        );
+
+        $this->assertSame(
+            '5555555555',
+            $paciente->telefono_fijo
+        );
+
+        $this->assertSame(
+            '5511111111',
+            $paciente->telefono_secundario
+        );
+    }
+
+    public function test_medico_ajeno_no_actualiza_al_paciente(): void
+    {
+        $medico = $this->medicoConPerfil();
+        $paciente = $this->paciente();
+
+        $this
+            ->actingAs($medico)
+            ->put(route('pacientes.update', $paciente), [
+                'nombre' => 'Intento indebido',
+                'apellido' => 'Bloqueado',
+                'fecha_nacimiento' => '1991-01-01',
+                'sexo' => 'femenino',
+                'categoria' => 'unidem',
+                'status' => '1',
+            ])
+            ->assertForbidden();
+
+        $paciente->refresh();
+
+        $this->assertSame('Paciente', $paciente->nombre);
+        $this->assertSame('Prueba', $paciente->apellido);
+    }
+
+    public function test_medico_sin_perfil_no_actualiza_al_paciente(): void
     {
         $medico = $this->usuario('medico');
         $paciente = $this->paciente();
@@ -131,10 +336,45 @@ class PacienteRecepcionAuthorizationTest extends TestCase
         $this
             ->actingAs($medico)
             ->put(route('pacientes.update', $paciente), [
-                'categoria' => 'unidem',
-                'status' => '0',
+                'nombre' => 'Intento indebido',
             ])
             ->assertForbidden();
+    }
+
+    private function medicoConPerfil(): User
+    {
+        $usuario = $this->usuario('medico');
+
+        Medicos::query()->create([
+            'user_id' => $usuario->id,
+            'nombre' => 'Médico',
+            'apellido_paterno' => 'Autorización',
+            'apellido_materno' => 'Prueba',
+            'especialidad' => 'Medicina general',
+            'cedula' => 'CED-PACIENTE-'.$usuario->id,
+            'telefono' => '5550000800',
+            'consultorio' => 'Consultorio 1',
+            'status' => true,
+        ]);
+
+        return $usuario->fresh();
+    }
+
+    private function vincularMedicoConPaciente(
+        User $usuario,
+        Pacientes $paciente
+    ): void {
+        Citas::query()->create([
+            'paciente_id' => $paciente->id,
+            'medico_id' => $usuario->medico->id,
+            'fecha' => now()->addDay()->toDateString(),
+            'hora' => '10:00',
+            'duracion_minutos' => 30,
+            'modalidad' => 'presencial',
+            'motivo' => 'consulta_inicial',
+            'estado' => 'confirmada',
+            'created_by' => $usuario->id,
+        ]);
     }
 
     private function usuario(string $rol): User
