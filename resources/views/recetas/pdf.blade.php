@@ -40,14 +40,6 @@
             width: 58%;
         }
 
-        .brand-name {
-            margin: 0;
-            color: #0d3b7f;
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: -0.5px;
-        }
-
         .brand-description {
             margin: 4px 0 0;
             color: #238ccc;
@@ -200,13 +192,6 @@
             max-height: 75px;
             object-fit: contain;
         }
-
-        .brand-fallback {
-            margin: 0;
-            color: #0d3b7f;
-            font-size: 24px;
-            font-weight: bold;
-        }
     </style>
 </head>
 
@@ -327,12 +312,8 @@
                 @if ($logoBase64)
                 <img
                     src="{{ $logoBase64 }}"
-                    alt="Medicina Regenerativa"
+                    alt="Logotipo institucional"
                     class="logo">
-                @else
-                <p class="brand-fallback">
-                    Medicina Regenerativa
-                </p>
                 @endif
 
                 <p class="brand-description">

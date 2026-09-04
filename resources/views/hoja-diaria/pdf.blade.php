@@ -52,13 +52,6 @@
             object-fit: contain;
         }
 
-        .brand-fallback {
-            margin: 0;
-            color: #0d3b7f;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
         .brand-description {
             margin: 3px 0 0;
             color: #238ccc;
@@ -314,12 +307,8 @@
                 @if ($logoBase64)
                 <img
                     src="{{ $logoBase64 }}"
-                    alt="Medicina Regenerativa"
+                    alt="Logotipo institucional"
                     class="logo">
-                @else
-                <p class="brand-fallback">
-                    Medicina Regenerativa
-                </p>
                 @endif
 
                 <p class="brand-description">
@@ -618,7 +607,7 @@
 
         &nbsp;&nbsp;|&nbsp;&nbsp;
 
-        Generado por el sistema de Medicina Regenerativa
+        Generado por el sistema
     </div>
 </body>
 

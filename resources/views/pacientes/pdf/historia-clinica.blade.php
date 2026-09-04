@@ -47,13 +47,6 @@
             text-align: right;
         }
 
-        .brand-name {
-            margin: 0;
-            color: #0d3b7f;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
         .brand-description {
             margin: 3px 0 0;
             color: #238ccc;
@@ -423,12 +416,8 @@
     <table class="header">
         <tr>
             <td class="brand">
-                <p class="brand-name">
-                    Medicina Regenerativa
-                </p>
-
                 <p class="brand-description">
-                    Expediente clínico integral
+                    Expediente clínico
                 </p>
             </td>
 
