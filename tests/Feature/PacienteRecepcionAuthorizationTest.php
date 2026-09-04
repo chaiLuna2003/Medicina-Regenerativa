@@ -341,6 +341,57 @@ class PacienteRecepcionAuthorizationTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_ficha_muestra_alerta_solo_si_existen_alergias(): void
+    {
+        $administrador = $this->usuario('admin');
+        $paciente = $this->paciente();
+
+        $paciente->update([
+            'alergias' => 'Penicilina y mariscos.',
+        ]);
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertSee(
+                'data-alerta-alergias',
+                false
+            )
+            ->assertSee('Alergias')
+            ->assertSee('Penicilina y mariscos.');
+
+        $medico = $this->medicoConPerfil();
+
+        $this->vincularMedicoConPaciente(
+            $medico,
+            $paciente
+        );
+
+        $this
+            ->actingAs($medico)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertSee(
+                'data-alerta-alergias',
+                false
+            )
+            ->assertSee('Penicilina y mariscos.');
+
+        $paciente->update([
+            'alergias' => null,
+        ]);
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertDontSee(
+                'data-alerta-alergias',
+                false
+            );
+    }
+
     private function medicoConPerfil(): User
     {
         $usuario = $this->usuario('medico');

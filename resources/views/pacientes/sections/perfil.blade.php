@@ -29,6 +29,54 @@
                         ?? 'Edad no disponible' }}
                 </p>
 
+                @if (filled($pacientes->alergias))
+
+                    <div
+                        data-alerta-alergias
+                        role="alert"
+                        class="mt-3 rounded-xl border
+                               border-red-200 bg-red-50
+                               px-3 py-2.5 text-red-900">
+
+                        <div class="flex items-start gap-2">
+
+                            <svg
+                                class="mt-0.5 h-4 w-4 shrink-0
+                                       text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                aria-hidden="true">
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 9v4m0 4h.01M10.29 3.86
+                                       1.82 18a2 2 0 0 0 1.71 3h16.94
+                                       a2 2 0 0 0 1.71-3L13.71 3.86
+                                       a2 2 0 0 0-3.42 0z" />
+                            </svg>
+
+                            <div class="min-w-0">
+
+                                <p
+                                    class="text-xs font-bold uppercase
+                                           tracking-wide text-red-700">
+                                    Alergias
+                                </p>
+
+                                <p
+                                    class="mt-0.5 break-words text-sm
+                                           font-semibold leading-5">
+                                    {{ $pacientes->alergias }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                @endif
+
                 {{-- Sexo y condición --}}
 
                 <div class="mt-2 flex flex-wrap gap-2">
