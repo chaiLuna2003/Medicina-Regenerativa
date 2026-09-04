@@ -173,7 +173,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
             ->assertSee('form-modal-signos')
             ->assertSee('data-abrir-modal-signos', false)
             ->assertSee(
-                'data-cita-id="' . $cita->id . '"',
+                'data-cita-id="'.$cita->id.'"',
                 false
             )
             ->assertSee(
@@ -196,8 +196,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
                 [
                     'desde_dashboard_enfermeria' => '1',
                     'modal_cita_id' => $cita->id,
-                    'modal_paciente_nombre' =>
-                        'Paciente Guardado',
+                    'modal_paciente_nombre' => 'Paciente Guardado',
 
                     'peso' => 72.5,
                     'estatura' => 175,
@@ -208,8 +207,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
                     'frecuencia_respiratoria' => 18,
                     'saturacion_oxigeno' => 98,
                     'glucosa' => 95,
-                    'observaciones' =>
-                        'Valoración registrada desde el modal.',
+                    'observaciones' => 'Valoración registrada desde el modal.',
                 ]
             );
 
@@ -231,6 +229,44 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
         ]);
     }
 
+    public function test_presion_diastolica_puede_ser_mayor_que_sistolica(): void
+    {
+        $cita = $this->crearCita(
+            paciente: 'Paciente Presion',
+            hora: '09:15'
+        );
+
+        $respuesta = $this
+            ->actingAs($this->enfermero)
+            ->from(route('dashboard'))
+            ->post(
+                route(
+                    'signos-vitales.store',
+                    $cita
+                ),
+                [
+                    'desde_dashboard_enfermeria' => '1',
+                    'peso' => 70,
+                    'estatura' => 170,
+                    'presion_sistolica' => 80,
+                    'presion_diastolica' => 120,
+                ]
+            );
+
+        $respuesta
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas(
+            'signos_vitales',
+            [
+                'cita_id' => $cita->id,
+                'presion_sistolica' => 80,
+                'presion_diastolica' => 120,
+            ]
+        );
+    }
+
     public function test_error_de_validacion_conserva_datos_para_reabrir_modal(): void
     {
         $cita = $this->crearCita(
@@ -246,15 +282,13 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
                 [
                     'desde_dashboard_enfermeria' => '1',
                     'modal_cita_id' => $cita->id,
-                    'modal_paciente_nombre' =>
-                        'Paciente Validación',
+                    'modal_paciente_nombre' => 'Paciente Validación',
 
                     'peso' => 70,
                     'estatura' => 170,
                     'presion_sistolica' => 120,
-                    'presion_diastolica' => 130,
-                    'observaciones' =>
-                        'Datos que deben conservarse.',
+                    'presion_diastolica' => 201,
+                    'observaciones' => 'Datos que deben conservarse.',
                 ]
             );
 

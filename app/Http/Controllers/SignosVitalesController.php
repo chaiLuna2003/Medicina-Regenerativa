@@ -168,7 +168,7 @@ class SignosVitalesController extends Controller
                 'integer',
                 'min:20',
                 'max:200',
-                'lt:presion_sistolica',
+
             ],
 
             'frecuencia_cardiaca' => [
@@ -216,8 +216,6 @@ class SignosVitalesController extends Controller
             'presion_sistolica.required_with' => 'Debes ingresar también la presión sistólica.',
 
             'presion_diastolica.required_with' => 'Debes ingresar también la presión diastólica.',
-
-            'presion_diastolica.lt' => 'La presión diastólica debe ser menor que la presión sistólica.',
 
             'saturacion_oxigeno.max' => 'La saturación de oxígeno no puede ser mayor a 100%.',
 
