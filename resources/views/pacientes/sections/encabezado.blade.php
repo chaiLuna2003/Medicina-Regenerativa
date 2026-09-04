@@ -75,14 +75,38 @@
         @if (
         request()->user()->isAdmin()
         || request()->user()->isRecepcionista()
+        || request()->user()->isMedico()
         )
         <a
+            data-accion-datos-personales
             href="{{ route('pacientes.edit', $pacientes) }}"
             class="inline-flex items-center justify-center gap-2
-                       rounded-xl border border-slate-300 bg-white px-4 py-2
-                       text-sm font-semibold text-slate-700 shadow-sm
-                       transition hover:bg-slate-50">
-            Editar datos
+                   rounded-xl border border-slate-300 bg-white
+                   px-4 py-2 text-sm font-semibold
+                   text-slate-700 shadow-sm transition
+                   hover:border-blue-300 hover:bg-blue-50
+                   hover:text-blue-700">
+
+            <svg
+                class="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true">
+
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15.232 5.232l3.536 3.536
+                       M9 11l6.232-6.232a2.5 2.5
+                       0 0 1 3.536 3.536L12.536 14.536
+                       M9 11l-1 4 4-1M5 19h14" />
+            </svg>
+
+            {{ request()->user()->isMedico()
+                ? 'Consulta/edición de datos personales'
+                : 'Editar datos' }}
         </a>
         @endif
 

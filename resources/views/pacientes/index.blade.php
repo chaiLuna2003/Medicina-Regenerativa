@@ -98,6 +98,10 @@
                                                 <a
                                                     href="{{ route('pacientes.show', $paciente) }}"
                                                     class="block truncate font-semibold text-slate-900 transition hover:text-blue-700">
+                                                    @if ($paciente->finado)
+                                                        <x-luto size="sm" class="mr-1 align-middle" />
+                                                    @endif
+
                                                     {{ $paciente->nombre }} {{ $paciente->apellido }}
                                                 </a>
 
@@ -186,6 +190,10 @@
                                     <div class="flex items-start justify-between gap-2">
                                         <div class="min-w-0">
                                             <h3 class="truncate font-semibold text-slate-900">
+                                                @if ($paciente->finado)
+                                                    <x-luto size="sm" class="mr-1 align-middle" />
+                                                @endif
+
                                                 {{ $paciente->nombre }} {{ $paciente->apellido }}
                                             </h3>
                                             <p class="mt-1 text-xs text-slate-500">

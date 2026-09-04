@@ -17,11 +17,20 @@
 
             <div class="min-w-0 flex-1">
 
-                <h1
-                    class="text-xl font-bold
-                           text-slate-900">
-                    {{ $pacientes->nombre }}
-                    {{ $pacientes->apellido }}
+                             <h1
+                    class="flex flex-wrap items-center gap-2
+                           text-xl font-bold text-slate-900">
+
+                    <span>
+                        {{ $pacientes->nombre }}
+                        {{ $pacientes->apellido }}
+                    </span>
+
+                    @if ($pacientes->finado)
+
+                        <x-luto size="lg" />
+
+                    @endif
                 </h1>
 
                 <p class="mt-1 text-sm text-slate-500">

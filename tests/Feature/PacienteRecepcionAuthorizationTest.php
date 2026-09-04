@@ -392,6 +392,84 @@ class PacienteRecepcionAuthorizationTest extends TestCase
             );
     }
 
+    public function test_paciente_finado_muestra_luto_en_ficha_y_listado(): void
+    {
+        $administrador = $this->usuario('admin');
+        $paciente = $this->paciente();
+
+        $paciente->update([
+            'finado' => true,
+        ]);
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertSee(
+                'data-mono-luto',
+                false
+            )
+            ->assertSee('Paciente finado');
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.index'))
+            ->assertOk()
+            ->assertSee(
+                'data-mono-luto',
+                false
+            );
+
+        $paciente->update([
+            'finado' => false,
+        ]);
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertDontSee(
+                'data-mono-luto',
+                false
+            );
+
+        $this
+            ->actingAs($administrador)
+            ->get(route('pacientes.index'))
+            ->assertOk()
+            ->assertDontSee(
+                'data-mono-luto',
+                false
+            );
+    }
+
+    public function test_medico_vinculado_ve_acceso_a_edicion_personal_desde_ficha(): void
+    {
+        $medico = $this->medicoConPerfil();
+        $paciente = $this->paciente();
+
+        $this->vincularMedicoConPaciente(
+            $medico,
+            $paciente
+        );
+
+        $this
+            ->actingAs($medico)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertSee(
+                'data-accion-datos-personales',
+                false
+            )
+            ->assertSee(
+                'Consulta/edición de datos personales'
+            )
+            ->assertSee(
+                route('pacientes.edit', $paciente),
+                false
+            );
+    }
+
     private function medicoConPerfil(): User
     {
         $usuario = $this->usuario('medico');
