@@ -6,6 +6,7 @@ use App\Models\Citas;
 use App\Models\SignoVital;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class SignosVitalesController extends Controller
@@ -15,6 +16,11 @@ class SignosVitalesController extends Controller
      */
     public function index(): View
     {
+        Gate::authorize(
+            'viewAny',
+            SignoVital::class
+        );
+
         $signosVitales = SignoVital::query()
             ->with([
                 'paciente',
@@ -33,8 +39,17 @@ class SignosVitalesController extends Controller
     /**
      * Mostrar el formulario para registrar los signos vitales de una cita.
      */
-    public function create(Citas $cita): View|RedirectResponse
-    {
+    public function create(
+        Citas $cita
+    ): View|RedirectResponse {
+        Gate::authorize(
+            'create',
+            [
+                SignoVital::class,
+                $cita,
+            ]
+        );
+
         $cita->load([
             'paciente',
             'medico',
@@ -50,7 +65,10 @@ class SignosVitalesController extends Controller
 
         if ($cita->signoVital !== null) {
             return redirect()
-                ->route('signos-vitales.show', $cita->signoVital)
+                ->route(
+                    'signos-vitales.show',
+                    $cita->signoVital
+                )
                 ->with(
                     'info',
                     'Esta cita ya tiene signos vitales registrados.'
@@ -70,6 +88,14 @@ class SignosVitalesController extends Controller
         Request $request,
         Citas $cita
     ): RedirectResponse {
+        Gate::authorize(
+            'create',
+            [
+                SignoVital::class,
+                $cita,
+            ]
+        );
+
         if ($cita->estado === 'cancelada') {
             abort(
                 403,
@@ -82,7 +108,11 @@ class SignosVitalesController extends Controller
             ->first();
 
         if ($signoVitalExistente !== null) {
-            if ($request->boolean('desde_dashboard_enfermeria')) {
+            if (
+                $request->boolean(
+                    'desde_dashboard_enfermeria'
+                )
+            ) {
                 return redirect()
                     ->route('dashboard')
                     ->with(
@@ -176,34 +206,46 @@ class SignosVitalesController extends Controller
             ],
         ], [
             'peso.required' => 'El peso es obligatorio.',
+
             'peso.numeric' => 'El peso debe ser un valor numérico.',
 
             'estatura.required' => 'La estatura es obligatoria.',
+
             'estatura.numeric' => 'La estatura debe ser un valor numérico.',
 
-            'presion_sistolica.required_with' =>
-            'Debes ingresar también la presión sistólica.',
+            'presion_sistolica.required_with' => 'Debes ingresar también la presión sistólica.',
 
-            'presion_diastolica.required_with' =>
-            'Debes ingresar también la presión diastólica.',
+            'presion_diastolica.required_with' => 'Debes ingresar también la presión diastólica.',
 
-            'presion_diastolica.lt' =>
-            'La presión diastólica debe ser menor que la presión sistólica.',
+            'presion_diastolica.lt' => 'La presión diastólica debe ser menor que la presión sistólica.',
 
-            'saturacion_oxigeno.max' =>
-            'La saturación de oxígeno no puede ser mayor a 100%.',
+            'saturacion_oxigeno.max' => 'La saturación de oxígeno no puede ser mayor a 100%.',
 
-            'observaciones.max' =>
-            'Las observaciones no pueden superar los 2000 caracteres.',
+            'observaciones.max' => 'Las observaciones no pueden superar los 2000 caracteres.',
         ]);
 
-        $datos['paciente_id'] = $cita->paciente_id;
-        $datos['cita_id'] = $cita->id;
-        $datos['enfermero_id'] = auth()->id();
+        $datos['paciente_id'] =
+            $cita->paciente_id;
 
-        $signoVital = SignoVital::create($datos);
+        $datos['cita_id'] =
+            $cita->id;
 
-        if ($request->boolean('desde_dashboard_enfermeria')) {
+        /*
+         * La columna enfermero_id es una columna heredada que
+         * referencia a users. Puede almacenar al profesional
+         * autenticado, sea médico o personal de enfermería.
+         */
+        $datos['enfermero_id'] =
+            $request->user()->id;
+
+        $signoVital = SignoVital::query()
+            ->create($datos);
+
+        if (
+            $request->boolean(
+                'desde_dashboard_enfermeria'
+            )
+        ) {
             return redirect()
                 ->route('dashboard')
                 ->with(
@@ -226,12 +268,18 @@ class SignosVitalesController extends Controller
     /**
      * Mostrar el detalle de una valoración.
      */
-    public function show(SignoVital $signoVital): View
-    {
+    public function show(
+        SignoVital $signoVital
+    ): View {
+        Gate::authorize(
+            'view',
+            $signoVital
+        );
+
         $signoVital->load([
             'paciente',
             'cita.medico',
-            'enfermero',
+            'registradoPor',
         ]);
 
         return view(

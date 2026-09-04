@@ -12,7 +12,9 @@
             </div>
 
             <a
-                href="{{ route('signos-vitales.index') }}"
+                href="{{ auth()->user()->isMedico() && $signoVital->cita
+    ? route('citas.show', $signoVital->cita)
+    : route('signos-vitales.index') }}"
                 class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
             >
                 <svg
@@ -29,7 +31,9 @@
                     />
                 </svg>
 
-                Volver al historial
+                {{ auth()->user()->isMedico()
+    ? 'Volver a la cita'
+    : 'Volver al historial' }}
             </a>
         </div>
     </x-slot>
@@ -38,7 +42,7 @@
         $paciente = $signoVital->paciente;
         $cita = $signoVital->cita;
         $medico = $cita?->medico;
-        $enfermero = $signoVital->enfermero;
+        $registradoPor = $signoVital->registradoPor;
 
         $nombrePaciente = trim(
             ($paciente?->nombre ?? '') . ' ' .
@@ -394,7 +398,7 @@
                         </dt>
 
                         <dd class="mt-1 font-semibold text-gray-900">
-                            {{ $enfermero?->name ?? 'Usuario no disponible' }}
+                            {{ $registradoPor?->name ?? 'Usuario no disponible' }}
                         </dd>
                     </div>
 
@@ -430,7 +434,9 @@
                 </a>
 
                 <a
-                    href="{{ route('signos-vitales.index') }}"
+                    href="{{ auth()->user()->isMedico() && $signoVital->cita
+    ? route('citas.show', $signoVital->cita)
+    : route('signos-vitales.index') }}"
                     class="inline-flex items-center justify-center rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800"
                 >
                     Ver historial de valoraciones

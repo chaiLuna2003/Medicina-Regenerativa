@@ -69,4 +69,12 @@ class SignoVital extends Model
             2
         );
     }
+
+    public function registradoPor(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'enfermero_id'
+        );
+    }
 }

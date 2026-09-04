@@ -539,22 +539,34 @@ Route::middleware([
         });
 
     /*
-    |--------------------------------------------------------------------------
-    | Signos vitales - Consulta
-    |--------------------------------------------------------------------------
-    |
-    | Administración y enfermería pueden consultar el historial general.
-    |
-    */
+|--------------------------------------------------------------------------
+| Signos vitales - Historial general
+|--------------------------------------------------------------------------
+|
+| Administración y enfermería pueden consultar el historial general.
+|
+*/
 
     Route::middleware('role:admin,enfermero')
         ->group(function () {
-
             Route::get(
                 '/signos-vitales',
                 [SignosVitalesController::class, 'index']
             )->name('signos-vitales.index');
+        });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Signos vitales - Consulta individual
+    |--------------------------------------------------------------------------
+    |
+    | El médico solamente podrá consultar valoraciones pertenecientes
+    | a sus propias citas. El controlador comprobará esa relación.
+    |
+    */
+
+    Route::middleware('role:admin,medico,enfermero')
+        ->group(function () {
             Route::get(
                 '/signos-vitales/{signoVital}',
                 [SignosVitalesController::class, 'show']
@@ -566,13 +578,13 @@ Route::middleware([
     | Signos vitales - Registro
     |--------------------------------------------------------------------------
     |
-    | Solamente enfermería puede capturar signos vitales.
+    | Enfermería puede capturar signos vitales. El médico solamente
+    | podrá registrarlos en las citas que tenga asignadas.
     |
     */
 
-    Route::middleware('role:enfermero')
+    Route::middleware('role:medico,enfermero')
         ->group(function () {
-
             Route::get(
                 '/citas/{cita}/signos-vitales/crear',
                 [SignosVitalesController::class, 'create']

@@ -604,15 +604,56 @@
                     </div>
 
                     <div class="border-t border-gray-200 px-6 py-6">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-900">
-                                Signos vitales
-                            </h3>
+                       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h3 class="text-lg font-bold text-gray-900">
+            Signos vitales
+        </h3>
 
-                            <p class="mt-1 text-sm text-gray-500">
-                                Datos registrados por el personal de enfermería.
-                            </p>
-                        </div>
+        <p class="mt-1 text-sm text-gray-500">
+            Datos registrados por el profesional clínico responsable.
+        </p>
+    </div>
+
+    @if (
+        $cita->signoVital
+        && in_array(
+            auth()->user()->role,
+            ['admin', 'medico'],
+            true
+        )
+    )
+        <a
+            href="{{ route(
+                'signos-vitales.show',
+                $cita->signoVital
+            ) }}"
+            class="inline-flex items-center justify-center
+                   rounded-xl border border-blue-200
+                   bg-white px-4 py-2.5 text-sm
+                   font-semibold text-blue-700
+                   transition hover:bg-blue-50"
+        >
+            Ver valoración
+        </a>
+    @elseif (
+        auth()->user()->isMedico()
+        && $cita->estado !== 'cancelada'
+    )
+        <a
+            href="{{ route(
+                'signos-vitales.create',
+                $cita
+            ) }}"
+            class="inline-flex items-center justify-center
+                   rounded-xl bg-blue-600 px-4 py-2.5
+                   text-sm font-semibold text-white
+                   shadow-sm transition hover:bg-blue-700"
+        >
+            Registrar signos vitales
+        </a>
+    @endif
+</div>
 
                         @if ($cita->signoVital)
                         @php
@@ -648,7 +689,7 @@
                         @if ($signoVital->observaciones)
                         <div class="mt-5 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
                             <p class="text-xs font-semibold uppercase tracking-wide text-blue-600">
-                                Observaciones de enfermería
+                                Observaciones clínicasObservaciones de enfermería
                             </p>
 
                             <p class="mt-2 whitespace-pre-line text-sm text-blue-950">
@@ -658,7 +699,7 @@
                         @endif
                         @else
                         <div class="mt-5 rounded-xl border border-dashed border-blue-200 bg-blue-50 px-4 py-4 text-sm font-medium text-blue-700">
-                            Enfermería todavía no ha registrado signos vitales para esta cita.
+                            Todavía no se han registrado signos vitales para esta cita.
                         </div>
                         @endif
                     </div>
