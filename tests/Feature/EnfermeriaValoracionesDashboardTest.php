@@ -156,6 +156,86 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
         );
     }
 
+    public function test_dashboard_filtra_valoraciones_por_fecha_y_prepara_calendario(): void
+    {
+        $citaHoy = $this->crearCita(
+            paciente: 'Paciente de Hoy',
+            hora: '11:00'
+        );
+
+        $citaSeleccionada = $this->crearCita(
+            paciente: 'Paciente del Calendario',
+            hora: '09:30',
+            fecha: '2026-09-05'
+        );
+
+        $respuesta = $this
+            ->actingAs($this->enfermero)
+            ->get(route('dashboard', [
+                'fecha' => '2026-09-05',
+                'mes' => '2026-09',
+            ]));
+
+        $respuesta->assertOk();
+
+        $this->assertSame(
+            '2026-09-05',
+            $respuesta
+                ->viewData('fechaSeleccionada')
+                ->toDateString()
+        );
+
+        $this->assertSame(
+            '2026-09',
+            $respuesta
+                ->viewData('mesCalendario')
+                ->format('Y-m')
+        );
+
+        $this->assertSame(
+            [$citaSeleccionada->id],
+            $respuesta
+                ->viewData('citasHoy')
+                ->pluck('id')
+                ->all()
+        );
+
+        $this->assertNotContains(
+            $citaHoy->id,
+            $respuesta
+                ->viewData('citasHoy')
+                ->pluck('id')
+                ->all()
+        );
+
+        $this->assertSame(
+            1,
+            $respuesta
+                ->viewData('citasPorDia')
+                ->get('2026-09-05')['total']
+        );
+
+        $this->assertTrue(
+            $respuesta
+                ->viewData('diasCalendario')
+                ->contains(
+                    fn (Carbon $dia) => $dia->toDateString() === '2026-09-05'
+                )
+        );
+
+        $respuesta
+            ->assertSee('Calendario de valoraciones')
+            ->assertSee('Seleccionar fecha')
+            ->assertSee('Paciente del Calendario')
+            ->assertDontSee('Paciente de Hoy')
+            ->assertSee(
+                route('dashboard', [
+                    'fecha' => '2026-09-05',
+                    'mes' => '2026-09',
+                ])
+            );
+    }
+
     public function test_dashboard_muestra_modal_y_botones_para_citas_pendientes(): void
     {
         $cita = $this->crearCita(
@@ -315,9 +395,35 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
         ]);
     }
 
+    public function test_dashboard_rechaza_fechas_invalidas_del_calendario(): void
+    {
+        $respuestaFecha = $this
+            ->actingAs($this->enfermero)
+            ->from(route('dashboard'))
+            ->get(route('dashboard', [
+                'fecha' => '06-09-2026',
+            ]));
+
+        $respuestaFecha
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrors('fecha');
+
+        $respuestaMes = $this
+            ->actingAs($this->enfermero)
+            ->from(route('dashboard'))
+            ->get(route('dashboard', [
+                'mes' => 'septiembre-2026',
+            ]));
+
+        $respuestaMes
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrors('mes');
+    }
+
     private function crearCita(
         string $paciente,
-        string $hora
+        string $hora,
+        ?string $fecha = null
     ): Citas {
         [$nombre, $apellido] = array_pad(
             explode(' ', $paciente, 2),
@@ -337,7 +443,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
         return Citas::query()->create([
             'paciente_id' => $registroPaciente->id,
             'medico_id' => $this->medico->id,
-            'fecha' => now()->toDateString(),
+            'fecha' => $fecha ?? now()->toDateString(),
             'hora' => $hora,
             'duracion_minutos' => 30,
             'modalidad' => 'presencial',

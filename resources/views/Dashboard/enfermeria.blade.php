@@ -11,7 +11,9 @@
                 </h2>
 
                 <p class="mt-1 text-sm text-gray-500">
-                    {{ now()->locale('es')->translatedFormat('l, d \d\e F \d\e Y') }}
+                    {{ $fechaSeleccionada
+                        ->locale('es')
+                        ->translatedFormat('l, d \d\e F \d\e Y') }}
                 </p>
             </div>
 
@@ -69,24 +71,43 @@
             </div>
             @endif
 
+            {{--
+                ============================================================
+                DISTRIBUCIÓN PRINCIPAL
+                ============================================================
+                En pantallas grandes se divide el dashboard en dos columnas
+                del mismo ancho. En móviles se conserva una sola columna.
+            --}}
+            <div
+                class="grid grid-cols-1 gap-8
+                       lg:grid-cols-2 lg:items-start">
+
+                {{--
+                    ========================================================
+                    COLUMNA IZQUIERDA
+                    Indicadores 2x2 y calendario de valoraciones
+                    ========================================================
+                --}}
+                <div class="space-y-6">
+
             {{-- Indicadores --}}
             <section>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
 
                     {{-- Citas activas --}}
-                    <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <article class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">
                                     Citas activas
                                 </p>
 
-                                <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                                <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
                                     {{ $citasHoy->count() }}
                                 </p>
                             </div>
 
-                            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                 <svg
                                     class="h-5 w-5"
                                     fill="none"
@@ -101,25 +122,25 @@
                             </div>
                         </div>
 
-                        <p class="mt-4 text-xs text-gray-400">
-                            Citas no canceladas para hoy
+                        <p class="mt-2 text-xs leading-snug text-gray-400">
+                            Citas no canceladas en la fecha seleccionada
                         </p>
                     </article>
 
                     {{-- Pendientes --}}
-                    <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <article class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">
                                     Pendientes
                                 </p>
 
-                                <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                                <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
                                     {{ $citasPendientes }}
                                 </p>
                             </div>
 
-                            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                 <svg
                                     class="h-5 w-5"
                                     fill="none"
@@ -134,25 +155,25 @@
                             </div>
                         </div>
 
-                        <p class="mt-4 text-xs text-gray-400">
+                        <p class="mt-2 text-xs leading-snug text-gray-400">
                             Citas sin signos vitales
                         </p>
                     </article>
 
                     {{-- Valoraciones realizadas --}}
-                    <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <article class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">
                                     Valoraciones realizadas
                                 </p>
 
-                                <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                                <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
                                     {{ $valoracionesRealizadas }}
                                 </p>
                             </div>
 
-                            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                 <svg
                                     class="h-5 w-5"
                                     fill="none"
@@ -167,25 +188,25 @@
                             </div>
                         </div>
 
-                        <p class="mt-4 text-xs text-gray-400">
-                            Signos vitales registrados hoy
+                        <p class="mt-2 text-xs leading-snug text-gray-400">
+                            Signos vitales registrados en la fecha seleccionada
                         </p>
                     </article>
 
                     {{-- Canceladas --}}
-                    <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <article class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                         <div class="flex items-start justify-between">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">
                                     Canceladas
                                 </p>
 
-                                <p class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                                <p class="mt-1 text-2xl font-bold tracking-tight text-gray-900">
                                     {{ $citasCanceladas }}
                                 </p>
                             </div>
 
-                            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                                 <svg
                                     class="h-5 w-5"
                                     fill="none"
@@ -200,13 +221,282 @@
                             </div>
                         </div>
 
-                        <p class="mt-4 text-xs text-gray-400">
-                            Citas canceladas durante el día
+                        <p class="mt-2 text-xs leading-snug text-gray-400">
+                            Citas canceladas en la fecha seleccionada
                         </p>
                     </article>
 
                 </div>
             </section>
+
+            {{-- Calendario de valoraciones --}}
+            <section
+                class="overflow-hidden rounded-2xl border
+           border-gray-200 bg-white shadow-sm">
+
+                <div
+                    class="flex flex-col gap-4 border-b border-gray-100
+               px-5 py-5 sm:flex-row sm:items-center
+               sm:justify-between sm:px-6">
+
+                    <div>
+                        <p
+                            class="text-xs font-bold uppercase
+                       tracking-wider text-emerald-600">
+                            Seleccionar fecha
+                        </p>
+
+                        <h3
+                            class="mt-1 text-lg font-bold
+                       text-gray-900">
+                            Calendario de valoraciones
+                        </h3>
+
+                        <p class="mt-1 text-sm text-gray-500">
+                            Consulta las citas y valoraciones de cualquier día.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <a
+                            href="{{ route('dashboard', [
+                    'fecha' => $mesAnterior->format('Y-m-d'),
+                    'mes' => $mesAnterior->format('Y-m'),
+                ]) }}"
+                            title="Mes anterior"
+                            aria-label="Mostrar mes anterior"
+                            class="flex h-10 w-10 items-center
+                       justify-center rounded-xl border
+                       border-gray-200 text-gray-500
+                       transition hover:bg-gray-50
+                       hover:text-gray-900">
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </a>
+
+                        <p
+                            class="min-w-36 text-center text-sm
+                       font-bold capitalize text-gray-900">
+                            {{ $mesCalendario
+                    ->locale('es')
+                    ->translatedFormat('F Y') }}
+                        </p>
+
+                        <a
+                            href="{{ route('dashboard', [
+                    'fecha' => $mesSiguiente->format('Y-m-d'),
+                    'mes' => $mesSiguiente->format('Y-m'),
+                ]) }}"
+                            title="Mes siguiente"
+                            aria-label="Mostrar mes siguiente"
+                            class="flex h-10 w-10 items-center
+                       justify-center rounded-xl border
+                       border-gray-200 text-gray-500
+                       transition hover:bg-gray-50
+                       hover:text-gray-900">
+
+                            <svg
+                                class="h-4 w-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-6">
+                    @if (! $fechaSeleccionada->isToday())
+                    <a
+                        href="{{ route('dashboard') }}"
+                        class="mb-4 inline-flex items-center
+                       gap-2 text-sm font-semibold
+                       text-emerald-700 transition
+                       hover:text-emerald-800">
+
+                        <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24">
+
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M3 12h18M3 12l4-4m-4 4 4 4" />
+                        </svg>
+
+                        Regresar a hoy
+                    </a>
+                    @endif
+
+                    <div
+                        class="grid grid-cols-7 gap-1
+                   text-center sm:gap-2">
+
+                        @foreach (
+                        ['L', 'M', 'M', 'J', 'V', 'S', 'D']
+                        as $nombreDia
+                        )
+                        <div
+                            class="py-2 text-xs font-bold
+                           text-gray-400">
+                            {{ $nombreDia }}
+                        </div>
+                        @endforeach
+
+                        @foreach ($diasCalendario as $dia)
+                        @php
+                        $fechaDia = $dia->format('Y-m-d');
+
+                        $informacionDia =
+                        $citasPorDia->get($fechaDia);
+
+                        $totalDia =
+                        $informacionDia['total'] ?? 0;
+
+                        $citasActivasDia =
+                        $informacionDia['activas'] ?? 0;
+
+                        $esMesActual =
+                        $dia->month === $mesCalendario->month
+                        && $dia->year === $mesCalendario->year;
+
+                        $esSeleccionado =
+                        $dia->isSameDay($fechaSeleccionada);
+
+                        $esHoy = $dia->isToday();
+                        @endphp
+
+                        <a
+                            href="{{ route('dashboard', [
+                        'fecha' => $fechaDia,
+                        'mes' => $dia->format('Y-m'),
+                    ]) }}"
+                            title="{{ $totalDia }}
+                        {{ $totalDia === 1 ? 'cita' : 'citas' }}"
+                            @if ($esSeleccionado)
+                            aria-current="date"
+                            @endif
+                            @class([ 'relative flex aspect-square min-h-10' , 'flex-col items-center justify-center' , 'rounded-xl text-sm font-semibold' , 'transition' , 'bg-gray-900 text-white shadow-sm'=> $esSeleccionado,
+                            'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200'
+                            => $esHoy && ! $esSeleccionado,
+                            'text-gray-700 hover:bg-gray-100'
+                            => $esMesActual
+                            && ! $esSeleccionado
+                            && ! $esHoy,
+                            'text-gray-300 hover:bg-gray-50'
+                            => ! $esMesActual
+                            && ! $esSeleccionado,
+                            ])>
+
+                            <span>
+                                {{ $dia->day }}
+                            </span>
+
+                            @if ($totalDia > 0)
+                            <span
+                                @class([ 'absolute bottom-1 h-1.5 w-1.5' , 'rounded-full' , 'bg-white'=> $esSeleccionado,
+                                'bg-emerald-500'
+                                => ! $esSeleccionado
+                                && $citasActivasDia > 0,
+                                'bg-red-400'
+                                => ! $esSeleccionado
+                                && $citasActivasDia === 0,
+                                ])>
+                            </span>
+                            @endif
+                        </a>
+                        @endforeach
+                    </div>
+
+                    <div
+                        class="mt-5 flex flex-wrap items-center
+                   gap-4 border-t border-gray-100
+                   pt-4 text-xs text-gray-500">
+
+                        <span class="inline-flex items-center gap-2">
+                            <span
+                                class="h-2 w-2 rounded-full
+                           bg-emerald-500">
+                            </span>
+
+                            Día con citas activas
+                        </span>
+
+                        <span class="inline-flex items-center gap-2">
+                            <span
+                                class="h-2 w-2 rounded-full bg-red-400">
+                            </span>
+
+                            Solo citas canceladas
+                        </span>
+
+                        <span class="inline-flex items-center gap-2">
+                            <span
+                                class="h-2 w-2 rounded-full bg-gray-900">
+                            </span>
+
+                            Fecha seleccionada
+                        </span>
+                    </div>
+                </div>
+
+                <div
+                    class="flex flex-col gap-2 border-t border-gray-100
+               bg-gray-50 px-5 py-4 sm:flex-row
+               sm:items-center sm:justify-between sm:px-6">
+
+                    <div>
+                        <p class="text-xs font-semibold uppercase text-gray-400">
+                            Citas mostradas debajo
+                        </p>
+
+                        <p class="mt-1 font-bold capitalize text-gray-900">
+                            {{ $fechaSeleccionada
+                    ->locale('es')
+                    ->translatedFormat('l, d \d\e F \d\e Y') }}
+                        </p>
+                    </div>
+
+                    <span
+                        class="inline-flex w-fit items-center
+                   rounded-full bg-white px-3 py-1.5
+                   text-sm font-bold text-gray-700 shadow-sm">
+
+                        {{ $citasHoy->count() }}
+                        {{ $citasHoy->count() === 1 ? 'cita activa' : 'citas activas' }}
+                    </span>
+                </div>
+            </section>
+
+                </div>
+
+                {{--
+                    ========================================================
+                    COLUMNA DERECHA
+                    Próxima valoración y listados organizados por estado
+                    ========================================================
+                --}}
+                <div class="space-y-6">
 
             {{-- Próxima valoración --}}
             <section>
@@ -215,7 +505,7 @@
                     <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/10"></div>
                     <div class="absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-blue-400/10"></div>
 
-                    <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
                         <div class="flex items-start gap-4">
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 text-emerald-300">
                                 <svg
@@ -258,14 +548,14 @@
                                 @endif
                             </div>
                         </div>
-<button
-    type="button"
-    data-abrir-modal-signos
-    data-cita-id="{{ $proximaCita->id }}"
-    data-url="{{
+                        <button
+                            type="button"
+                            data-abrir-modal-signos
+                            data-cita-id="{{ $proximaCita->id }}"
+                            data-url="{{
         route('signos-vitales.store', $proximaCita)
     }}"
-    data-paciente="{{
+                            data-paciente="{{
         trim(
             ($proximaCita->paciente?->nombre ?? '')
             . ' '
@@ -281,7 +571,7 @@
             )
         ) ?: 'Paciente no disponible'
     }}"
-    class="inline-flex shrink-0 items-center
+                            class="inline-flex shrink-0 items-center
            justify-center gap-2 rounded-xl
            bg-emerald-500 px-5 py-3 text-sm
            font-semibold text-white shadow-sm
@@ -290,21 +580,21 @@
            focus:ring-emerald-400 focus:ring-offset-2
            focus:ring-offset-gray-900">
 
-    <svg
-        class="h-5 w-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24">
+                            <svg
+                                class="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
 
-        <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 4v16m8-8H4" />
-    </svg>
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
 
-    Registrar signos vitales
-</button>
+                            Registrar signos vitales
+                        </button>
                     </div>
                 </article>
                 @else
@@ -330,7 +620,7 @@
                             </h3>
 
                             <p class="mt-1 text-sm text-emerald-700">
-                                No quedan citas futuras pendientes de signos vitales para hoy.
+                                No hay valoraciones próximas para esta fecha.
                             </p>
                         </div>
                     </div>
@@ -340,7 +630,7 @@
 
             {{-- Valoraciones organizadas por prioridad --}}
             <div class="space-y-6">
-            @if ($pendientesProximas->isNotEmpty())
+                @if ($pendientesProximas->isNotEmpty())
                 {{-- Próximas pendientes --}}
                 <section
                     class="overflow-hidden rounded-2xl border
@@ -415,7 +705,7 @@
                             </p>
 
                             <p class="mt-1 text-sm text-gray-500">
-                                No quedan citas futuras pendientes para hoy.
+                                No hay valoraciones próximas para esta fecha.
                             </p>
                         </div>
                         @endforelse
@@ -527,7 +817,7 @@
                             </h3>
 
                             <p class="mt-1 text-sm text-gray-500">
-                                Signos vitales registrados durante el día.
+                                Signos vitales registrados en la fecha seleccionada.
                             </p>
                         </div>
 
@@ -596,6 +886,9 @@
                         @endforelse
                     </div>
                 </section>
+            </div>
+
+                </div>
             </div>
 
         </div>

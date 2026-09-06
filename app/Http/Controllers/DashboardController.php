@@ -7,8 +7,8 @@ use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -18,23 +18,18 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         return match ($user->role) {
-            'admin' =>
-            $this->dashboardAdministrador(),
+            'admin' => $this->dashboardAdministrador(),
 
-            'recepcionista' =>
-            $this->dashboardRecepcion($request),
+            'recepcionista' => $this->dashboardRecepcion($request),
 
-            'medico' =>
-            $this->dashboardMedico(
+            'medico' => $this->dashboardMedico(
                 $user,
                 $request
             ),
 
-            'enfermero' =>
-            $this->dashboardEnfermero(),
+            'enfermero' => $this->dashboardEnfermero($request),
 
-            default =>
-            abort(403),
+            default => abort(403),
         };
     }
 
@@ -150,7 +145,7 @@ class DashboardController extends Controller
         if ($request->filled('mes')) {
             $mesCalendario = Carbon::createFromFormat(
                 'Y-m-d',
-                $request->input('mes') . '-01'
+                $request->input('mes').'-01'
             )->startOfMonth();
         } else {
             $mesCalendario = $fechaSeleccionada
@@ -258,8 +253,8 @@ class DashboardController extends Controller
  */
         $medicosAgenda = $medicoSeleccionadoId !== null
             ? $medicosFiltro
-            ->where('id', $medicoSeleccionadoId)
-            ->values()
+                ->where('id', $medicoSeleccionadoId)
+                ->values()
             : $medicosFiltro->values();
 
         /*
@@ -309,20 +304,18 @@ class DashboardController extends Controller
 
                 $llaveBloque =
                     $cita->medico_id
-                    . '|'
-                    . $horaBloque;
+                    .'|'
+                    .$horaBloque;
 
                 $citasAgenda->put(
                     $llaveBloque,
                     [
                         'cita' => $cita,
                         'es_inicio' => $indice === 0,
-                        'es_final' =>
-                        $indice ===
+                        'es_final' => $indice ===
                             $cantidadBloques - 1,
                         'indice' => $indice,
-                        'total_bloques' =>
-                        $cantidadBloques,
+                        'total_bloques' => $cantidadBloques,
                     ]
                 );
             }
@@ -364,10 +357,10 @@ class DashboardController extends Controller
             ->orderBy('fecha')
             ->get()
             ->groupBy(
-                fn(Citas $cita) => $cita->fecha->format('Y-m-d')
+                fn (Citas $cita) => $cita->fecha->format('Y-m-d')
             )
             ->map(
-                fn($grupo) => [
+                fn ($grupo) => [
                     'total' => $grupo->count(),
 
                     'activas' => $grupo
@@ -437,7 +430,6 @@ class DashboardController extends Controller
                 'finalizada',
             ]);
 
-
         if ($medicoSeleccionadoId !== null) {
             $consultaProximaCita->where(
                 'medico_id',
@@ -505,7 +497,6 @@ class DashboardController extends Controller
             )
         );
     }
-
 
     /**
      * Dashboard del médico autenticado.
@@ -632,8 +623,8 @@ class DashboardController extends Controller
                 function (Citas $cita) {
                     $fechaHoraFinal = Carbon::parse(
                         $cita->fecha->format('Y-m-d')
-                            . ' '
-                            . Carbon::parse(
+                            .' '
+                            .Carbon::parse(
                                 $cita->hora
                             )->format('H:i:s')
                     )->addMinutes(
@@ -724,22 +715,18 @@ class DashboardController extends Controller
 
                     $llaveBloque =
                         $medico->id
-                        . '|'
-                        . $horaBloque;
+                        .'|'
+                        .$horaBloque;
 
                     $citasAgenda->put(
                         $llaveBloque,
                         [
                             'cita' => $cita,
-                            'es_inicio' =>
-                            $indice === 0,
-                            'es_final' =>
-                            $indice
+                            'es_inicio' => $indice === 0,
+                            'es_final' => $indice
                                 === $cantidadBloques - 1,
-                            'indice' =>
-                            $indice,
-                            'total_bloques' =>
-                            $cantidadBloques,
+                            'indice' => $indice,
+                            'total_bloques' => $cantidadBloques,
                         ]
                     );
                 }
@@ -764,119 +751,230 @@ class DashboardController extends Controller
     /**
      * Dashboard del personal de enfermería.
      */
-        private function dashboardEnfermero()
-        {
-            $ahora = now();
+    private function dashboardEnfermero(Request $request)
+    {
+        $request->validate([
+            'fecha' => [
+                'nullable',
+                'date_format:Y-m-d',
+            ],
+            'mes' => [
+                'nullable',
+                'date_format:Y-m',
+            ],
+        ]);
 
-            $hoy = $ahora
+        $ahora = now();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Fecha y mes seleccionados
+    |--------------------------------------------------------------------------
+    */
+
+        $fechaSeleccionada = $request->filled('fecha')
+            ? Carbon::createFromFormat(
+                'Y-m-d',
+                $request->input('fecha')
+            )->startOfDay()
+            : Carbon::today();
+
+        $mesCalendario = $request->filled('mes')
+            ? Carbon::createFromFormat(
+                'Y-m-d',
+                $request->input('mes').'-01'
+            )->startOfMonth()
+            : $fechaSeleccionada
                 ->copy()
-                ->startOfDay();
+                ->startOfMonth();
 
-            /*
-        * Citas activas de hoy, ordenadas por horario.
-        *
-        * El ID funciona como criterio estable cuando
-        * existen dos citas con la misma hora.
-        */
-            $citasHoy = Citas::query()
-                ->with([
-                    'paciente',
-                    'medico',
-                    'signoVital',
-                ])
-                ->whereDate('fecha', $hoy)
-                ->where('estado', '!=', 'cancelada')
-                ->orderBy('hora')
-                ->orderBy('id')
-                ->get();
+        /*
+    |--------------------------------------------------------------------------
+    | Citas de la fecha seleccionada
+    |--------------------------------------------------------------------------
+    */
 
-            /*
-        * Citas que todavía no tienen una valoración
-        * de signos vitales registrada.
-        */
-            $citasSinValoracion = $citasHoy
-                ->filter(
-                    fn(Citas $cita) =>
-                    $cita->signoVital === null
-                )
-                ->values();
+        $citasHoy = Citas::query()
+            ->with([
+                'paciente',
+                'medico',
+                'signoVital',
+            ])
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            )
+            ->where('estado', '!=', 'cancelada')
+            ->orderBy('hora')
+            ->orderBy('id')
+            ->get();
 
-            /*
-        * Separamos las pendientes según su horario.
-        *
-        * Próximas:
-        * su horario todavía no ha pasado.
-        *
-        * Atrasadas:
-        * su horario ya pasó y continúan sin valoración.
-        */
-            [
-                $pendientesProximas,
-                $pendientesAtrasadas,
-            ] = $citasSinValoracion
-                ->partition(
-                    function (Citas $cita) use ($ahora) {
-                        $fechaHoraCita = Carbon::parse(
-                            $cita->fecha->format('Y-m-d')
-                                . ' '
-                                . $cita->hora
-                        );
+        $citasSinValoracion = $citasHoy
+            ->filter(
+                fn (Citas $cita) => $cita->signoVital === null
+            )
+            ->values();
 
-                        return $fechaHoraCita->gte($ahora);
-                    }
-                );
+        /*
+    |--------------------------------------------------------------------------
+    | Clasificación de valoraciones
+    |--------------------------------------------------------------------------
+    |
+    | Las citas futuras quedan como próximas.
+    | Las citas cuyo horario ya pasó quedan como atrasadas.
+    |
+    */
 
-            $pendientesProximas =
-                $pendientesProximas->values();
+        [
+            $pendientesProximas,
+            $pendientesAtrasadas,
+        ] = $citasSinValoracion
+            ->partition(
+                function (Citas $cita) use ($ahora) {
+                    $fechaHoraCita = Carbon::parse(
+                        $cita->fecha->format('Y-m-d')
+                            .' '
+                            .$cita->hora
+                    );
 
-            $pendientesAtrasadas =
-                $pendientesAtrasadas->values();
+                    return $fechaHoraCita->gte($ahora);
+                }
+            );
 
-            /*
-        * Citas que ya cuentan con signos vitales.
-        */
-            $valoracionesRealizadasLista = $citasHoy
-                ->filter(
-                    fn(Citas $cita) =>
-                    $cita->signoVital !== null
-                )
-                ->values();
+        $pendientesProximas =
+            $pendientesProximas->values();
 
-            /*
-        * Indicadores del dashboard.
-        */
-            $citasPendientes =
-                $citasSinValoracion->count();
+        $pendientesAtrasadas =
+            $pendientesAtrasadas->values();
 
-            $valoracionesRealizadas =
-                $valoracionesRealizadasLista->count();
+        $valoracionesRealizadasLista = $citasHoy
+            ->filter(
+                fn (Citas $cita) => $cita->signoVital !== null
+            )
+            ->values();
 
-            $citasCanceladas = Citas::query()
-                ->whereDate('fecha', $hoy)
-                ->where('estado', 'cancelada')
-                ->count();
+        /*
+    |--------------------------------------------------------------------------
+    | Indicadores de la fecha seleccionada
+    |--------------------------------------------------------------------------
+    */
 
-            /*
-        * La próxima valoración es la primera cita
-        * pendiente cuyo horario todavía no ha pasado.
-        */
-            $proximaCita =
-                $pendientesProximas->first();
+        $citasPendientes =
+            $citasSinValoracion->count();
 
-            return view(
-                'dashboard.enfermeria',
-                compact(
-                    'citasHoy',
-                    'citasPendientes',
-                    'valoracionesRealizadas',
-                    'citasCanceladas',
-                    'proximaCita',
-                    'pendientesProximas',
-                    'pendientesAtrasadas',
-                    'valoracionesRealizadasLista',
-                )
+        $valoracionesRealizadas =
+            $valoracionesRealizadasLista->count();
+
+        $citasCanceladas = Citas::query()
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            )
+            ->where('estado', 'cancelada')
+            ->count();
+
+        $proximaCita =
+            $pendientesProximas->first();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Información mensual del calendario
+    |--------------------------------------------------------------------------
+    */
+
+        $inicioMes = $mesCalendario
+            ->copy()
+            ->startOfMonth();
+
+        $finMes = $mesCalendario
+            ->copy()
+            ->endOfMonth();
+
+        $citasPorDia = Citas::query()
+            ->select([
+                'id',
+                'fecha',
+                'estado',
+            ])
+            ->whereBetween('fecha', [
+                $inicioMes->toDateString(),
+                $finMes->toDateString(),
+            ])
+            ->orderBy('fecha')
+            ->get()
+            ->groupBy(
+                fn (Citas $cita) => $cita->fecha->format('Y-m-d')
+            )
+            ->map(
+                fn ($grupo) => [
+                    'total' => $grupo->count(),
+
+                    'activas' => $grupo
+                        ->where('estado', '!=', 'cancelada')
+                        ->count(),
+
+                    'canceladas' => $grupo
+                        ->where('estado', 'cancelada')
+                        ->count(),
+                ]
+            );
+
+        /*
+    |--------------------------------------------------------------------------
+    | Cuadrícula completa del calendario
+    |--------------------------------------------------------------------------
+    */
+
+        $inicioCuadricula = $inicioMes
+            ->copy()
+            ->startOfWeek(Carbon::MONDAY);
+
+        $finCuadricula = $finMes
+            ->copy()
+            ->endOfWeek(Carbon::SUNDAY);
+
+        $diasCalendario = collect();
+
+        for (
+            $dia = $inicioCuadricula->copy();
+            $dia->lte($finCuadricula);
+            $dia->addDay()
+        ) {
+            $diasCalendario->push(
+                $dia->copy()
             );
         }
+
+        $mesAnterior = $mesCalendario
+            ->copy()
+            ->subMonth()
+            ->startOfMonth();
+
+        $mesSiguiente = $mesCalendario
+            ->copy()
+            ->addMonth()
+            ->startOfMonth();
+
+        return view(
+            'dashboard.enfermeria',
+            compact(
+                'citasHoy',
+                'citasPendientes',
+                'valoracionesRealizadas',
+                'citasCanceladas',
+                'proximaCita',
+                'pendientesProximas',
+                'pendientesAtrasadas',
+                'valoracionesRealizadasLista',
+                'fechaSeleccionada',
+                'mesCalendario',
+                'mesAnterior',
+                'mesSiguiente',
+                'diasCalendario',
+                'citasPorDia',
+            )
+        );
+    }
 
     /**
      * Obtiene los pacientes que cumplen años
@@ -907,7 +1005,7 @@ class DashboardController extends Controller
                 if (
                     $nacimiento->month === 2
                     && $nacimiento->day === 29
-                    && !Carbon::create($hoy->year, 1, 1)
+                    && ! Carbon::create($hoy->year, 1, 1)
                         ->isLeapYear()
                 ) {
                     $diaCumple = 28;
@@ -931,7 +1029,7 @@ class DashboardController extends Controller
                     if (
                         $nacimiento->month === 2
                         && $nacimiento->day === 29
-                        && !Carbon::create(
+                        && ! Carbon::create(
                             $anioSiguiente,
                             1,
                             1
@@ -966,8 +1064,7 @@ class DashboardController extends Controller
                 return $paciente;
             })
             ->filter(
-                fn(Pacientes $paciente) =>
-                $paciente->dias_para_cumpleanos >= 0
+                fn (Pacientes $paciente) => $paciente->dias_para_cumpleanos >= 0
                     && $paciente->dias_para_cumpleanos <= $dias
             )
             ->sortBy('proximo_cumpleanos')
