@@ -12,8 +12,8 @@
 </div>
 @endif
 @php
-    $pacienteCitaAnterior =
-        $pacienteCitaAnterior ?? null;
+$pacienteCitaAnterior =
+$pacienteCitaAnterior ?? null;
 @endphp
 <form
     method="POST"
@@ -96,7 +96,7 @@
                     <p
                         id="nombre_paciente_seleccionado"
                         class="mt-1 font-semibold text-gray-900">
-                   {{ $pacienteCitaAnterior
+                        {{ $pacienteCitaAnterior
     ? trim(
         $pacienteCitaAnterior->nombre
         . ' '
@@ -803,8 +803,8 @@
                     '</option>';
 
                 mensajeDuracion.textContent =
-                    'La duración puede ser de ' +
-                    '15 minutos hasta 2 horas.';
+                    'La cita puede extenderse en intervalos ' +
+                    'de 15 minutos hasta las 09:00 PM.';
 
                 return;
             }
@@ -817,6 +817,12 @@
 
             if (indiceInicio === -1) {
                 duracion.disabled = true;
+
+                duracion.innerHTML =
+                    '<option value="">' +
+                    'El horario inicial no está disponible' +
+                    '</option>';
+
                 return;
             }
 
@@ -826,78 +832,79 @@
                     15
                 );
 
-            const duracionesPermitidas = [
-                15,
-                30,
-                45,
-                60,
-                75,
-                90,
-                105,
-                120,
-            ];
+            const minutosPorBloque = 15;
+
+            /*
+             * Desde el bloque seleccionado contamos todos
+             * los intervalos restantes hasta las 09:00 PM.
+             */
+            const cantidadMaximaBloques =
+                bloquesHorarios.length - indiceInicio;
 
             let primeraOpcion = null;
 
-            duracionesPermitidas.forEach(
-                duracionMinutos => {
-                    const bloquesNecesarios =
-                        duracionMinutos / 15;
+            for (
+                let bloquesNecesarios = 1; bloquesNecesarios <= cantidadMaximaBloques; bloquesNecesarios++
+            ) {
+                const bloquesRequeridos =
+                    bloquesHorarios.slice(
+                        indiceInicio,
+                        indiceInicio + bloquesNecesarios
+                    );
 
-                    const bloquesRequeridos =
-                        bloquesHorarios.slice(
-                            indiceInicio,
-                            indiceInicio +
-                            bloquesNecesarios
-                        );
+                /*
+                 * Una cita solo puede extenderse mientras
+                 * todos sus bloques consecutivos estén libres.
+                 */
+                const estaDisponible =
+                    bloquesRequeridos.length ===
+                    bloquesNecesarios &&
+                    bloquesRequeridos.every(
+                        bloque =>
+                        bloque.disponible
+                    );
 
-                    /*
-                     * La duración solamente está disponible
-                     * si existen todos los bloques necesarios
-                     * y ninguno se encuentra ocupado.
-                     */
-                    const estaDisponible =
-                        bloquesRequeridos.length ===
-                        bloquesNecesarios &&
-                        bloquesRequeridos.every(
-                            bloque =>
-                            bloque.disponible
-                        );
-
-                    if (!estaDisponible) {
-                        return;
-                    }
-
-                    const opcion =
-                        document.createElement(
-                            'option'
-                        );
-
-                    opcion.value =
-                        String(duracionMinutos);
-
-                    const horaFinal =
-                        formatearHoraFinal(
-                            hora.value,
-                            duracionMinutos
-                        );
-
-                    opcion.textContent =
-                        `${horaFinal} — ` +
-                        `${duracionMinutos} minutos`;
-
-                    if (
-                        duracionMinutos ===
-                        valorAnterior
-                    ) {
-                        opcion.selected = true;
-                    }
-
-                    primeraOpcion ??= opcion;
-
-                    duracion.appendChild(opcion);
+                /*
+                 * Al encontrar el primer bloque ocupado,
+                 * cualquier duración mayor también cruzaría
+                 * ese mismo horario.
+                 */
+                if (!estaDisponible) {
+                    break;
                 }
-            );
+
+                const duracionMinutos =
+                    bloquesNecesarios * minutosPorBloque;
+
+                const opcion =
+                    document.createElement(
+                        'option'
+                    );
+
+                opcion.value =
+                    String(duracionMinutos);
+
+                const horaFinal =
+                    formatearHoraFinal(
+                        hora.value,
+                        duracionMinutos
+                    );
+
+                opcion.textContent =
+                    `${horaFinal} — ` +
+                    `${duracionMinutos} minutos`;
+
+                if (
+                    duracionMinutos ===
+                    valorAnterior
+                ) {
+                    opcion.selected = true;
+                }
+
+                primeraOpcion ??= opcion;
+
+                duracion.appendChild(opcion);
+            }
 
             if (duracion.options.length === 0) {
                 duracion.disabled = true;
@@ -914,7 +921,7 @@
             }
 
             /*
-             * Si la duración anterior ya no está disponible,
+             * Si el valor anterior ya no está disponible,
              * seleccionamos la primera opción válida.
              */
             if (!duracion.value && primeraOpcion) {

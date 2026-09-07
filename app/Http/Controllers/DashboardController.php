@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgendaBloqueo;
 use App\Models\Citas;
 use App\Models\Medicos;
 use App\Models\Pacientes;
@@ -89,6 +90,7 @@ class DashboardController extends Controller
             ->orderBy('hora')
             ->take(5)
             ->get();
+
         $cumpleanosPacientes =
             $this->obtenerCumpleanosPacientes(7);
 
@@ -104,6 +106,7 @@ class DashboardController extends Controller
             'ultimosPacientes',
             'proximasCitas',
             'cumpleanosPacientes',
+
         ));
     }
 
@@ -452,6 +455,79 @@ class DashboardController extends Controller
             ->orderBy('hora', 'asc')
             ->first();
 
+        /*
+ * Bloqueos activos correspondientes al día
+ * y al médico seleccionados en recepción.
+ */
+        $bloqueosAgenda = AgendaBloqueo::query()
+            ->with([
+                'medico',
+                'creador',
+            ])
+            ->whereDate(
+                'fecha',
+                $fechaSeleccionada->toDateString()
+            )
+            ->when(
+                $medicoSeleccionadoId !== null,
+                fn ($query) => $query->where(
+                    'medico_id',
+                    $medicoSeleccionadoId
+                )
+            )
+            ->orderBy('hora_inicio')
+            ->get();
+
+        /*
+ * Distribuye cada bloqueo entre los intervalos
+ * de 15 minutos que ocupa en la cuadrícula.
+ */
+        $bloqueosAgendaCuadricula = collect();
+
+        foreach ($bloqueosAgenda as $bloqueo) {
+            $inicioBloqueo = Carbon::parse(
+                $bloqueo->hora_inicio
+            );
+
+            $finBloqueo = Carbon::parse(
+                $bloqueo->hora_fin
+            );
+
+            $cantidadBloques = (int) (
+                $inicioBloqueo->diffInMinutes(
+                    $finBloqueo
+                ) / 15
+            );
+
+            for (
+                $indice = 0;
+                $indice < $cantidadBloques;
+                $indice++
+            ) {
+                $horaBloque = $inicioBloqueo
+                    ->copy()
+                    ->addMinutes($indice * 15)
+                    ->format('H:i');
+
+                $llaveBloque =
+                    $bloqueo->medico_id
+                    .'|'
+                    .$horaBloque;
+
+                $bloqueosAgendaCuadricula->put(
+                    $llaveBloque,
+                    [
+                        'bloqueo' => $bloqueo,
+                        'es_inicio' => $indice === 0,
+                        'es_final' => $indice ===
+                            $cantidadBloques - 1,
+                        'indice' => $indice,
+                        'total_bloques' => $cantidadBloques,
+                    ]
+                );
+            }
+        }
+
         $cumpleanosPacientes =
             $this->obtenerCumpleanosPacientes(7);
 
@@ -494,6 +570,8 @@ class DashboardController extends Controller
                 'medicosAgenda',
                 'cumpleanosPacientes',
                 'pacienteCitaAnterior',
+                'bloqueosAgenda',
+                'bloqueosAgendaCuadricula',
             )
         );
     }

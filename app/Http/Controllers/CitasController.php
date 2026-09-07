@@ -2,28 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgendaBloqueo;
+use App\Models\CasoClinico;
 use App\Models\Citas;
-use App\Models\Pacientes;
 use App\Models\Medicos;
+use App\Models\Pacientes;
+use App\Services\GoogleCalendarService;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Validation\Rule;
-use Carbon\Carbon;
-use Illuminate\Validation\ValidationException;
-use App\Services\GoogleCalendarService;
-use App\Models\CasoClinico;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use Throwable;
-
 
 class CitasController extends Controller
 {
-
     private const HORA_APERTURA = '09:00';
+
     private const HORA_CIERRE = '21:00';
+
     private const DURACION_CITA = 15;
+
     /**
      * Mostrar el listado de citas.
      */
@@ -76,8 +78,7 @@ class CitasController extends Controller
          */
             ->when(
                 $medicoAutenticado,
-                fn($query, Medicos $medico) =>
-                $query->where(
+                fn ($query, Medicos $medico) => $query->where(
                     'medico_id',
                     $medico->id
                 )
@@ -88,10 +89,9 @@ class CitasController extends Controller
          * filtrar por médico.
          */
             ->when(
-                !$medicoAutenticado
+                ! $medicoAutenticado
                     && $request->filled('medico_id'),
-                fn($query) =>
-                $query->where(
+                fn ($query) => $query->where(
                     'medico_id',
                     $request->integer('medico_id')
                 )
@@ -111,8 +111,7 @@ class CitasController extends Controller
                     ],
                     true
                 ),
-                fn($query) =>
-                $query->where(
+                fn ($query) => $query->where(
                     'modalidad',
                     $request->input('modalidad')
                 )
@@ -135,13 +134,12 @@ class CitasController extends Controller
         $medicos = $medicoAutenticado
             ? collect()
             : Medicos::query()
-            ->with('user')
-            ->get()
-            ->sortBy(
-                fn(Medicos $medico) =>
-                $medico->user?->name
-            )
-            ->values();
+                ->with('user')
+                ->get()
+                ->sortBy(
+                    fn (Medicos $medico) => $medico->user?->name
+                )
+                ->values();
 
         return view(
             'citas.index',
@@ -163,7 +161,7 @@ class CitasController extends Controller
             ->where('status', true)
             ->when(
                 $medicoAutenticado,
-                fn($query, Medicos $medico) => $query->whereKey($medico->id)
+                fn ($query, Medicos $medico) => $query->whereKey($medico->id)
             )
             ->orderBy('nombre')
             ->orderBy('apellido_paterno')
@@ -222,16 +220,9 @@ class CitasController extends Controller
             'duracion_minutos' => [
                 'required',
                 'integer',
-                Rule::in([
-                    15,
-                    30,
-                    45,
-                    60,
-                    75,
-                    90,
-                    105,
-                    120,
-                ]),
+                'min:15',
+                'max:720',
+                'multiple_of:15',
             ],
 
             'modalidad' => [
@@ -269,8 +260,8 @@ class CitasController extends Controller
             'estado' => [
                 'required',
                 'in:programada,confirmada,'
-                    . 'en_espera,en_consulta,'
-                    . 'finalizada,cancelada',
+                    .'en_espera,en_consulta,'
+                    .'finalizada,cancelada',
             ],
         ]);
 
@@ -288,12 +279,11 @@ class CitasController extends Controller
             )
             ->exists();
 
-        if (!$medicoValido) {
+        if (! $medicoValido) {
             return back()
                 ->withErrors([
-                    'medico_id' =>
-                    'El usuario seleccionado '
-                        . 'no es un médico activo.',
+                    'medico_id' => 'El usuario seleccionado '
+                        .'no es un médico activo.',
                 ], 'crearCita')
                 ->withInput();
         }
@@ -304,7 +294,7 @@ class CitasController extends Controller
         * ocupa al médico durante toda la duración
         * seleccionada para la cita.
         */
-                try {
+        try {
             $this->validarHorarioDisponible(
                 (int) $datos['medico_id'],
                 (int) $datos['paciente_id'],
@@ -342,42 +332,35 @@ class CitasController extends Controller
             try {
                 $meet =
                     $googleCalendar
-                    ->crearVideoconsulta(
-                        $cita
-                    );
+                        ->crearVideoconsulta(
+                            $cita
+                        );
 
                 $cita->update([
-                    'google_event_id' =>
-                    $meet['event_id'],
+                    'google_event_id' => $meet['event_id'],
 
-                    'google_meet_url' =>
-                    $meet['meet_url'],
+                    'google_meet_url' => $meet['meet_url'],
 
-                    'google_calendar_url' =>
-                    $meet['calendar_url'],
+                    'google_calendar_url' => $meet['calendar_url'],
 
-                    'estado_videoconferencia' =>
-                    $meet['meet_url']
+                    'estado_videoconferencia' => $meet['meet_url']
                         ? 'disponible'
                         : 'pendiente',
 
-                    'meet_generado_at' =>
-                    $meet['meet_url']
+                    'meet_generado_at' => $meet['meet_url']
                         ? now()
                         : null,
                 ]);
             } catch (Throwable $exception) {
                 $cita->update([
-                    'estado_videoconferencia' =>
-                    'fallido',
+                    'estado_videoconferencia' => 'fallido',
                 ]);
 
                 Log::error(
                     'No se pudo generar Google Meet.',
                     [
                         'cita_id' => $cita->id,
-                        'error' =>
-                        $exception->getMessage(),
+                        'error' => $exception->getMessage(),
                     ]
                 );
 
@@ -389,8 +372,8 @@ class CitasController extends Controller
                     ->with(
                         'error',
                         'La cita se guardó, pero '
-                            . 'no se pudo generar el enlace '
-                            . 'de Google Meet.'
+                            .'no se pudo generar el enlace '
+                            .'de Google Meet.'
                     );
             }
         }
@@ -401,11 +384,11 @@ class CitasController extends Controller
             ? (
                 $cita->google_meet_url
                 ? 'La videoconsulta y su enlace '
-                . 'de Google Meet se crearon '
-                . 'correctamente.'
+                .'de Google Meet se crearon '
+                .'correctamente.'
                 : 'La videoconsulta se creó y '
-                . 'Google está generando '
-                . 'el enlace de Meet.'
+                .'Google está generando '
+                .'el enlace de Meet.'
             )
             : 'La cita se registró correctamente.';
 
@@ -450,79 +433,71 @@ class CitasController extends Controller
             if ($cita->google_event_id) {
                 $meet =
                     $googleCalendar
-                    ->consultarVideoconsulta(
-                        $cita
-                    );
+                        ->consultarVideoconsulta(
+                            $cita
+                        );
             } else {
                 $creado =
                     $googleCalendar
-                    ->crearVideoconsulta(
-                        $cita
-                    );
+                        ->crearVideoconsulta(
+                            $cita
+                        );
 
                 $cita->google_event_id =
                     $creado['event_id'];
 
                 $meet = [
-                    'meet_url' =>
-                    $creado['meet_url'],
+                    'meet_url' => $creado['meet_url'],
 
-                    'calendar_url' =>
-                    $creado['calendar_url'],
+                    'calendar_url' => $creado['calendar_url'],
                 ];
             }
 
             $cita->fill([
-                'google_meet_url' =>
-                $meet['meet_url'],
+                'google_meet_url' => $meet['meet_url'],
 
-                'google_calendar_url' =>
-                $meet['calendar_url'],
+                'google_calendar_url' => $meet['calendar_url'],
 
-                'estado_videoconferencia' =>
-                $meet['meet_url']
+                'estado_videoconferencia' => $meet['meet_url']
                     ? 'disponible'
                     : 'pendiente',
 
-                'meet_generado_at' =>
-                $meet['meet_url']
+                'meet_generado_at' => $meet['meet_url']
                     ? now()
                     : null,
             ])->save();
 
-            if (!$meet['meet_url']) {
+            if (! $meet['meet_url']) {
                 return back()->with(
                     'error',
                     'Google todavía está generando '
-                        . 'el enlace. Intenta nuevamente '
-                        . 'en unos segundos.'
+                        .'el enlace. Intenta nuevamente '
+                        .'en unos segundos.'
                 );
             }
 
             return back()->with(
                 'success',
                 'El enlace de Google Meet '
-                    . 'está disponible.'
+                    .'está disponible.'
             );
         } catch (Throwable $exception) {
             $cita->update([
-                'estado_videoconferencia' =>
-                'fallido',
+                'estado_videoconferencia' => 'fallido',
             ]);
 
             Log::error(
                 'No se pudo recuperar Google Meet.',
                 [
                     'cita_id' => $cita->id,
-                    'error' =>
-                    $exception->getMessage(),
+                    'error' => $exception->getMessage(),
                 ]
             );
 
             return back()->with(
                 'error',
                 'No fue posible generar el enlace. '
-                    . 'Verifica la conexión de Google.'
+                    .'Verifica la conexión de Google.'
             );
         }
     }
@@ -561,7 +536,6 @@ class CitasController extends Controller
      */
         if ($puedeConsultarInformacionClinica) {
 
-
             /*
  * Las gráficas solamente utilizan enfermería de las citas
  * vinculadas con el caso clínico de la evolución actual.
@@ -572,36 +546,31 @@ class CitasController extends Controller
             if ($casoActual) {
                 $evolucionesConSignos =
                     $casoActual
-                    ->evoluciones
-                    ->sortBy(
-                        fn($evolucion) =>
-                        $evolucion->fecha->format('Y-m-d')
-                            . '-'
-                            . str_pad(
-                                (string) $evolucion->id,
-                                10,
-                                '0',
-                                STR_PAD_LEFT
-                            )
-                    )
-                    ->values();
+                        ->evoluciones
+                        ->sortBy(
+                            fn ($evolucion) => $evolucion->fecha->format('Y-m-d')
+                                .'-'
+                                .str_pad(
+                                    (string) $evolucion->id,
+                                    10,
+                                    '0',
+                                    STR_PAD_LEFT
+                                )
+                        )
+                        ->values();
 
                 $datosGraficasCaso = [
-                    'categorias' =>
-                    $evolucionesConSignos
+                    'categorias' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->fecha->format('d/m/Y')
-                                . ' · Cita #'
-                                . $evolucion->cita_id
+                            fn ($evolucion) => $evolucion->fecha->format('d/m/Y')
+                                .' · Cita #'
+                                .$evolucion->cita_id
                         )
                         ->all(),
 
-                    'peso' =>
-                    $evolucionesConSignos
+                    'peso' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->cita?->signoVital?->peso
+                            fn ($evolucion) => $evolucion->cita?->signoVital?->peso
                                 !== null
                                 ? (float) $evolucion
                                     ->cita
@@ -611,19 +580,15 @@ class CitasController extends Controller
                         )
                         ->all(),
 
-                    'imc' =>
-                    $evolucionesConSignos
+                    'imc' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->cita?->signoVital?->imc
+                            fn ($evolucion) => $evolucion->cita?->signoVital?->imc
                         )
                         ->all(),
 
-                    'estatura' =>
-                    $evolucionesConSignos
+                    'estatura' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->cita?->signoVital?->estatura
+                            fn ($evolucion) => $evolucion->cita?->signoVital?->estatura
                                 !== null
                                 ? (float) $evolucion
                                     ->cita
@@ -633,11 +598,9 @@ class CitasController extends Controller
                         )
                         ->all(),
 
-                    'temperatura' =>
-                    $evolucionesConSignos
+                    'temperatura' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->cita?->signoVital?->temperatura
+                            fn ($evolucion) => $evolucion->cita?->signoVital?->temperatura
                                 !== null
                                 ? (float) $evolucion
                                     ->cita
@@ -647,66 +610,54 @@ class CitasController extends Controller
                         )
                         ->all(),
 
-                    'presion_sistolica' =>
-                    $evolucionesConSignos
+                    'presion_sistolica' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion
+                            fn ($evolucion) => $evolucion
                                 ->cita
                                 ?->signoVital
                                 ?->presion_sistolica
                         )
                         ->all(),
 
-                    'presion_diastolica' =>
-                    $evolucionesConSignos
+                    'presion_diastolica' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion
+                            fn ($evolucion) => $evolucion
                                 ->cita
                                 ?->signoVital
                                 ?->presion_diastolica
                         )
                         ->all(),
 
-                    'frecuencia_cardiaca' =>
-                    $evolucionesConSignos
+                    'frecuencia_cardiaca' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion
+                            fn ($evolucion) => $evolucion
                                 ->cita
                                 ?->signoVital
                                 ?->frecuencia_cardiaca
                         )
                         ->all(),
 
-                    'frecuencia_respiratoria' =>
-                    $evolucionesConSignos
+                    'frecuencia_respiratoria' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion
+                            fn ($evolucion) => $evolucion
                                 ->cita
                                 ?->signoVital
                                 ?->frecuencia_respiratoria
                         )
                         ->all(),
 
-                    'saturacion_oxigeno' =>
-                    $evolucionesConSignos
+                    'saturacion_oxigeno' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion
+                            fn ($evolucion) => $evolucion
                                 ->cita
                                 ?->signoVital
                                 ?->saturacion_oxigeno
                         )
                         ->all(),
 
-                    'glucosa' =>
-                    $evolucionesConSignos
+                    'glucosa' => $evolucionesConSignos
                         ->map(
-                            fn($evolucion) =>
-                            $evolucion->cita?->signoVital?->glucosa
+                            fn ($evolucion) => $evolucion->cita?->signoVital?->glucosa
                                 !== null
                                 ? (float) $evolucion
                                     ->cita
@@ -724,8 +675,7 @@ class CitasController extends Controller
                 'evolucionClinica.aparatos',
                 'evolucionClinica.creadoPor',
 
-                'evolucionClinica.casoClinico.evoluciones' =>
-                function ($query) {
+                'evolucionClinica.casoClinico.evoluciones' => function ($query) {
                     $query
                         ->with([
                             'cita.signoVital.enfermero',
@@ -738,35 +688,35 @@ class CitasController extends Controller
                 },
 
                 'paciente.historiaClinica'
-                    . '.antecedentesHeredofamiliares',
+                    .'.antecedentesHeredofamiliares',
 
                 'paciente.historiaClinica'
-                    . '.antecedentesPersonalesPatologicos',
+                    .'.antecedentesPersonalesPatologicos',
 
                 'paciente.historiaClinica'
-                    . '.antecedentesPersonalesNoPatologicos',
+                    .'.antecedentesPersonalesNoPatologicos',
 
                 'paciente.historiaClinica'
-                    . '.habitoAlimenticio',
+                    .'.habitoAlimenticio',
 
                 'paciente.historiaClinica'
-                    . '.antecedenteGinecoobstetrico',
+                    .'.antecedenteGinecoobstetrico',
             ]);
 
             $casosClinicosActivos =
                 CasoClinico::query()
-                ->where(
-                    'paciente_id',
-                    $cita->paciente_id
-                )
-                ->where(
-                    'estado',
-                    CasoClinico::ESTADO_ACTIVO
-                )
-                ->withCount('evoluciones')
-                ->orderByDesc('fecha_inicio')
-                ->orderByDesc('id')
-                ->get();
+                    ->where(
+                        'paciente_id',
+                        $cita->paciente_id
+                    )
+                    ->where(
+                        'estado',
+                        CasoClinico::ESTADO_ACTIVO
+                    )
+                    ->withCount('evoluciones')
+                    ->orderByDesc('fecha_inicio')
+                    ->orderByDesc('id')
+                    ->get();
         }
 
         return view(
@@ -801,7 +751,7 @@ class CitasController extends Controller
             })
             ->when(
                 $medicoAutenticado,
-                fn($query, Medicos $medico) => $query->whereKey($medico->id)
+                fn ($query, Medicos $medico) => $query->whereKey($medico->id)
             )
             ->orderBy('nombre')
             ->orderBy('apellido_paterno')
@@ -813,7 +763,6 @@ class CitasController extends Controller
             'medicos'
         ));
     }
-
 
     /**
      * Actualizar una cita.
@@ -856,7 +805,7 @@ class CitasController extends Controller
      */
         if (
             filled($cita->motivo)
-            && !in_array(
+            && ! in_array(
                 $cita->motivo,
                 $motivosPermitidos,
                 true
@@ -902,16 +851,9 @@ class CitasController extends Controller
             'duracion_minutos' => [
                 'required',
                 'integer',
-                Rule::in([
-                    15,
-                    30,
-                    45,
-                    60,
-                    75,
-                    90,
-                    105,
-                    120,
-                ]),
+                'min:15',
+                'max:720',
+                'multiple_of:15',
             ],
 
             'modalidad' => [
@@ -961,8 +903,8 @@ class CitasController extends Controller
             'estado' => [
                 'required',
                 'in:programada,confirmada,'
-                    . 'en_espera,en_consulta,'
-                    . 'finalizada,cancelada',
+                    .'en_espera,en_consulta,'
+                    .'finalizada,cancelada',
             ],
         ]);
 
@@ -980,12 +922,11 @@ class CitasController extends Controller
             )
             ->exists();
 
-        if (!$medicoValido) {
+        if (! $medicoValido) {
             return back()
                 ->withErrors([
-                    'medico_id' =>
-                    'El médico seleccionado '
-                        . 'no está activo.',
+                    'medico_id' => 'El médico seleccionado '
+                        .'no está activo.',
                 ])
                 ->withInput();
         }
@@ -1014,11 +955,11 @@ class CitasController extends Controller
             || $cita->signoVital()->exists()
             || $cita->estudios()->exists()
             || $cita
-            ->exploracionFisica()
-            ->exists()
+                ->exploracionFisica()
+                ->exists()
             || $cita
-            ->evolucionClinica()
-            ->exists();
+                ->evolucionClinica()
+                ->exists();
 
         if (
             $cambiaIdentidadClinica
@@ -1026,15 +967,13 @@ class CitasController extends Controller
         ) {
             return back()
                 ->withErrors([
-                    'cita' =>
-                    'No puedes cambiar el paciente, '
-                        . 'el médico, la fecha ni la hora '
-                        . 'de una cita que ya contiene '
-                        . 'información clínica.',
+                    'cita' => 'No puedes cambiar el paciente, '
+                        .'el médico, la fecha ni la hora '
+                        .'de una cita que ya contiene '
+                        .'información clínica.',
                 ])
                 ->withInput();
         }
-
 
         /*
  * Una cita con evolución clínica representa
@@ -1047,14 +986,13 @@ class CitasController extends Controller
         if (
             $seIntentaCancelar
             && $cita
-            ->evolucionClinica()
-            ->exists()
+                ->evolucionClinica()
+                ->exists()
         ) {
             return back()
                 ->withErrors([
-                    'estado' =>
-                    'No puedes cancelar una cita que '
-                        . 'ya tiene una evolución clínica.',
+                    'estado' => 'No puedes cancelar una cita que '
+                        .'ya tiene una evolución clínica.',
                 ])
                 ->withInput();
         }
@@ -1139,8 +1077,7 @@ class CitasController extends Controller
                     'google_event_id' => null,
                     'google_meet_url' => null,
                     'google_calendar_url' => null,
-                    'estado_videoconferencia' =>
-                    'no_aplica',
+                    'estado_videoconferencia' => 'no_aplica',
                     'meet_generado_at' => null,
                 ]);
             }
@@ -1170,8 +1107,7 @@ class CitasController extends Controller
                         'google_event_id' => null,
                         'google_meet_url' => null,
                         'google_calendar_url' => null,
-                        'estado_videoconferencia' =>
-                        'cancelado',
+                        'estado_videoconferencia' => 'cancelado',
                         'meet_generado_at' => null,
                     ]);
                 } else {
@@ -1193,27 +1129,22 @@ class CitasController extends Controller
                     if ($necesitaEventoNuevo) {
                         $meet =
                             $googleCalendar
-                            ->crearVideoconsulta(
-                                $cita
-                            );
+                                ->crearVideoconsulta(
+                                    $cita
+                                );
 
                         $cita->fill([
-                            'google_event_id' =>
-                            $meet['event_id'],
+                            'google_event_id' => $meet['event_id'],
 
-                            'google_meet_url' =>
-                            $meet['meet_url'],
+                            'google_meet_url' => $meet['meet_url'],
 
-                            'google_calendar_url' =>
-                            $meet['calendar_url'],
+                            'google_calendar_url' => $meet['calendar_url'],
 
-                            'estado_videoconferencia' =>
-                            $meet['meet_url']
+                            'estado_videoconferencia' => $meet['meet_url']
                                 ? 'disponible'
                                 : 'pendiente',
 
-                            'meet_generado_at' =>
-                            $meet['meet_url']
+                            'meet_generado_at' => $meet['meet_url']
                                 ? now()
                                 : null,
                         ]);
@@ -1243,20 +1174,18 @@ class CitasController extends Controller
         } catch (Throwable $exception) {
             Log::error(
                 'No se pudo sincronizar '
-                    . 'la videoconsulta.',
+                    .'la videoconsulta.',
                 [
                     'cita_id' => $cita->id,
-                    'error' =>
-                    $exception->getMessage(),
+                    'error' => $exception->getMessage(),
                 ]
             );
 
             return back()
                 ->withErrors([
-                    'videoconsulta' =>
-                    'No fue posible sincronizar '
-                        . 'el cambio con Google Calendar. '
-                        . 'La cita no fue modificada.',
+                    'videoconsulta' => 'No fue posible sincronizar '
+                        .'el cambio con Google Calendar. '
+                        .'La cita no fue modificada.',
                 ])
                 ->withInput();
         }
@@ -1269,7 +1198,7 @@ class CitasController extends Controller
             ->with(
                 'success',
                 'La cita y Google Calendar '
-                    . 'se actualizaron correctamente.'
+                    .'se actualizaron correctamente.'
             );
     }
 
@@ -1289,11 +1218,11 @@ class CitasController extends Controller
             || $cita->signoVital()->exists()
             || $cita->estudios()->exists()
             || $cita
-            ->exploracionFisica()
-            ->exists()
+                ->exploracionFisica()
+                ->exists()
             || $cita
-            ->evolucionClinica()
-            ->exists();
+                ->evolucionClinica()
+                ->exists();
 
         if ($tieneInformacionClinica) {
             return back()->with(
@@ -1323,11 +1252,11 @@ class CitasController extends Controller
         $pacientes = Pacientes::query()
             ->where(function ($query) use ($termino) {
                 $query
-                    ->where('nombre', 'like', '%' . $termino . '%')
-                    ->orWhere('apellido', 'like', '%' . $termino . '%')
+                    ->where('nombre', 'like', '%'.$termino.'%')
+                    ->orWhere('apellido', 'like', '%'.$termino.'%')
                     ->orWhereRaw(
                         "CONCAT_WS(' ', nombre, apellido) LIKE ?",
-                        ['%' . $termino . '%']
+                        ['%'.$termino.'%']
                     );
             })
             ->orderBy('nombre')
@@ -1343,7 +1272,7 @@ class CitasController extends Controller
                 return [
                     'id' => $paciente->id,
                     'nombre_completo' => trim(
-                        $paciente->nombre . ' ' . $paciente->apellido
+                        $paciente->nombre.' '.$paciente->apellido
                     ),
                     'telefono' => $paciente->telefono,
                 ];
@@ -1373,6 +1302,12 @@ class CitasController extends Controller
                 'integer',
                 'exists:citas,id',
             ],
+
+            'ignorar_bloqueo' => [
+                'nullable',
+                'integer',
+                'exists:agenda_bloqueos,id',
+            ],
         ]);
 
         $medicoAutenticado =
@@ -1386,11 +1321,11 @@ class CitasController extends Controller
             abort(
                 403,
                 'No puedes consultar la agenda '
-                    . 'de otro médico.'
+                    .'de otro médico.'
             );
         }
 
-        if (!empty($datos['ignorar_cita'])) {
+        if (! empty($datos['ignorar_cita'])) {
             $citaIgnorada = Citas::query()
                 ->findOrFail(
                     $datos['ignorar_cita']
@@ -1426,9 +1361,8 @@ class CitasController extends Controller
                 'cancelada'
             )
             ->when(
-                !empty($datos['ignorar_cita']),
-                fn($query) =>
-                $query->whereKeyNot(
+                ! empty($datos['ignorar_cita']),
+                fn ($query) => $query->whereKeyNot(
                     $datos['ignorar_cita']
                 )
             )
@@ -1438,27 +1372,52 @@ class CitasController extends Controller
                 'duracion_minutos',
             ]);
 
+        /*
+ * Obtenemos los bloqueos activos registrados
+ * para la agenda del médico en esa fecha.
+ */
+        $bloqueosAgenda = AgendaBloqueo::query()
+            ->where(
+                'medico_id',
+                $datos['medico_id']
+            )
+            ->whereDate(
+                'fecha',
+                $fecha->format('Y-m-d')
+            )
+
+            ->when(
+                ! empty($datos['ignorar_bloqueo']),
+                fn ($query) => $query->whereKeyNot(
+                    $datos['ignorar_bloqueo']
+                )
+            )
+            ->get([
+                'hora_inicio',
+                'hora_fin',
+            ]);
+
         $inicio = Carbon::parse(
             $fecha->format('Y-m-d')
-                . ' '
-                . self::HORA_APERTURA
+                .' '
+                .self::HORA_APERTURA
         );
 
         $cierre = Carbon::parse(
             $fecha->format('Y-m-d')
-                . ' '
-                . self::HORA_CIERRE
+                .' '
+                .self::HORA_CIERRE
         );
 
         $horarios = [];
 
         while (
             $inicio
-            ->copy()
-            ->addMinutes(
-                self::DURACION_CITA
-            )
-            ->lte($cierre)
+                ->copy()
+                ->addMinutes(
+                    self::DURACION_CITA
+                )
+                ->lte($cierre)
         ) {
             $inicioBloque =
                 $inicio->copy();
@@ -1484,8 +1443,8 @@ class CitasController extends Controller
                     ) {
                         $inicioCita = Carbon::parse(
                             $fecha->format('Y-m-d')
-                                . ' '
-                                . $cita->hora
+                                .' '
+                                .$cita->hora
                         );
 
                         $finCita = $inicioCita
@@ -1498,7 +1457,39 @@ class CitasController extends Controller
                         return $inicioCita
                             ->lt($finBloque)
                             && $finCita
-                            ->gt($inicioBloque);
+                                ->gt($inicioBloque);
+                    }
+                );
+
+            /*
+ * Un bloque también deja de estar disponible
+ * cuando se cruza con un bloqueo de agenda.
+ */
+            $bloqueado = $bloqueosAgenda
+                ->contains(
+                    function (
+                        AgendaBloqueo $bloqueo
+                    ) use (
+                        $fecha,
+                        $inicioBloque,
+                        $finBloque
+                    ): bool {
+                        $inicioBloqueo = Carbon::parse(
+                            $fecha->format('Y-m-d')
+                                .' '
+                                .$bloqueo->hora_inicio
+                        );
+
+                        $finBloqueo = Carbon::parse(
+                            $fecha->format('Y-m-d')
+                                .' '
+                                .$bloqueo->hora_fin
+                        );
+
+                        return $inicioBloqueo
+                            ->lt($finBloque)
+                            && $finBloqueo
+                                ->gt($inicioBloque);
                     }
                 );
 
@@ -1514,19 +1505,18 @@ class CitasController extends Controller
                 );
 
             $horarios[] = [
-                'hora' =>
-                $inicioBloque->format('H:i'),
+                'hora' => $inicioBloque->format('H:i'),
 
-                'texto' =>
-                $inicioBloque->format('h:i A'),
+                'texto' => $inicioBloque->format('h:i A'),
 
-                'disponible' =>
-                !$ocupado
-                    && !$yaPaso
-                    && !$fechaPasada,
+                'disponible' => ! $ocupado
+                    && ! $bloqueado
+                    && ! $yaPaso
+                    && ! $fechaPasada,
 
-                'ocupado' =>
-                $ocupado,
+                'ocupado' => $ocupado || $bloqueado,
+
+                'bloqueado' => $bloqueado,
             ];
 
             $inicio->addMinutes(
@@ -1535,18 +1525,15 @@ class CitasController extends Controller
         }
 
         return response()->json([
-            'horarios' =>
-            $horarios,
+            'horarios' => $horarios,
 
-            'primer_disponible' =>
-            collect($horarios)
+            'primer_disponible' => collect($horarios)
                 ->firstWhere(
                     'disponible',
                     true
                 )['hora'] ?? null,
 
-            'hora_cierre' =>
-            $cierre->format('H:i'),
+            'hora_cierre' => $cierre->format('H:i'),
         ]);
     }
 
@@ -1561,34 +1548,22 @@ class CitasController extends Controller
         /*
      * Validación defensiva de duración.
      */
-        $duracionesPermitidas = [
-            15,
-            30,
-            45,
-            60,
-            75,
-            90,
-            105,
-            120,
-        ];
+        $duracionValida =
+            $duracionMinutos >= self::DURACION_CITA
+            && $duracionMinutos <= 720
+            && $duracionMinutos
+            % self::DURACION_CITA === 0;
 
-        if (
-            !in_array(
-                $duracionMinutos,
-                $duracionesPermitidas,
-                true
-            )
-        ) {
+        if (! $duracionValida) {
             throw ValidationException::withMessages([
-                'duracion_minutos' =>
-                'Selecciona una duración válida '
-                    . 'en intervalos de 15 minutos.',
+                'duracion_minutos' => 'Selecciona una duración válida '
+                    .'en intervalos de 15 minutos.',
             ]);
         }
 
         $inicio = Carbon::createFromFormat(
             'Y-m-d H:i',
-            $fecha . ' ' . $hora
+            $fecha.' '.$hora
         );
 
         $fin = $inicio
@@ -1597,12 +1572,12 @@ class CitasController extends Controller
 
         $apertura = Carbon::createFromFormat(
             'Y-m-d H:i',
-            $fecha . ' ' . self::HORA_APERTURA
+            $fecha.' '.self::HORA_APERTURA
         );
 
         $cierre = Carbon::createFromFormat(
             'Y-m-d H:i',
-            $fecha . ' ' . self::HORA_CIERRE
+            $fecha.' '.self::HORA_CIERRE
         );
 
         $minutosDesdeApertura = (int) $apertura
@@ -1622,20 +1597,18 @@ class CitasController extends Controller
             && $minutosDesdeApertura
             % self::DURACION_CITA === 0;
 
-        if (!$esBloqueValido) {
+        if (! $esBloqueValido) {
             throw ValidationException::withMessages([
-                'hora' =>
-                'La cita debe comenzar en un intervalo '
-                    . 'de 15 minutos y finalizar antes '
-                    . 'de las 09:00 PM.',
+                'hora' => 'La cita debe comenzar en un intervalo '
+                    .'de 15 minutos y finalizar antes '
+                    .'de las 09:00 PM.',
             ]);
         }
 
         if ($inicio->lte(now())) {
             throw ValidationException::withMessages([
-                'hora' =>
-                'No puedes registrar una cita '
-                    . 'en un horario que ya pasó.',
+                'hora' => 'No puedes registrar una cita '
+                    .'en un horario que ya pasó.',
             ]);
         }
 
@@ -1649,8 +1622,7 @@ class CitasController extends Controller
             ->where('estado', '!=', 'cancelada')
             ->when(
                 $ignorarCitaId !== null,
-                fn($query) =>
-                $query->whereKeyNot($ignorarCitaId)
+                fn ($query) => $query->whereKeyNot($ignorarCitaId)
             )
             ->get([
                 'id',
@@ -1665,7 +1637,7 @@ class CitasController extends Controller
                 $fin
             ) {
                 $inicioExistente = Carbon::parse(
-                    $fecha . ' ' . $citaExistente->hora
+                    $fecha.' '.$citaExistente->hora
                 );
 
                 $finExistente = $inicioExistente
@@ -1687,9 +1659,47 @@ class CitasController extends Controller
 
         if ($medicoOcupado) {
             throw ValidationException::withMessages([
-                'hora' =>
-                'El médico ya tiene una cita que '
-                    . 'se cruza con el horario seleccionado.',
+                'hora' => 'El médico ya tiene una cita que '
+                    .'se cruza con el horario seleccionado.',
+            ]);
+        }
+
+        /*
+ * La cita tampoco puede cruzarse con un bloqueo
+ * activo en la agenda del médico.
+ */
+        $bloqueosDelMedico = AgendaBloqueo::query()
+            ->where('medico_id', $medicoId)
+            ->whereDate('fecha', $fecha)
+            ->get([
+                'hora_inicio',
+                'hora_fin',
+            ]);
+
+        $agendaBloqueada = $bloqueosDelMedico
+            ->contains(
+                function (AgendaBloqueo $bloqueo) use (
+                    $fecha,
+                    $inicio,
+                    $fin
+                ): bool {
+                    $inicioBloqueo = Carbon::parse(
+                        $fecha.' '.$bloqueo->hora_inicio
+                    );
+
+                    $finBloqueo = Carbon::parse(
+                        $fecha.' '.$bloqueo->hora_fin
+                    );
+
+                    return $inicioBloqueo->lt($fin)
+                        && $finBloqueo->gt($inicio);
+                }
+            );
+
+        if ($agendaBloqueada) {
+            throw ValidationException::withMessages([
+                'hora' => 'El horario seleccionado se cruza con '
+                    .'un bloqueo en la agenda del médico.',
             ]);
         }
 
@@ -1703,8 +1713,7 @@ class CitasController extends Controller
             ->where('estado', '!=', 'cancelada')
             ->when(
                 $ignorarCitaId !== null,
-                fn($query) =>
-                $query->whereKeyNot($ignorarCitaId)
+                fn ($query) => $query->whereKeyNot($ignorarCitaId)
             )
             ->get([
                 'id',
@@ -1719,7 +1728,7 @@ class CitasController extends Controller
                 $fin
             ) {
                 $inicioExistente = Carbon::parse(
-                    $fecha . ' ' . $citaExistente->hora
+                    $fecha.' '.$citaExistente->hora
                 );
 
                 $finExistente = $inicioExistente
@@ -1735,9 +1744,8 @@ class CitasController extends Controller
 
         if ($pacienteOcupado) {
             throw ValidationException::withMessages([
-                'hora' =>
-                'El paciente ya tiene otra cita que '
-                    . 'se cruza con el horario seleccionado.',
+                'hora' => 'El paciente ya tiene otra cita que '
+                    .'se cruza con el horario seleccionado.',
             ]);
         }
     }

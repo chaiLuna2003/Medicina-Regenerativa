@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgendaBloqueoController;
 use App\Http\Controllers\CasosClinicosController;
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\DashboardController;
@@ -323,6 +324,21 @@ Route::middleware([
                 '/buscar-pacientes',
                 [CitasController::class, 'buscarPacientes']
             )->name('pacientes.buscar');
+
+            Route::post(
+                '/agenda-bloqueos',
+                [AgendaBloqueoController::class, 'store']
+            )->name('agenda-bloqueos.store');
+
+            Route::put(
+                '/agenda-bloqueos/{agendaBloqueo}',
+                [AgendaBloqueoController::class, 'update']
+            )->name('agenda-bloqueos.update');
+
+            Route::delete(
+                '/agenda-bloqueos/{agendaBloqueo}',
+                [AgendaBloqueoController::class, 'destroy']
+            )->name('agenda-bloqueos.destroy');
 
             Route::resource(
                 'citas',

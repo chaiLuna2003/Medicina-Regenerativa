@@ -6,6 +6,7 @@
 'permitirCreacion' => false,
 'mostrarNotas' => false,
 'abrirCitasEnModal' => false,
+'bloqueosAgenda' => null,
 ])
 
 <div
@@ -141,15 +142,44 @@
             $bloqueAgenda['es_final']
             ?? false;
 
+            $informacionBloqueo =
+            $bloqueosAgenda?->get(
+            $llaveAgenda
+            );
+
+            $bloqueoAgenda =
+            $informacionBloqueo['bloqueo']
+            ?? null;
+
+            $esInicioBloqueo =
+            $informacionBloqueo['es_inicio']
+            ?? false;
+
+            $esFinalBloqueo =
+            $informacionBloqueo['es_final']
+            ?? false;
+
+            /*
+            * Citas y bloqueos no pueden traslaparse,
+            * por lo que solo uno ocupará la celda.
+            */
+            $esInicioContenido = $citaAgenda
+            ? $esInicioAgenda
+            : $esInicioBloqueo;
+
+            $esFinalContenido = $citaAgenda
+            ? $esFinalAgenda
+            : $esFinalBloqueo;
+
             $espaciadoCeldaAgenda =
-            $esInicioAgenda
-            && $esFinalAgenda
+            $esInicioContenido
+            && $esFinalContenido
             ? 'p-1'
             : (
-            $esInicioAgenda
+            $esInicioContenido
             ? 'px-1 pt-1'
             : (
-            $esFinalAgenda
+            $esFinalContenido
             ? 'px-1 pb-1'
             : 'px-1'
             )
@@ -167,6 +197,12 @@
                     :es-final="$esFinalAgenda"
                     :mostrar-notas="$mostrarNotas"
                     :abrir-en-modal="$abrirCitasEnModal" />
+                @elseif ($bloqueoAgenda)
+    <x-agenda.tarjeta-bloqueo
+        :bloqueo="$bloqueoAgenda"
+        :es-inicio="$esInicioBloqueo"
+        :es-final="$esFinalBloqueo"
+    />
                 @else
                 @php
                 $fechaHoraBloque =

@@ -23,6 +23,30 @@
 
             <div class="flex flex-col gap-3 sm:flex-row">
                 <x-hoja-diaria-button class="w-full sm:w-auto" />
+                <button
+                    id="abrir-modal-bloqueo"
+                    type="button"
+                    class="inline-flex w-full items-center justify-center
+           gap-2 rounded-xl border border-amber-300
+           bg-amber-50 px-5 py-3 text-sm font-semibold
+           text-amber-700 shadow-sm transition
+           hover:border-amber-400 hover:bg-amber-100
+           sm:w-auto">
+                    <svg
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4l3 2m6-2a9 9 0
+               11-18 0 9 9 0 0118 0z" />
+                    </svg>
+
+                    Bloquear agenda
+                </button>
                 <a
                     href="{{ route('citas.create') }}"
                     class="inline-flex items-center justify-center gap-2 rounded-xl
@@ -333,6 +357,159 @@
                         </div>
                     </div>
 
+                    {{-- Bloqueos activos de agenda --}}
+                    @if ($bloqueosAgenda->isNotEmpty())
+                    <div
+                        class="border-b border-amber-200
+               bg-amber-50/60">
+
+                        {{-- Encabezado --}}
+                        <div
+                            class="flex items-center justify-between
+                   gap-4 px-6 py-4">
+                            <div>
+                                <p
+                                    class="text-xs font-semibold uppercase
+                           tracking-wider text-amber-700">
+                                    Bloqueos de agenda
+                                </p>
+
+                                <p class="mt-1 text-sm text-amber-800">
+                                    Periodos no disponibles para nuevas citas.
+                                </p>
+                            </div>
+
+                            <span
+                                class="rounded-full bg-amber-100 px-3 py-1
+                       text-xs font-semibold text-amber-800">
+                                {{ $bloqueosAgenda->count() }}
+                            </span>
+                        </div>
+
+                        {{-- Bloqueos --}}
+                        <div class="divide-y divide-amber-200">
+                            @foreach ($bloqueosAgenda as $bloqueo)
+                            <article
+                                class="flex flex-col gap-4 px-6 py-4
+                           sm:flex-row sm:items-center">
+
+                                {{-- Horario --}}
+                                <div class="w-36 shrink-0">
+                                    <p class="font-bold text-slate-900">
+                                        {{ \Carbon\Carbon::parse(
+                                $bloqueo->hora_inicio
+                            )->format('h:i A') }}
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-slate-500">
+                                        hasta
+                                        {{ \Carbon\Carbon::parse(
+                                $bloqueo->hora_fin
+                            )->format('h:i A') }}
+                                    </p>
+                                </div>
+
+                                {{-- Información --}}
+                                <div class="min-w-0 flex-1">
+                                    <div
+                                        class="flex flex-wrap items-center
+                                   gap-2">
+                                        <span
+                                            class="inline-flex items-center gap-2
+                                       rounded-full bg-amber-100
+                                       px-3 py-1 text-xs font-semibold
+                                       text-amber-800">
+                                            <span
+                                                class="h-2 w-2 rounded-full
+                                           bg-amber-500">
+                                            </span>
+
+                                            Agenda bloqueada
+                                        </span>
+
+                                        <p
+                                            class="text-sm font-semibold
+                                       text-slate-800">
+                                            Dr. {{ trim(
+                                    $bloqueo->medico->nombre.' '.
+                                    $bloqueo->medico
+                                        ->apellido_paterno
+                                ) }}
+                                        </p>
+                                    </div>
+
+                                    <p class="mt-2 text-sm text-slate-600">
+                                        {{ $bloqueo->motivo }}
+                                    </p>
+                                </div>
+
+                                {{-- Acciones --}}
+                                <div
+                                    class="flex shrink-0 flex-col gap-2
+                               sm:flex-row">
+
+                                    <button
+                                        type="button"
+                                        class="editar-bloqueo-agenda
+                                   inline-flex items-center
+                                   justify-center rounded-xl
+                                   border border-amber-300
+                                   bg-white px-4 py-2 text-sm
+                                   font-semibold text-amber-700
+                                   transition hover:bg-amber-100"
+                                        data-bloqueo-id="{{ $bloqueo->id }}"
+                                        data-update-url="{{ route(
+                                'agenda-bloqueos.update',
+                                $bloqueo
+                            ) }}"
+                                        data-medico-id="{{ $bloqueo->medico_id }}"
+                                        data-fecha="{{ $bloqueo->fecha
+                                ->format('Y-m-d') }}"
+                                        data-hora-inicio="{{ substr(
+                                $bloqueo->hora_inicio,
+                                0,
+                                5
+                            ) }}"
+                                        data-hora-fin="{{ substr(
+                                $bloqueo->hora_fin,
+                                0,
+                                5
+                            ) }}"
+                                        data-motivo="{{ $bloqueo->motivo }}">
+                                        Editar
+                                    </button>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ route(
+                                'agenda-bloqueos.destroy',
+                                $bloqueo
+                            ) }}"
+                                        onsubmit="return confirm(
+                                '¿Deseas liberar este horario?'
+                            )">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button
+                                            type="submit"
+                                            class="inline-flex w-full
+                                       items-center justify-center
+                                       rounded-xl border
+                                       border-slate-300 bg-white
+                                       px-4 py-2 text-sm font-semibold
+                                       text-slate-600 transition
+                                       hover:bg-slate-100">
+                                            Liberar
+                                        </button>
+                                    </form>
+                                </div>
+                            </article>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
                     {{-- Listado de citas --}}
                     <div class="divide-y divide-gray-100">
                         @forelse ($citasSeleccionadas as $cita)
@@ -392,13 +569,13 @@
                         @endphp
 
                         <article
-    class="abrir-modal-detalle-cita group
+                            class="abrir-modal-detalle-cita group
            cursor-pointer px-6 py-5
            transition hover:bg-slate-50"
-    data-cita-id="{{ $cita->id }}"
-    role="button"
-    tabindex="0"
-    aria-label="Ver cita de {{ $nombrePaciente }}">
+                            data-cita-id="{{ $cita->id }}"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Ver cita de {{ $nombrePaciente }}">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
                                 {{-- Hora --}}
                                 <div class="flex w-24 shrink-0 items-center gap-2 sm:block">
@@ -548,6 +725,7 @@
                         :medicos-agenda="$medicosAgenda"
                         :horas-agenda="$horasAgenda"
                         :citas-agenda="$citasAgenda"
+                        :bloqueos-agenda="$bloqueosAgendaCuadricula"
                         :fecha-seleccionada="$fechaSeleccionada"
                         :permitir-creacion="true"
                         :abrir-citas-en-modal="true"
@@ -1045,8 +1223,8 @@
              * restauramos y reabrimos el mismo modal.
              */
             const debeReabrirModal = @js(
-    $errors->getBag('crearCita')->any()
-);
+                $errors -> getBag('crearCita') -> any()
+            );
 
             if (debeReabrirModal) {
                 const opcionMedico =
@@ -1130,4 +1308,5 @@
             );
         });
     </script>
+    @include('agenda-bloqueos.modal')
 </x-app-layout>

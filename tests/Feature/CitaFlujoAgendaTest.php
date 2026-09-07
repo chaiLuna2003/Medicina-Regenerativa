@@ -308,6 +308,263 @@ class CitaFlujoAgendaTest extends TestCase
             ->assertSee('5512345678');
     }
 
+    public function test_cita_puede_extenderse_hasta_las_nueve_de_la_noche(): void
+    {
+        $datos = $this->escenario();
+
+        $fecha = now()
+            ->addDays(5)
+            ->toDateString();
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+
+                /*
+             * Desde las 09:00 hasta las 21:00:
+             * 12 horas equivalen a 720 minutos.
+             */
+                'hora' => '09:00',
+                'duracion_minutos' => 720,
+
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Cita extendida hasta el cierre.',
+                'estado' => 'programada',
+            ]);
+
+        $respuesta->assertSessionHasNoErrors();
+
+        $citaExtendidaExiste = Citas::query()
+            ->where(
+                'paciente_id',
+                $datos['paciente']->id
+            )
+            ->where(
+                'medico_id',
+                $datos['medico']->id
+            )
+            ->whereDate('fecha', $fecha)
+            ->where('hora', '09:00')
+            ->where('duracion_minutos', 720)
+            ->where('estado', 'programada')
+            ->exists();
+
+        $this->assertTrue(
+            $citaExtendidaExiste
+        );
+    }
+
+    public function test_cita_no_puede_terminar_despues_de_las_nueve_de_la_noche(): void
+    {
+        $datos = $this->escenario();
+
+        $fecha = now()
+            ->addDays(6)
+            ->toDateString();
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->from(route('dashboard'))
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+
+                /*
+             * Inicia a las 20:45 y pretende durar
+             * 30 minutos, por lo que terminaría
+             * a las 21:15.
+             */
+                'hora' => '20:45',
+                'duracion_minutos' => 30,
+
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Esta cita debe ser rechazada.',
+                'estado' => 'programada',
+            ]);
+
+        $respuesta
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrorsIn(
+                'crearCita',
+                'hora'
+            );
+
+        $this->assertDatabaseCount(
+            'citas',
+            0
+        );
+    }
+
+    public function test_cita_rechaza_duracion_fuera_de_intervalos_de_quince_minutos(): void
+    {
+        $datos = $this->escenario();
+
+        $fecha = now()
+            ->addDays(7)
+            ->toDateString();
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->from(route('dashboard'))
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+                'hora' => '10:00',
+
+                /*
+             * Veinte minutos no corresponden
+             * a un intervalo válido de 15.
+             */
+                'duracion_minutos' => 20,
+
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Duración inválida.',
+                'estado' => 'programada',
+            ]);
+
+        $respuesta
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrorsIn(
+                'crearCita',
+                'duracion_minutos'
+            );
+
+        $this->assertDatabaseCount(
+            'citas',
+            0
+        );
+    }
+
+    public function test_edicion_de_cita_actualiza_los_bloques_ocupados(): void
+    {
+        $datos = $this->escenario();
+
+        $fecha = now()
+            ->addDays(8)
+            ->toDateString();
+
+        /*
+     * Creamos inicialmente una cita de 09:00 a 21:00.
+     */
+        $respuestaCreacion = $this
+            ->actingAs($datos['recepcion'])
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+                'hora' => '09:00',
+                'duracion_minutos' => 720,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Cita originalmente extendida.',
+                'estado' => 'programada',
+            ]);
+
+        $respuestaCreacion
+            ->assertSessionHasNoErrors();
+
+        $cita = Citas::query()->sole();
+
+        /*
+     * Reducimos la cita para que termine a las 15:00.
+     */
+        $respuestaEdicion = $this
+            ->actingAs($datos['recepcion'])
+            ->put(route('citas.update', $cita), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+                'hora' => '09:00',
+                'duracion_minutos' => 360,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Cita reducida hasta las 15:00.',
+                'estado' => 'programada',
+            ]);
+
+        $respuestaEdicion
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('citas', [
+            'id' => $cita->id,
+            'hora' => '09:00',
+            'duracion_minutos' => 360,
+        ]);
+
+        $segundoPaciente = Pacientes::query()->create([
+            'nombre' => 'Segundo',
+            'apellido' => 'Paciente',
+            'fecha_nacimiento' => '1992-02-02',
+            'sexo' => 'femenino',
+            'categoria' => 'sin_categoria',
+            'status' => true,
+        ]);
+
+        /*
+     * Las 14:45 siguen dentro de la cita editada.
+     */
+        $respuestaTraslape = $this
+            ->actingAs($datos['recepcion'])
+            ->from(route('dashboard'))
+            ->post(route('citas.store'), [
+                'paciente_id' => $segundoPaciente->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+                'hora' => '14:45',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Debe rechazarse por traslape.',
+                'estado' => 'programada',
+            ]);
+
+        $respuestaTraslape
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrorsIn(
+                'crearCita',
+                'hora'
+            );
+
+        $this->assertDatabaseCount('citas', 1);
+
+        /*
+     * A las 15:00 el medico vuelve a estar disponible.
+     */
+        $respuestaDisponible = $this
+            ->actingAs($datos['recepcion'])
+            ->post(route('citas.store'), [
+                'paciente_id' => $segundoPaciente->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => $fecha,
+                'hora' => '15:00',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Comienza al terminar la cita anterior.',
+                'estado' => 'programada',
+            ]);
+
+        $respuestaDisponible
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('citas', 2);
+    }
+
     /**
      * @return array<string, mixed>
      */
