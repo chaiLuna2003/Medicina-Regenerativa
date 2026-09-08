@@ -36,6 +36,11 @@ class CitaConsistenciaEstadoTest extends TestCase
             ->assertDontSee(
                 route('citas.edit', $datos['cita']),
                 false
+            )
+            ->assertSeeText('Regresar al listado de citas')
+            ->assertSee(
+                'href="'.route('dashboard').'"',
+                false
             );
     }
 
@@ -97,6 +102,57 @@ class CitaConsistenciaEstadoTest extends TestCase
             'hora' => '10:00',
             'duracion_minutos' => 30,
         ]);
+    }
+
+    public function test_detalle_de_cita_editable_muestra_modal_con_formulario_precargado(): void
+    {
+        $datos = $this->crearEscenarioFinalizado();
+
+        Carbon::setTestNow('2026-09-10 09:00:00');
+
+        $datos['cita']->update([
+            'estado' => 'confirmada',
+        ]);
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->get(route('citas.show', $datos['cita']));
+
+        $respuesta
+            ->assertOk()
+            ->assertViewHas(
+                'pacientes',
+                fn ($pacientes): bool => $pacientes->contains(
+                    'id',
+                    $datos['paciente']->id
+                )
+            )
+            ->assertViewHas(
+                'medicos',
+                fn ($medicos): bool => $medicos->contains(
+                    'id',
+                    $datos['medico']->id
+                )
+            )
+            ->assertSee('data-abrir-modal-edicion-cita', false)
+            ->assertSee('data-modal-edicion-cita', false)
+            ->assertSee('data-formulario-edicion-cita', false)
+            ->assertDontSee(
+                'href="'.route('citas.edit', $datos['cita']).'"',
+                false
+            )
+            ->assertSee(
+                'action="'.route('citas.update', $datos['cita']).'"',
+                false
+            )
+            ->assertSee('name="_method" value="PUT"', false)
+            ->assertSee('name="paciente_id"', false)
+            ->assertSee('name="medico_id"', false)
+            ->assertSee('name="fecha"', false)
+            ->assertSee('value="2026-09-10"', false)
+            ->assertSee('data-valor-anterior="10:00"', false)
+            ->assertSee('name="duracion_minutos"', false)
+            ->assertSee('data-valor-anterior="30"', false);
     }
 
     /**

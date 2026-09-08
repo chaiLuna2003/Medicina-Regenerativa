@@ -18,18 +18,44 @@
 
             <div class="flex flex-wrap items-center gap-3 sm:justify-end">
 
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="inline-flex items-center justify-center rounded-xl
+               border border-gray-300 bg-white px-5 py-2.5
+               text-sm font-semibold text-gray-700 shadow-sm
+               transition hover:border-[#0D3B7F]
+               hover:bg-blue-50 hover:text-[#0D3B7F]">
+
+                    <svg
+                        class="mr-2 h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 19l-7-7 7-7" />
+                    </svg>
+
+                    Regresar al listado de citas
+                </a>
 
                 {{-- Acciones exclusivas de administración y recepción --}}
                 @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
 
-                @if ($cita->puedeEditarAdministrativamente())
-                <a
-                    href="{{ route('citas.edit', $cita) }}"
+                @if ($puedeEditarCita)
+                <button
+                    type="button"
+                    data-abrir-modal-edicion-cita
+                    aria-controls="modal-edicion-cita"
+                    aria-expanded="false"
                     class="inline-flex items-center justify-center rounded-xl
-   bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
-   text-white transition hover:bg-[#082a5d]">
+           bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
+           text-white transition hover:bg-[#082a5d]">
                     Editar cita
-                </a>
+                </button>
                 @endif
 
                 <button
@@ -871,6 +897,10 @@
     )
 
     @include(
+    'citas.modals.edicion-detalle'
+    )
+
+    @include(
     'citas.modals.crear-evolucion'
     )
 
@@ -894,6 +924,10 @@
     'citas.modals.graficas-evolucion'
     )
 </x-app-layout>
+
+@include(
+'citas.scripts.edicion-detalle'
+)
 
 @include(
 'citas.scripts.estudios'

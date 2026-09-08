@@ -719,13 +719,41 @@ class CitasController extends Controller
                     ->get();
         }
 
+        $puedeEditarCita = in_array(
+            auth()->user()->role,
+            ['admin', 'recepcionista'],
+            true
+        ) && $cita->puedeEditarAdministrativamente();
+
+        $pacientes = $puedeEditarCita
+            ? Pacientes::query()
+                ->orderBy('nombre')
+                ->orderBy('apellido')
+                ->get()
+            : collect();
+
+        $medicos = $puedeEditarCita
+            ? Medicos::query()
+                ->where(function ($query) use ($cita) {
+                    $query
+                        ->where('status', true)
+                        ->orWhere('id', $cita->medico_id);
+                })
+                ->orderBy('nombre')
+                ->orderBy('apellido_paterno')
+                ->get()
+            : collect();
+
         return view(
             'citas.show',
             compact(
                 'cita',
                 'casosClinicosActivos',
                 'puedeConsultarInformacionClinica',
-                'datosGraficasCaso'
+                'datosGraficasCaso',
+                'puedeEditarCita',
+                'pacientes',
+                'medicos'
             )
         );
     }
