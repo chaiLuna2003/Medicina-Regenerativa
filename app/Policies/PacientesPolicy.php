@@ -11,6 +11,7 @@ class PacientesPolicy
     {
         return $user->isAdmin()
             || $user->isRecepcionista()
+            || $user->isEnfermero()
             || (
                 $user->isMedico()
                 && $user->medico !== null
@@ -24,6 +25,7 @@ class PacientesPolicy
         if (
             $user->isAdmin()
             || $user->isRecepcionista()
+            || $user->isEnfermero()
         ) {
             return true;
         }
@@ -47,6 +49,7 @@ class PacientesPolicy
         if (
             $user->isAdmin()
             || $user->isRecepcionista()
+            || $user->isEnfermero()
         ) {
             return true;
         }

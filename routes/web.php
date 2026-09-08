@@ -105,8 +105,9 @@ Route::middleware([
 | Gestión administrativa de pacientes
 |--------------------------------------------------------------------------
 |
-| Administración y recepción pueden consultar el listado, registrar
-| pacientes y modificar los datos administrativos permitidos.
+| Administración y recepción pueden registrar pacientes.
+| Enfermería puede consultar y editar pacientes existentes,
+| pero no crear registros nuevos.
 |
 */
 
@@ -117,7 +118,6 @@ Route::middleware([
                 PacientesController::class
             )
                 ->only([
-                    'index',
                     'create',
                     'store',
                 ])
@@ -126,20 +126,36 @@ Route::middleware([
                 ]);
         });
 
-    Route::middleware('role:admin,medico,recepcionista')
-        ->group(function () {
-            Route::resource(
-                'pacientes',
-                PacientesController::class
-            )
-                ->only([
-                    'edit',
-                    'update',
-                ])
-                ->parameters([
-                    'pacientes' => 'pacientes',
-                ]);
-        });
+    Route::middleware(
+        'role:admin,recepcionista,enfermero'
+    )->group(function () {
+        Route::resource(
+            'pacientes',
+            PacientesController::class
+        )
+            ->only([
+                'index',
+            ])
+            ->parameters([
+                'pacientes' => 'pacientes',
+            ]);
+    });
+
+    Route::middleware(
+        'role:admin,medico,recepcionista,enfermero'
+    )->group(function () {
+        Route::resource(
+            'pacientes',
+            PacientesController::class
+        )
+            ->only([
+                'edit',
+                'update',
+            ])
+            ->parameters([
+                'pacientes' => 'pacientes',
+            ]);
+    });
 
     /*
 |--------------------------------------------------------------------------
@@ -148,18 +164,18 @@ Route::middleware([
 |
 | El médico puede acceder únicamente cuando el controlador confirme
 | que existe una relación clínica mediante una cita.
+| Enfermería recibe una presentación administrativa restringida.
 |
 */
 
-    Route::middleware('role:admin,medico,recepcionista')
-        ->group(function () {
-
-            Route::get(
-                '/pacientes/{pacientes}',
-                [PacientesController::class, 'show']
-            )->name('pacientes.show');
-        });
-
+    Route::middleware(
+        'role:admin,medico,recepcionista,enfermero'
+    )->group(function () {
+        Route::get(
+            '/pacientes/{pacientes}',
+            [PacientesController::class, 'show']
+        )->name('pacientes.show');
+    });
     /*
 |--------------------------------------------------------------------------
 | Documentos PDF de historia clínica

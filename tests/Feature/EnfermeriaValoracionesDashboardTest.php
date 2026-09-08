@@ -262,6 +262,56 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
             );
     }
 
+    public function test_modal_recibe_datos_de_seguridad_y_enlace_del_paciente(): void
+    {
+        $cita = $this->crearCita(
+            paciente: 'Paciente Seguridad',
+            hora: '11:30'
+        );
+
+        $cita->paciente->update([
+            'tipo_sangre' => 'O+',
+            'alergias' => 'Penicilina y sulfas',
+        ]);
+
+        $respuesta = $this
+            ->actingAs($this->enfermero)
+            ->get(route('dashboard'));
+
+        $respuesta
+            ->assertOk()
+            ->assertSee(
+                'data-tipo-sangre="O+"',
+                false
+            )
+            ->assertSee(
+                'data-alergias="Penicilina y sulfas"',
+                false
+            )
+            ->assertSee(
+                'data-paciente-url="'.
+                    route('pacientes.show', $cita->paciente).
+                    '"',
+                false
+            )
+            ->assertSee('modal-tipo-sangre-paciente')
+            ->assertSee('modal-alergias-paciente')
+            ->assertSee('modal-enlace-paciente')
+            ->assertSee('Consultar datos del paciente')
+            ->assertSee(
+                'boton.dataset.tipoSangre',
+                false
+            )
+            ->assertSee(
+                'boton.dataset.alergias',
+                false
+            )
+            ->assertSee(
+                'boton.dataset.pacienteUrl',
+                false
+            );
+    }
+
     public function test_enfermero_guarda_valoracion_desde_modal_y_regresa_al_dashboard(): void
     {
         $cita = $this->crearCita(
@@ -418,6 +468,34 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
         $respuestaMes
             ->assertRedirect(route('dashboard'))
             ->assertSessionHasErrors('mes');
+    }
+
+    public function test_cita_vencida_muestra_estado_efectivo_y_conserva_triage_pendiente(): void
+    {
+        $cita = $this->crearCita(
+            paciente: 'Paciente Estado Efectivo',
+            hora: '09:00'
+        );
+
+        $cita->update([
+            'estado' => 'en_espera',
+        ]);
+
+        $respuesta = $this
+            ->actingAs($this->enfermero)
+            ->get(route('dashboard'));
+
+        $respuesta
+            ->assertOk()
+            ->assertSee('Paciente Estado Efectivo')
+            ->assertSee('Finalizada')
+            ->assertSee('Valoración atrasada')
+            ->assertSee('Registrar signos')
+            ->assertSee(
+                'data-cita-id="'.$cita->id.'"',
+                false
+            )
+            ->assertDontSee('En espera');
     }
 
     private function crearCita(

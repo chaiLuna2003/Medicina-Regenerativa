@@ -103,35 +103,46 @@ class PermisosEdicionPacienteTest extends TestCase
         );
     }
 
-    public function test_enfermeria_no_recibe_campos_implicitamente(): void
+    public function test_enfermeria_edita_los_mismos_campos_que_recepcion(): void
     {
         $permisos = new PermisosEdicionPaciente;
-        $enfermero = $this->usuario('enfermero');
+
+        $camposRecepcion = $permisos->camposPara(
+            $this->usuario('recepcionista')
+        );
+
+        $camposEnfermeria = $permisos->camposPara(
+            $this->usuario('enfermero')
+        );
 
         $this->assertSame(
-            [],
-            $permisos->camposPara($enfermero)
+            $camposRecepcion,
+            $camposEnfermeria
         );
 
-        $this->assertFalse(
-            $permisos->puedeEditar(
-                $enfermero,
-                'sexo'
-            )
+        $this->assertContains(
+            'nombre',
+            $camposEnfermeria
         );
 
-        $this->assertFalse(
-            $permisos->puedeEditar(
-                $enfermero,
-                'alergias'
-            )
+        $this->assertContains(
+            'telefono',
+            $camposEnfermeria
         );
 
-        $this->assertFalse(
-            $permisos->puedeEditar(
-                $enfermero,
-                'telefono'
-            )
+        $this->assertContains(
+            'tipo_sangre',
+            $camposEnfermeria
+        );
+
+        $this->assertContains(
+            'alergias',
+            $camposEnfermeria
+        );
+
+        $this->assertContains(
+            'notas',
+            $camposEnfermeria
         );
     }
 

@@ -79,14 +79,7 @@ class PermisosEdicionPaciente
         'recepcionista' => self::CAMPOS_COMPLETOS,
         'medico' => self::CAMPOS_MEDICO,
 
-        /*
-         * Enfermería todavía no tiene autorización para modificar
-         * los datos generales del paciente.
-         *
-         * Cuando se habilite, sus campos deberán declararse aquí
-         * expresamente.
-         */
-        'enfermero' => [],
+        'enfermero' => self::CAMPOS_COMPLETOS,
     ];
 
     /**

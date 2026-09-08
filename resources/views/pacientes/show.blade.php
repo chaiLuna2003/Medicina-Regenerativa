@@ -1,5 +1,11 @@
 <x-app-layout>
 
+    @php
+    $esEnfermeria = request()
+    ->user()
+    ->isEnfermero();
+    @endphp
+
     <x-slot name="header">
         @include(
         'pacientes.sections.encabezado'
@@ -44,6 +50,7 @@
 
                 <main class="space-y-4 lg:col-span-8">
 
+                    @unless ($esEnfermeria)
                     @include(
                     'pacientes.sections.historia-clinica'
                     )
@@ -114,7 +121,7 @@
                     )
 
                     @endif
-
+                    @endunless
 
                     @include(
                     'pacientes.sections.signos-vitales'
@@ -139,6 +146,7 @@
     'pacientes.modals.notas'
     )
 
+    @unless ($esEnfermeria)
     @include(
     'pacientes.modals.historia-clinica'
     )
@@ -162,16 +170,18 @@
     'pacientes.modals.exploracion-fisica'
     )
 
-        @include(
-        'pacientes.modals.exploracion-fisica'
-    )
 
     @include(
-        'pacientes.modals.estudios'
+    'pacientes.modals.estudios'
     )
+    @endunless
 
 
-
+    @if ($esEnfermeria)
+    @include(
+    'pacientes.scripts.show-enfermeria'
+    )
+    @else
     @include(
     'pacientes.partials.estados-validacion'
     )
@@ -179,4 +189,5 @@
     @include(
     'pacientes.scripts.show'
     )
+    @endif
 </x-app-layout>

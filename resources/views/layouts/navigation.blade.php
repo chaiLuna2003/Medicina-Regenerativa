@@ -1,160 +1,344 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="w-full max-w-none px-3 sm:px-4 lg:px-6">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <!-- Logo -->
-<div class="shrink-0 flex items-center">
-    <a href="{{ route('dashboard') }}">
-        <img
-            src="{{ asset(
-                'images/logo-receta.png'
-            ) }}"
-            alt="Bio Natural Médica"
-            class="block h-12 w-auto object-contain"
-        >
-    </a>
-</div>
+<nav
+    x-data="{ open: false }"
+    class="sticky top-0 z-40 border-b border-slate-200
+           bg-white/95 shadow-sm backdrop-blur">
 
-                <!-- Navigation Links -->
-                <div class="hidden items-center gap-2 sm:ms-8 sm:flex">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
 
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+            {{-- Identidad y navegación principal --}}
+            <div class="flex min-w-0 items-center gap-8">
 
-                    {{-- Pacientes: escritorio --}}
-@if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
-    <x-nav-link
-        :href="route('pacientes.index')"
-        :active="request()->routeIs('pacientes.*')"
-    >
-        {{ __('Pacientes') }}
-    </x-nav-link>
-@endif
+                {{-- Identidad textual --}}
+                <a
+                    href="{{ route('dashboard') }}"
+                    class="group flex shrink-0 items-center"
+                    aria-label="Ir al dashboard">
+
+                    <span
+                        class="rounded-xl bg-slate-900 px-3 py-2
+                               text-sm font-black tracking-tight text-white
+                               shadow-sm transition
+                               group-hover:bg-emerald-700">
+                        SW
+                    </span>
+
+                    <span
+                        class="ml-2 text-lg font-bold tracking-tight
+                               text-slate-900">
+                        Médico
+                    </span>
+                </a>
+
+                {{-- Navegación de escritorio --}}
+                <div class="hidden items-center gap-1 sm:flex">
+
+                    <a
+                        href="{{ route('dashboard') }}"
+                        @class([
+                            'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                            'bg-emerald-50 text-emerald-700' =>
+                                request()->routeIs('dashboard'),
+                            'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                                ! request()->routeIs('dashboard'),
+                        ])>
+                        Dashboard
+                    </a>
+
+                    @if (
+                        in_array(
+                            auth()->user()->role,
+                            ['admin', 'recepcionista', 'enfermero'],
+                            true
+                        )
+                    )
+                        <a
+                            href="{{ route('pacientes.index') }}"
+                            @class([
+                                'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                                'bg-emerald-50 text-emerald-700' =>
+                                    request()->routeIs('pacientes.*'),
+                                'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                                    ! request()->routeIs('pacientes.*'),
+                            ])>
+                            Pacientes
+                        </a>
+                    @endif
 
                     @if (auth()->user()->isAdmin())
-    <x-nav-link
-        :href="route('medicos.index')"
-        :active="request()->routeIs('medicos.*')"
-    >
-        {{ __('Médicos') }}
-    </x-nav-link>
+                        <a
+                            href="{{ route('medicos.index') }}"
+                            @class([
+                                'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                                'bg-emerald-50 text-emerald-700' =>
+                                    request()->routeIs('medicos.*'),
+                                'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                                    ! request()->routeIs('medicos.*'),
+                            ])>
+                            Médicos
+                        </a>
 
-    <x-nav-link
-        :href="route('usuarios.index')"
-        :active="request()->routeIs('usuarios.*')"
-    >
-        {{ __('Usuarios') }}
-    </x-nav-link>
-@endif
-
+                        <a
+                            href="{{ route('usuarios.index') }}"
+                            @class([
+                                'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                                'bg-emerald-50 text-emerald-700' =>
+                                    request()->routeIs('usuarios.*'),
+                                'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                                    ! request()->routeIs('usuarios.*'),
+                            ])>
+                            Usuarios
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
+            {{-- Usuario: escritorio --}}
+            <div class="hidden items-center sm:flex">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                        <button
+                            type="button"
+                            class="group flex items-center gap-3 rounded-xl
+                                   border border-slate-200 bg-white
+                                   px-3 py-2 text-left shadow-sm
+                                   transition
+                                   hover:border-slate-300 hover:bg-slate-50
+                                   focus:outline-none focus:ring-2
+                                   focus:ring-emerald-500/30">
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                            <span
+                                class="h-2 w-2 shrink-0 rounded-full
+                                       bg-emerald-500">
+                            </span>
+
+                            <span class="min-w-0">
+                                <span
+                                    class="block max-w-40 truncate
+                                           text-sm font-semibold
+                                           text-slate-800">
+                                    {{ Auth::user()->name }}
+                                </span>
+
+                                <span
+                                    class="block text-xs capitalize
+                                           text-slate-500">
+                                    {{ Auth::user()->role }}
+                                </span>
+                            </span>
+
+                            <svg
+                                class="h-4 w-4 shrink-0 text-slate-400
+                                       transition group-hover:text-slate-600"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                aria-hidden="true">
+                                <path
+                                    fill-rule="evenodd"
+                                    d="M5.293 7.293a1 1 0 011.414 0
+                                       L10 10.586l3.293-3.293
+                                       a1 1 0 111.414 1.414l-4 4
+                                       a1 1 0 01-1.414 0l-4-4
+                                       a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </button>
                     </x-slot>
 
                     <x-slot name="content">
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            {{ __('Perfil') }}
                         </x-dropdown-link>
 
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form
+                            method="POST"
+                            action="{{ route('logout') }}">
                             @csrf
 
-                            <x-dropdown-link :href="route('logout')"
-                                onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                            <x-dropdown-link
+                                :href="route('logout')"
+                                onclick="
+                                    event.preventDefault();
+                                    this.closest('form').submit();
+                                ">
+                                {{ __('Cerrar sesión') }}
                             </x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            {{-- Botón móvil --}}
+            <div class="flex items-center sm:hidden">
+                <button
+                    type="button"
+                    @click="open = ! open"
+                    class="inline-flex h-10 w-10 items-center
+                           justify-center rounded-xl
+                           border border-slate-200
+                           text-slate-500 transition
+                           hover:bg-slate-100 hover:text-slate-800
+                           focus:outline-none focus:ring-2
+                           focus:ring-emerald-500/30"
+                    :aria-expanded="open.toString()"
+                    aria-label="Abrir menú">
+
+                    <svg
+                        x-show="! open"
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+
+                    <svg
+                        x-show="open"
+                        x-cloak
+                        class="h-5 w-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
+    {{-- Navegación móvil --}}
+    <div
+        x-show="open"
+        x-cloak
+        x-transition
+        @click.outside="open = false"
+        class="border-t border-slate-200 bg-white sm:hidden">
 
-            {{-- Pacientes: móvil --}}
-@if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
-    <x-responsive-nav-link
-        :href="route('pacientes.index')"
-        :active="request()->routeIs('pacientes.*')"
-    >
-        {{ __('Pacientes') }}
-    </x-responsive-nav-link>
-@endif
+        <div class="space-y-1 px-4 py-4">
+
+            <a
+                href="{{ route('dashboard') }}"
+                @class([
+                    'block rounded-xl px-4 py-3 text-sm font-semibold transition',
+                    'bg-emerald-50 text-emerald-700' =>
+                        request()->routeIs('dashboard'),
+                    'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                        ! request()->routeIs('dashboard'),
+                ])>
+                Dashboard
+            </a>
+
+            @if (
+                in_array(
+                    auth()->user()->role,
+                    ['admin', 'recepcionista', 'enfermero'],
+                    true
+                )
+            )
+                <a
+                    href="{{ route('pacientes.index') }}"
+                    @class([
+                        'block rounded-xl px-4 py-3 text-sm font-semibold transition',
+                        'bg-emerald-50 text-emerald-700' =>
+                            request()->routeIs('pacientes.*'),
+                        'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                            ! request()->routeIs('pacientes.*'),
+                    ])>
+                    Pacientes
+                </a>
+            @endif
 
             @if (auth()->user()->isAdmin())
-    <x-nav-link
-        :href="route('medicos.index')"
-        :active="request()->routeIs('medicos.*')"
-    >
-        {{ __('Médicos') }}
-    </x-nav-link>
+                <a
+                    href="{{ route('medicos.index') }}"
+                    @class([
+                        'block rounded-xl px-4 py-3 text-sm font-semibold transition',
+                        'bg-emerald-50 text-emerald-700' =>
+                            request()->routeIs('medicos.*'),
+                        'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                            ! request()->routeIs('medicos.*'),
+                    ])>
+                    Médicos
+                </a>
 
-    <x-nav-link
-        :href="route('usuarios.index')"
-        :active="request()->routeIs('usuarios.*')"
-    >
-        {{ __('Usuarios') }}
-    </x-nav-link>
-@endif
-
+                <a
+                    href="{{ route('usuarios.index') }}"
+                    @class([
+                        'block rounded-xl px-4 py-3 text-sm font-semibold transition',
+                        'bg-emerald-50 text-emerald-700' =>
+                            request()->routeIs('usuarios.*'),
+                        'text-slate-600 hover:bg-slate-100 hover:text-slate-900' =>
+                            ! request()->routeIs('usuarios.*'),
+                    ])>
+                    Usuarios
+                </a>
+            @endif
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+        {{-- Usuario: móvil --}}
+        <div class="border-t border-slate-200 px-4 py-4">
+            <div class="rounded-2xl bg-slate-50 p-4">
+                <div class="flex items-center gap-3">
+                    <span
+                        class="h-2.5 w-2.5 shrink-0 rounded-full
+                               bg-emerald-500">
+                    </span>
+
+                    <div class="min-w-0">
+                        <p
+                            class="truncate text-sm font-semibold
+                                   text-slate-900">
+                            {{ Auth::user()->name }}
+                        </p>
+
+                        <p
+                            class="truncate text-xs text-slate-500">
+                            {{ Auth::user()->email }}
+                        </p>
+
+                        <p
+                            class="mt-1 text-xs font-semibold capitalize
+                                   text-emerald-700">
+                            {{ Auth::user()->role }}
+                        </p>
+                    </div>
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
+                <a
+                    href="{{ route('profile.edit') }}"
+                    class="block rounded-xl px-4 py-3
+                           text-sm font-semibold text-slate-600
+                           transition
+                           hover:bg-slate-100 hover:text-slate-900">
+                    Perfil
+                </a>
 
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form
+                    method="POST"
+                    action="{{ route('logout') }}">
                     @csrf
 
-                    <x-responsive-nav-link :href="route('logout')"
-                        onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button
+                        type="submit"
+                        class="block w-full rounded-xl px-4 py-3
+                               text-left text-sm font-semibold
+                               text-rose-600 transition
+                               hover:bg-rose-50 hover:text-rose-700">
+                        Cerrar sesión
+                    </button>
                 </form>
             </div>
         </div>

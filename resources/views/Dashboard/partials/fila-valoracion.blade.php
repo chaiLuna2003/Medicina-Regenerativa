@@ -14,7 +14,7 @@ $nombreMedico = trim(
 ($cita->medico?->apellido_paterno ?? '')
 );
 
-[$estadoClases, $puntoClases, $estadoTexto] = match ($cita->estado) {
+[$estadoClases, $puntoClases, $estadoTexto] = match ($cita->estado_actual) {
 'confirmada' => [
 'bg-emerald-50 text-emerald-700',
 'bg-emerald-500',
@@ -193,6 +193,13 @@ $estaRealizada = $cita->signoVital !== null;
             data-cita-id="{{ $cita->id }}"
             data-url="{{ route('signos-vitales.store', $cita) }}"
             data-paciente="{{ $nombrePaciente ?: 'Paciente no disponible' }}"
+            data-tipo-sangre="{{ $cita->paciente?->tipo_sangre ?? '' }}"
+            data-alergias="{{ $cita->paciente?->alergias ?? '' }}"
+            data-paciente-url="{{
+    $cita->paciente
+        ? route('pacientes.show', $cita->paciente)
+        : ''
+}}"
             @class([ 'inline-flex w-full items-center justify-center' , 'gap-2 rounded-xl px-4 py-2.5' , 'text-sm font-semibold text-white shadow-sm' , 'transition focus:outline-none focus:ring-2' , 'focus:ring-offset-2 lg:w-auto' , 'bg-red-600 hover:bg-red-500 focus:ring-red-600'=>
             $esAtrasada,
             'bg-gray-900 hover:bg-gray-800 focus:ring-gray-900' =>

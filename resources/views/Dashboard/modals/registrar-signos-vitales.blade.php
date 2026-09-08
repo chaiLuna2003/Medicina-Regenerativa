@@ -102,6 +102,76 @@
                 </div>
                 @endif
 
+                <section
+                    class="mb-5 rounded-2xl border border-slate-200
+           bg-white p-5 shadow-sm">
+
+                    <div
+                        class="flex flex-col gap-4
+               lg:flex-row lg:items-center
+               lg:justify-between">
+
+                        <div class="grid flex-1 gap-4 sm:grid-cols-2">
+
+                            {{-- Tipo de sangre --}}
+                            <div
+                                class="rounded-xl border border-slate-200
+                       bg-slate-50 p-4">
+
+                                <p
+                                    class="text-xs font-bold uppercase
+                           tracking-wide text-slate-500">
+                                    Tipo de sangre
+                                </p>
+
+                                <p
+                                    id="modal-tipo-sangre-paciente"
+                                    class="mt-1 text-lg font-bold
+                           text-slate-900">
+                                    No registrado
+                                </p>
+                            </div>
+
+                            {{-- Alergias --}}
+                            <div
+                                id="modal-contenedor-alergias"
+                                class="rounded-xl border border-slate-200
+                       bg-slate-50 p-4">
+
+                                <p
+                                    class="text-xs font-bold uppercase
+                           tracking-wide text-slate-500">
+                                    Alergias
+                                </p>
+
+                                <p
+                                    id="modal-alergias-paciente"
+                                    class="mt-1 text-sm font-semibold
+                           text-slate-700">
+                                    Sin alergias registradas
+                                </p>
+                            </div>
+                        </div>
+
+                        <a
+                            id="modal-enlace-paciente"
+                            href="#"
+                            aria-disabled="true"
+                            class="inline-flex shrink-0 items-center
+                   justify-center rounded-xl
+                   border border-slate-300 bg-white
+                   px-4 py-3 text-sm font-semibold
+                   text-slate-700 shadow-sm transition
+                   hover:border-emerald-300
+                   hover:bg-emerald-50
+                   hover:text-emerald-700
+                   focus:outline-none focus:ring-2
+                   focus:ring-emerald-500/30">
+                            Consultar datos del paciente
+                        </a>
+                    </div>
+                </section>
+
                 <form
                     id="form-modal-signos"
                     method="POST"
@@ -129,10 +199,10 @@
                         value="{{ old('modal_cita_id') }}">
 
                     <input
-    id="modal-paciente-input"
-    type="hidden"
-    name="modal_paciente_nombre"
-    value="{{ old('modal_paciente_nombre') }}">
+                        id="modal-paciente-input"
+                        type="hidden"
+                        name="modal_paciente_nombre"
+                        value="{{ old('modal_paciente_nombre') }}">
 
                     {{-- Medidas corporales --}}
                     <section
