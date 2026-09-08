@@ -22,13 +22,15 @@
                 {{-- Acciones exclusivas de administración y recepción --}}
                 @if (in_array(auth()->user()->role, ['admin', 'recepcionista'], true))
 
+                @if ($cita->puedeEditarAdministrativamente())
                 <a
                     href="{{ route('citas.edit', $cita) }}"
                     class="inline-flex items-center justify-center rounded-xl
-                   bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
-                   text-white transition hover:bg-[#082a5d]">
+   bg-[#0D3B7F] px-5 py-2.5 text-sm font-semibold
+   text-white transition hover:bg-[#082a5d]">
                     Editar cita
                 </a>
+                @endif
 
                 <button
                     type="button"
@@ -105,19 +107,31 @@
     </x-slot>
 
     @php
-    $estadoClases = match ($cita->estado) {
-    'confirmada' => 'bg-green-100 text-green-700',
-    'en_espera' => 'bg-amber-100 text-amber-700',
-    'en_consulta' => 'bg-blue-100 text-blue-700',
-    'finalizada' => 'bg-gray-100 text-gray-700',
-    'cancelada' => 'bg-red-100 text-red-700',
-    default => 'bg-indigo-100 text-indigo-700',
+    $estadoEfectivo = $cita->estado_actual;
+
+    $estadoClases = match ($estadoEfectivo) {
+    'programada',
+    'confirmada' => 'bg-[#315F9F] text-white',
+
+    'en_espera',
+    'en_curso',
+    'en_consulta' => 'bg-[#F2C94C] text-[#5F4500]',
+
+    'finalizada' => 'bg-[#347557] text-white',
+    'cancelada' => 'bg-[#A84848] text-white',
+
+    default => 'bg-gray-100 text-gray-700',
     };
 
-    $estadoTexto = match ($cita->estado) {
+    $estadoTexto = match ($estadoEfectivo) {
+    'programada' => 'Programada',
+    'confirmada' => 'Confirmada',
     'en_espera' => 'En espera',
+    'en_curso' => 'En curso',
     'en_consulta' => 'En consulta',
-    default => ucfirst($cita->estado),
+    'finalizada' => 'Finalizada',
+    'cancelada' => 'Cancelada',
+    default => ucfirst(str_replace('_', ' ', $estadoEfectivo)),
     };
     @endphp
 
@@ -604,56 +618,54 @@
                     </div>
 
                     <div class="border-t border-gray-200 px-6 py-6">
-                       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-        <h3 class="text-lg font-bold text-gray-900">
-            Signos vitales
-        </h3>
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">
+                                    Signos vitales
+                                </h3>
 
-        <p class="mt-1 text-sm text-gray-500">
-            Datos registrados por el profesional clínico responsable.
-        </p>
-    </div>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Datos registrados por el profesional clínico responsable.
+                                </p>
+                            </div>
 
-    @if (
-        $cita->signoVital
-        && in_array(
-            auth()->user()->role,
-            ['admin', 'medico'],
-            true
-        )
-    )
-        <a
-            href="{{ route(
+                            @if (
+                            $cita->signoVital
+                            && in_array(
+                            auth()->user()->role,
+                            ['admin', 'medico'],
+                            true
+                            )
+                            )
+                            <a
+                                href="{{ route(
                 'signos-vitales.show',
                 $cita->signoVital
             ) }}"
-            class="inline-flex items-center justify-center
+                                class="inline-flex items-center justify-center
                    rounded-xl border border-blue-200
                    bg-white px-4 py-2.5 text-sm
                    font-semibold text-blue-700
-                   transition hover:bg-blue-50"
-        >
-            Ver valoración
-        </a>
-    @elseif (
-        auth()->user()->isMedico()
-        && $cita->estado !== 'cancelada'
-    )
-        <a
-            href="{{ route(
+                   transition hover:bg-blue-50">
+                                Ver valoración
+                            </a>
+                            @elseif (
+                            auth()->user()->isMedico()
+                            && $cita->estado !== 'cancelada'
+                            )
+                            <a
+                                href="{{ route(
                 'signos-vitales.create',
                 $cita
             ) }}"
-            class="inline-flex items-center justify-center
+                                class="inline-flex items-center justify-center
                    rounded-xl bg-blue-600 px-4 py-2.5
                    text-sm font-semibold text-white
-                   shadow-sm transition hover:bg-blue-700"
-        >
-            Registrar signos vitales
-        </a>
-    @endif
-</div>
+                   shadow-sm transition hover:bg-blue-700">
+                                Registrar signos vitales
+                            </a>
+                            @endif
+                        </div>
 
                         @if ($cita->signoVital)
                         @php

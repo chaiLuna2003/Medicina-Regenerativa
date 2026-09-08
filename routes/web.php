@@ -340,6 +340,21 @@ Route::middleware([
                 [AgendaBloqueoController::class, 'destroy']
             )->name('agenda-bloqueos.destroy');
 
+            Route::patch(
+                '/citas/{cita}/confirmar',
+                [CitasController::class, 'confirmar']
+            )->name('citas.confirmar');
+
+            Route::patch(
+                '/citas/{cita}/asistencia',
+                [CitasController::class, 'marcarAsistencia']
+            )->name('citas.asistencia');
+
+            Route::patch(
+                '/citas/{cita}/cancelar',
+                [CitasController::class, 'cancelar']
+            )->name('citas.cancelar');
+
             Route::resource(
                 'citas',
                 CitasController::class

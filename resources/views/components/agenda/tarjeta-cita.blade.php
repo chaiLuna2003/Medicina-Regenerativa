@@ -8,23 +8,20 @@
 
 @php
 $color = match ($cita->estado_actual) {
-'confirmada' =>
-'border-emerald-500 bg-emerald-500 text-white',
+'programada', 'confirmada' =>
+'border-[#315F9F] bg-[#315F9F] text-white',
 
-'en_espera' =>
-'border-amber-400 bg-amber-400 text-white',
-
-'en_curso', 'en_consulta' =>
-'border-blue-500 bg-blue-500 text-white',
+'en_espera', 'en_curso', 'en_consulta' =>
+'border-[#F2C94C] bg-[#F2C94C] text-[#5F4500]',
 
 'finalizada' =>
-'border-slate-400 bg-slate-400 text-white',
+'border-[#347557] bg-[#347557] text-white',
 
 'cancelada' =>
-'border-red-200 bg-red-50 text-red-600',
+'border-[#A84848] bg-[#FDECEC] text-[#A84848]',
 
 default =>
-'border-indigo-500 bg-indigo-500 text-white',
+'border-[#315F9F] bg-[#315F9F] text-white',
 };
 
 $bordes = $esInicio && $esFinal
@@ -68,7 +65,7 @@ $titulo .= ' · ' . $cita->notas;
 <a
     href="{{ $abrirEnModal ? '#' : route('citas.show', $cita) }}"
     @if ($abrirEnModal)
-        data-cita-id="{{ $cita->id }}"
+    data-cita-id="{{ $cita->id }}"
     @endif
     title="{{ $titulo }}"
     {{ $attributes->class([
@@ -88,25 +85,47 @@ $titulo .= ' · ' . $cita->notas;
     </span>
 
     <div class="min-w-0 flex-1">
-    <p class="truncate">
-        {{ $paciente }} · {{ $duracion }} min
-    </p>
+        <p class="truncate">
+            {{ $paciente }} · {{ $duracion }} min
+        </p>
 
-    @if (
+        @if (
         $mostrarNotas
         && filled($cita->notas)
-    )
+        )
         <p
             class="mt-0.5 truncate text-[10px]
-                   font-medium opacity-80"
-        >
+                   font-medium opacity-80">
             {{ \Illuminate\Support\Str::limit(
                 $cita->notas,
                 70
             ) }}
         </p>
-    @endif
-</div>
+        @endif
+    </div>
+    @if ($cita->estado_actual === 'finalizada')
+    <span
+        class="shrink-0 text-white"
+        title="Cita finalizada"
+        aria-label="Cita finalizada">
+        <svg
+            class="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M1 12l4 4L14 7" />
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.5"
+                d="M9 16l3 3L23 8" />
+        </svg>
+    </span>
+@endif
     @else
     <span
         class="h-1.5 w-full rounded-full

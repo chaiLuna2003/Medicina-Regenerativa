@@ -733,9 +733,19 @@ class CitasController extends Controller
     /**
      * Mostrar el formulario para editar una cita.
      */
-    public function edit(Citas $cita): View
+    public function edit(Citas $cita): View|RedirectResponse
     {
         $this->autorizarAccesoMedico($cita);
+
+        if (! $cita->puedeEditarAdministrativamente()) {
+            return redirect()
+                ->route('citas.show', $cita)
+                ->with(
+                    'error',
+                    'Esta cita ya comenzó, finalizó o fue cancelada '
+                        .'y no puede editarse.'
+                );
+        }
 
         $medicoAutenticado = $this->medicoAutenticado();
 
@@ -775,6 +785,15 @@ class CitasController extends Controller
         $this->autorizarAccesoMedico(
             $cita
         );
+
+        if (! $cita->puedeEditarAdministrativamente()) {
+            return redirect()
+                ->route('citas.show', $cita)
+                ->withErrors([
+                    'cita' => 'Esta cita ya comenzó, finalizó '
+                        .'o fue cancelada y no puede modificarse.',
+                ]);
+        }
 
         $medicoAutenticado =
             $this->medicoAutenticado();
@@ -1199,6 +1218,86 @@ class CitasController extends Controller
                 'success',
                 'La cita y Google Calendar '
                     .'se actualizaron correctamente.'
+            );
+    }
+
+    /**
+     * Confirmar una cita programada.
+     */
+    public function confirmar(Citas $cita): RedirectResponse
+    {
+        if ($cita->estado_actual !== 'programada') {
+            throw ValidationException::withMessages([
+                'estado' => 'Solamente se puede confirmar una cita programada.',
+            ]);
+        }
+
+        $cita->update([
+            'estado' => 'confirmada',
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with(
+                'success',
+                'La cita fue confirmada correctamente.'
+            );
+    }
+
+    /**
+     * Cancelar una cita que todavía no ha comenzado.
+     */
+    public function cancelar(Citas $cita): RedirectResponse
+    {
+        if (
+            ! in_array(
+                $cita->estado_actual,
+                [
+                    'programada',
+                    'confirmada',
+                ],
+                true
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'estado' => 'Solamente se puede cancelar una cita '
+                    .'programada o confirmada.',
+            ]);
+        }
+
+        $cita->update([
+            'estado' => 'cancelada',
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with(
+                'success',
+                'La cita fue cancelada correctamente.'
+            );
+    }
+
+    /**
+     * Registrar que el paciente asistió a una cita confirmada.
+     */
+    public function marcarAsistencia(Citas $cita): RedirectResponse
+    {
+        if ($cita->estado_actual !== 'confirmada') {
+            throw ValidationException::withMessages([
+                'estado' => 'Solamente se puede marcar asistencia '
+                    .'en una cita confirmada.',
+            ]);
+        }
+
+        $cita->update([
+            'estado' => 'en_espera',
+        ]);
+
+        return redirect()
+            ->route('dashboard')
+            ->with(
+                'success',
+                'La asistencia del paciente fue registrada.'
             );
     }
 

@@ -107,6 +107,41 @@ $cita->paciente
 'editar_url' =>
 route('citas.edit', $cita),
 
+'confirmar_url' =>
+route('citas.confirmar', $cita),
+
+'asistencia_url' =>
+route('citas.asistencia', $cita),
+
+'cancelar_url' =>
+route('citas.cancelar', $cita),
+
+'puede_confirmar' =>
+$cita->estado_actual === 'programada',
+
+'puede_marcar_asistencia' =>
+$cita->estado_actual === 'confirmada',
+
+'puede_modificar' =>
+in_array(
+$cita->estado_actual,
+[
+'programada',
+'confirmada',
+],
+true
+),
+
+'puede_cancelar' =>
+in_array(
+$cita->estado_actual,
+[
+'programada',
+'confirmada',
+],
+true
+),
+
 'detalle_url' =>
 route('citas.show', $cita),
 
@@ -294,8 +329,32 @@ route('citas.index', [
                     </p>
 
                     <p
-                        id="detalle-cita-estado"
-                        class="mt-1 text-sm font-bold">
+                        class="mt-1 flex items-center gap-2
+           text-sm font-bold">
+
+                        <span
+                            id="detalle-cita-finalizada-icono"
+                            class="hidden"
+                            aria-hidden="true">
+                            <svg
+                                class="h-5 w-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M1 12l4 4L14 7" />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2.5"
+                                    d="M9 16l3 3L23 8" />
+                            </svg>
+                        </span>
+
+                        <span id="detalle-cita-estado"></span>
                     </p>
                 </div>
 
@@ -364,6 +423,72 @@ route('citas.index', [
                bg-slate-50 p-4 text-sm text-slate-600">
                 </p>
             </div>
+            {{-- Acciones directas según el estado --}}
+            <div
+                class="mt-6 grid gap-3
+           sm:grid-cols-2 lg:grid-cols-3">
+
+                <form
+                    id="formulario-confirmar-cita"
+                    method="POST"
+                    action=""
+                    class="hidden">
+                    @csrf
+                    @method('PATCH')
+
+                    <button
+                        type="submit"
+                        class="inline-flex w-full items-center
+                   justify-center rounded-xl
+                   bg-[#315F9F] px-4 py-3
+                   text-sm font-bold text-white
+                   transition hover:bg-[#274D82]">
+                        Confirmar cita
+                    </button>
+                </form>
+
+                <form
+                    id="formulario-asistencia-cita"
+                    method="POST"
+                    action=""
+                    class="hidden">
+                    @csrf
+                    @method('PATCH')
+
+                    <button
+                        type="submit"
+                        class="inline-flex w-full items-center
+                   justify-center rounded-xl
+                   bg-[#F2C94C] px-4 py-3
+                   text-sm font-bold text-[#5F4500]
+                   transition hover:bg-[#E6BA3E]">
+                        Marcar asistencia
+                    </button>
+                </form>
+
+                <form
+                    id="formulario-cancelar-cita"
+                    method="POST"
+                    action=""
+                    class="hidden"
+                    onsubmit="return confirm(
+            '¿Confirmas que deseas cancelar esta cita?'
+        );">
+                    @csrf
+                    @method('PATCH')
+
+                    <button
+                        type="submit"
+                        class="inline-flex w-full items-center
+                   justify-center rounded-xl
+                   border border-[#A84848]
+                   bg-white px-4 py-3
+                   text-sm font-bold text-[#A84848]
+                   transition hover:bg-[#FDECEC]">
+                        Cancelar cita
+                    </button>
+                </form>
+            </div>
             {{-- Acciones de la cita --}}
             <div
                 class="mt-6 grid gap-3
@@ -410,7 +535,7 @@ route('citas.index', [
                transition hover:bg-slate-100">
                     Detalle de la cita
                 </a>
-                
+
             </div>
             <a
                 id="detalle-cita-whatsapp"
@@ -462,19 +587,19 @@ route('citas.index', [
             );
 
         const estilosEstado = {
-            confirmada: 'rounded-xl bg-[#EAF7F0] p-4 text-[#347557]',
+            confirmada: 'rounded-xl bg-[#315F9F] p-4 text-white',
 
-            en_espera: 'rounded-xl bg-[#FDECEC] p-4 text-[#A84848]',
+            en_espera: 'rounded-xl bg-[#F2C94C] p-4 text-[#5F4500]',
 
-            en_curso: 'rounded-xl bg-[#EAF2FF] p-4 text-[#315F9F]',
+            en_curso: 'rounded-xl bg-[#F2C94C] p-4 text-[#5F4500]',
 
-            en_consulta: 'rounded-xl bg-[#EAF2FF] p-4 text-[#315F9F]',
+            en_consulta: 'rounded-xl bg-[#F2C94C] p-4 text-[#5F4500]',
 
-            finalizada: 'rounded-xl bg-slate-100 p-4 text-slate-600',
+            finalizada: 'rounded-xl bg-[#347557] p-4 text-white',
 
             cancelada: 'rounded-xl bg-[#FDECEC] p-4 text-[#A84848]',
 
-            programada: 'rounded-xl bg-[#F2EDFC] p-4 text-[#684B9D]',
+            programada: 'rounded-xl bg-[#315F9F] p-4 text-white',
         };
 
         /**
@@ -561,6 +686,13 @@ route('citas.index', [
                 cita.estado_texto;
 
             document.getElementById(
+                'detalle-cita-finalizada-icono'
+            ).classList.toggle(
+                'hidden',
+                cita.estado !== 'finalizada'
+            );
+
+            document.getElementById(
                     'detalle-cita-modalidad'
                 ).textContent =
                 cita.modalidad_texto;
@@ -617,10 +749,57 @@ route('citas.index', [
                 cita.ficha_url ||
                 cita.detalle_url;
 
-            document.getElementById(
+            const botonEditar =
+                document.getElementById(
                     'detalle-cita-editar'
-                ).href =
+                );
+
+            botonEditar.href =
                 cita.editar_url;
+
+            botonEditar.classList.toggle(
+                'hidden',
+                !cita.puede_modificar
+            );
+
+            const formularioConfirmar =
+                document.getElementById(
+                    'formulario-confirmar-cita'
+                );
+
+            formularioConfirmar.action =
+                cita.confirmar_url;
+
+            formularioConfirmar.classList.toggle(
+                'hidden',
+                !cita.puede_confirmar
+            );
+
+            const formularioAsistencia =
+                document.getElementById(
+                    'formulario-asistencia-cita'
+                );
+
+            formularioAsistencia.action =
+                cita.asistencia_url;
+
+            formularioAsistencia.classList.toggle(
+                'hidden',
+                !cita.puede_marcar_asistencia
+            );
+
+            const formularioCancelar =
+                document.getElementById(
+                    'formulario-cancelar-cita'
+                );
+
+            formularioCancelar.action =
+                cita.cancelar_url;
+
+            formularioCancelar.classList.toggle(
+                'hidden',
+                !cita.puede_cancelar
+            );
 
             document.getElementById(
                     'detalle-cita-todas'

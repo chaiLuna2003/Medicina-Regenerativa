@@ -447,8 +447,9 @@
             ? ucfirst(str_replace('_', ' ', $cita->modalidad))
             : 'No especificada',
             };
+            $estadoEfectivo = $cita->estado_actual;
 
-            [$estadoTexto, $estadoClase] = match ($cita->estado) {
+            [$estadoTexto, $estadoClase] = match ($estadoEfectivo) {
             'finalizada' => [
             'Finalizada',
             'status-finalizada',
@@ -474,6 +475,11 @@
             'status-curso',
             ],
 
+            'en_consulta' => [
+            'En consulta',
+            'status-curso',
+            ],
+
             'cancelada' => [
             'Cancelada',
             'status-cancelada',
@@ -484,7 +490,7 @@
             str_replace(
             '_',
             ' ',
-            $cita->estado ?? 'Sin estado'
+            $estadoEfectivo
             )
             ),
             'status-default',
@@ -492,9 +498,9 @@
             };
             @endphp
 
-            <tr class="{{ $cita->estado === 'cancelada'
-                    ? 'cancelled'
-                    : '' }}">
+            <tr class="{{ $estadoEfectivo === 'cancelada'
+        ? 'cancelled'
+        : '' }}">
 
                 <td class="number">
                     {{ $indice + 1 }}
