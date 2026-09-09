@@ -41,11 +41,11 @@
         }
 
         .brand-description {
-            margin: 4px 0 0;
-            color: #238ccc;
-            font-size: 10px;
+            margin: 6px 0 0;
+            color: #64748b;
+            font-size: 8px;
             font-weight: bold;
-            letter-spacing: 1.2px;
+            letter-spacing: 0.7px;
             text-transform: uppercase;
         }
 
@@ -188,8 +188,8 @@
 
         .logo {
             display: block;
-            width: 100px;
-            max-height: 75px;
+            width: 74px;
+            max-height: 64px;
             object-fit: contain;
         }
     </style>
@@ -268,18 +268,6 @@
     STR_PAD_LEFT
     );
 
-
-    $logoPath = public_path(
-    'images/logo-receta.png'
-    );
-
-    $logoBase64 = file_exists($logoPath)
-    ? 'data:image/png;base64,'
-    . base64_encode(
-    file_get_contents($logoPath)
-    )
-    : null;
-
     $universidad = $medico?->universidad;
 
     $universidadLogoRelativo =
@@ -309,16 +297,16 @@
     <table class="header">
         <tr>
             <td class="brand">
-                @if ($logoBase64)
+                @if ($universidadLogoBase64)
                 <img
-                    src="{{ $logoBase64 }}"
-                    alt="Logotipo institucional"
+                    src="{{ $universidadLogoBase64 }}"
+                    alt="{{ $universidad?->nombre ?? 'Universidad' }}"
                     class="logo">
                 @endif
 
-                <p class="brand-description">
-                    Atención médica especializada
-                </p>
+               <p class="brand-description">
+    Dr. {{ $nombreMedico }}
+</p>
             </td>
 
             <td class="document-data">
@@ -456,21 +444,7 @@
     </section>
 
     {{-- Firma del médico --}}
-    {{-- Firma del médico --}}
     <div class="signature-wrapper">
-
-        @if ($universidadLogoBase64)
-        <img
-            src="{{ $universidadLogoBase64 }}"
-            alt="{{ $universidad?->nombre ?? 'Universidad' }}"
-            style="
-                display: block;
-                width: 70px;
-                max-height: 70px;
-                margin: 0 auto 12px;
-                object-fit: contain;
-            ">
-        @endif
 
         <div class="signature-line"></div>
 

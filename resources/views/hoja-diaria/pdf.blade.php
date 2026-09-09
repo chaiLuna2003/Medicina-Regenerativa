@@ -36,30 +36,11 @@
             vertical-align: middle;
         }
 
-        .brand {
-            width: 55%;
-        }
 
         .document-data {
-            width: 45%;
-            text-align: right;
-        }
-
-        .logo {
-            display: block;
-            width: 92px;
-            max-height: 60px;
-            object-fit: contain;
-        }
-
-        .brand-description {
-            margin: 3px 0 0;
-            color: #238ccc;
-            font-size: 8px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+    width: 100%;
+    text-align: right;
+}
 
         .document-title {
             margin: 0;
@@ -266,13 +247,6 @@
 
 <body>
     @php
-    $logoPath = public_path('images/logo-receta.png');
-
-    $logoBase64 = file_exists($logoPath)
-    ? 'data:image/png;base64,'
-    . base64_encode(file_get_contents($logoPath))
-    : null;
-
     $nombreMedicoSeleccionado = null;
 
     if ($medicoSeleccionado) {
@@ -303,20 +277,7 @@
     {{-- Encabezado --}}
     <table class="header">
         <tr>
-            <td class="brand">
-                @if ($logoBase64)
-                <img
-                    src="{{ $logoBase64 }}"
-                    alt="Logotipo institucional"
-                    class="logo">
-                @endif
-
-                <p class="brand-description">
-                    Atención médica especializada
-                </p>
-            </td>
-
-            <td class="document-data">
+           <td class="document-data">
                 <p class="document-title">
                     Hoja diaria
                 </p>
@@ -613,7 +574,7 @@
 
         &nbsp;&nbsp;|&nbsp;&nbsp;
 
-        Generado por el sistema
+        Horario de atención de Lunes a Viernes de 9:00 a 18:00 hrs.
     </div>
 </body>
 
