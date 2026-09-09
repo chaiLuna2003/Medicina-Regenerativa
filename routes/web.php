@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgendaBloqueoController;
+use App\Http\Controllers\CasoClinicoPdfController;
 use App\Http\Controllers\CasosClinicosController;
 use App\Http\Controllers\CitasController;
 use App\Http\Controllers\DashboardController;
@@ -502,6 +503,27 @@ Route::middleware([
                 'citas.exploracion-fisica.update'
             );
         });
+
+    /*
+|--------------------------------------------------------------------------
+| Caso clínico - Expediente PDF
+|--------------------------------------------------------------------------
+|
+| Administración puede descargar cualquier caso.
+| Los médicos requieren acceso clínico al paciente.
+| La Policy realiza la validación definitiva.
+|
+*/
+
+    Route::get(
+        '/casos-clinicos/{casoClinico}/pdf',
+        [
+            CasoClinicoPdfController::class,
+            'descargar',
+        ]
+    )
+        ->middleware('role:admin,medico')
+        ->name('casos-clinicos.pdf');
 
     /*
     |--------------------------------------------------------------------------

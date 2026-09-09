@@ -55,19 +55,56 @@ $casoHistorial->evoluciones;
                     </p>
                 </div>
 
-                <button
-                    type="button"
-                    data-cerrar-modal-clinico
-                    aria-label="Cerrar historial"
-                    class="shrink-0 rounded-lg p-2 text-slate-600
-           transition hover:bg-slate-100
-           hover:text-slate-900
-           focus-visible:outline-none
-           focus-visible:ring-2
-           focus-visible:ring-[#0D3B7F]
-           focus-visible:ring-offset-2">
-                    ✕
-                </button>
+                <div class="flex shrink-0 items-center gap-2">
+                    @if (in_array(auth()->user()?->role, ['admin', 'medico'], true))
+                    <a
+                        href="{{ route(
+                'casos-clinicos.pdf',
+                $casoHistorial
+            ) }}"
+                        aria-label="Descargar expediente del caso clínico"
+                        title="Descargar PDF"
+                        class="inline-flex items-center gap-2 rounded-lg
+                   bg-[#0D3B7F] px-3 py-2 text-sm font-semibold
+                   text-white transition hover:bg-[#092b5e]
+                   focus-visible:outline-none
+                   focus-visible:ring-2
+                   focus-visible:ring-[#0D3B7F]
+                   focus-visible:ring-offset-2">
+                        <svg
+                            class="h-4 w-4"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            aria-hidden="true">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                d="M12 3v12m0 0 4-4m-4 4-4-4
+                       M5 19h14" />
+                        </svg>
+
+                        <span class="hidden sm:inline">
+                            Descargar PDF
+                        </span>
+                    </a>
+                    @endif
+
+                    <button
+                        type="button"
+                        data-cerrar-modal-clinico
+                        aria-label="Cerrar historial"
+                        class="rounded-lg p-2 text-slate-600
+               transition hover:bg-slate-100
+               hover:text-slate-900
+               focus-visible:outline-none
+               focus-visible:ring-2
+               focus-visible:ring-[#0D3B7F]
+               focus-visible:ring-offset-2">
+                        ✕
+                    </button>
+                </div>
             </header>
 
             <div

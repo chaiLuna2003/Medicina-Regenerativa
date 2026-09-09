@@ -34,6 +34,9 @@ class PdfSinLeyendaInstitucionalTest extends TestCase
             'historia clinica' => [
                 'views/pacientes/pdf/historia-clinica.blade.php',
             ],
+            'caso clinico' => [
+                'views/casos-clinicos/pdf.blade.php',
+            ],
         ];
     }
 }

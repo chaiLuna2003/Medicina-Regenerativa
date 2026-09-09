@@ -91,6 +91,15 @@
                     'pacientes.sections.resumen-clinico'
                     )
 
+                    @if (
+                    request()->user()->isAdmin()
+                    || request()->user()->isMedico()
+                    )
+                    @include(
+                    'pacientes.sections.casos-clinicos'
+                    )
+                    @endif
+
                     @include(
                     'pacientes.sections.historial-citas'
                     )

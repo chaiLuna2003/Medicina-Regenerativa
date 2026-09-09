@@ -358,6 +358,17 @@ class PacientesController extends Controller
                     ->orderByDesc('id');
             },
 
+            'casosClinicos' => function ($query) {
+                $query
+                    ->with([
+                        'creadoPor',
+                        'cerradoPor',
+                    ])
+                    ->withCount('evoluciones')
+                    ->orderByDesc('fecha_inicio')
+                    ->orderByDesc('id');
+            },
+
             'signosVitales' => function ($query) {
                 $query
                     ->with([
