@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -9,23 +10,37 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_screen_can_be_rendered(): void
+    public function test_registration_screen_is_not_available(): void
     {
-        $response = $this->get('/register');
+        $this
+            ->get('/register')
+            ->assertNotFound();
 
-        $response->assertStatus(200);
+        $this->assertGuest();
     }
 
-    public function test_new_users_can_register(): void
+    public function test_users_cannot_register_publicly(): void
     {
-        $response = $this->post('/register', [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'SecureTest2026!',
-'password_confirmation' => 'SecureTest2026!',
+        $this
+            ->post('/register', [
+                'name' => 'Usuario no autorizado',
+                'email' => 'publico@example.com',
+                'password' => 'SecureTest2026!',
+                'password_confirmation' => 'SecureTest2026!',
+            ])
+            ->assertNotFound();
+
+        $this->assertGuest();
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'publico@example.com',
         ]);
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $this->assertSame(
+            0,
+            User::query()
+                ->where('email', 'publico@example.com')
+                ->count()
+        );
     }
 }
