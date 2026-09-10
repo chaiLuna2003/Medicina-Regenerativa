@@ -1275,8 +1275,10 @@ class CitasController extends Controller
     /**
      * Cancelar una cita que todavía no ha comenzado.
      */
-    public function cancelar(Citas $cita): RedirectResponse
-    {
+    public function cancelar(
+        Citas $cita,
+        GoogleCalendarService $googleCalendar
+    ): RedirectResponse {
         if (
             ! in_array(
                 $cita->estado_actual,
@@ -1293,9 +1295,38 @@ class CitasController extends Controller
             ]);
         }
 
-        $cita->update([
-            'estado' => 'cancelada',
-        ]);
+        try {
+            if ($cita->modalidad === 'videoconsulta') {
+                $googleCalendar->cancelarVideoconsulta(
+                    $cita
+                );
+
+                $cita->fill([
+                    'google_event_id' => null,
+                    'google_meet_url' => null,
+                    'google_calendar_url' => null,
+                    'estado_videoconferencia' => 'cancelado',
+                    'meet_generado_at' => null,
+                ]);
+            }
+
+            $cita->estado = 'cancelada';
+            $cita->save();
+        } catch (Throwable $exception) {
+            Log::error(
+                'No se pudo cancelar la videoconsulta.',
+                [
+                    'cita_id' => $cita->id,
+                    'error' => $exception->getMessage(),
+                ]
+            );
+
+            return back()->withErrors([
+                'videoconsulta' => 'No fue posible cancelar '
+                    .'el evento de Google Calendar. '
+                    .'La cita no fue modificada.',
+            ]);
+        }
 
         return redirect()
             ->route('dashboard')

@@ -6,7 +6,9 @@ use App\Models\Citas;
 use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\User;
+use App\Services\GoogleCalendarService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery;
 use Tests\TestCase;
 
 class CitaAccionesRecepcionTest extends TestCase
@@ -111,9 +113,35 @@ class CitaAccionesRecepcionTest extends TestCase
         ]);
     }
 
-    public function test_recepcion_puede_cancelar_una_cita_programada(): void
+    public function test_recepcion_cancela_videoconsulta_y_elimina_evento_de_google(): void
     {
         $datos = $this->escenario('programada');
+
+        $datos['cita']->update([
+            'modalidad' => 'videoconsulta',
+            'google_event_id' => 'evento-google-123',
+            'google_meet_url' => 'https://meet.google.com/abc-defg-hij',
+            'google_calendar_url' => 'https://calendar.google.com/evento',
+            'estado_videoconferencia' => 'disponible',
+            'meet_generado_at' => now(),
+        ]);
+
+        $this->mock(
+            GoogleCalendarService::class,
+            function ($mock) use ($datos): void {
+                $mock
+                    ->shouldReceive('cancelarVideoconsulta')
+                    ->once()
+                    ->with(
+                        Mockery::on(
+                            fn (Citas $cita): bool => $cita->is(
+                                $datos['cita']
+                            )
+                        )
+                    )
+                    ->andReturnNull();
+            }
+        );
 
         $respuesta = $this
             ->actingAs($datos['recepcion'])
@@ -128,6 +156,59 @@ class CitaAccionesRecepcionTest extends TestCase
         $this->assertDatabaseHas('citas', [
             'id' => $datos['cita']->id,
             'estado' => 'cancelada',
+            'google_event_id' => null,
+            'google_meet_url' => null,
+            'google_calendar_url' => null,
+            'estado_videoconferencia' => 'cancelado',
+            'meet_generado_at' => null,
+        ]);
+    }
+
+    public function test_fallo_de_google_no_cancela_la_cita_localmente(): void
+    {
+        $datos = $this->escenario('confirmada');
+
+        $datos['cita']->update([
+            'modalidad' => 'videoconsulta',
+            'google_event_id' => 'evento-google-123',
+            'google_meet_url' => 'https://meet.google.com/abc-defg-hij',
+            'google_calendar_url' => 'https://calendar.google.com/evento',
+            'estado_videoconferencia' => 'disponible',
+            'meet_generado_at' => now(),
+        ]);
+
+        $this->mock(
+            GoogleCalendarService::class,
+            function ($mock): void {
+                $mock
+                    ->shouldReceive('cancelarVideoconsulta')
+                    ->once()
+                    ->andThrow(
+                        new \RuntimeException(
+                            'Google Calendar no disponible.'
+                        )
+                    );
+            }
+        );
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->from(route('dashboard'))
+            ->patch(
+                route('citas.cancelar', $datos['cita'])
+            );
+
+        $respuesta
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrors('videoconsulta');
+
+        $this->assertDatabaseHas('citas', [
+            'id' => $datos['cita']->id,
+            'estado' => 'confirmada',
+            'google_event_id' => 'evento-google-123',
+            'google_meet_url' => 'https://meet.google.com/abc-defg-hij',
+            'google_calendar_url' => 'https://calendar.google.com/evento',
+            'estado_videoconferencia' => 'disponible',
         ]);
     }
 
