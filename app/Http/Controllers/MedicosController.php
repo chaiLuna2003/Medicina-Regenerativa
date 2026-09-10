@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AgendaBloqueo;
 use App\Models\Medicos;
+use App\Models\Universidad;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
-use App\Models\Universidad;
 
 class MedicosController extends Controller
 {
@@ -42,103 +44,100 @@ class MedicosController extends Controller
     }
 
     public function store(Request $request): RedirectResponse
-{
-    $validated = $request->validate([
-        'user_id' => [
-            'required',
-            'integer',
+    {
+        $validated = $request->validate([
+            'user_id' => [
+                'required',
+                'integer',
 
-            Rule::exists('users', 'id')->where(
-                fn ($query) =>
-                    $query
+                Rule::exists('users', 'id')->where(
+                    fn ($query) => $query
                         ->where('role', 'medico')
                         ->where('status', true)
-            ),
+                ),
 
-            Rule::unique('medicos', 'user_id'), 
-        ],
+                Rule::unique('medicos', 'user_id'),
+            ],
 
-        'especialidad' => [
-            'required',
-            'string',
-            'max:255',
-        ],
+            'especialidad' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
-        'cedula' => [
-            'required',
-            'string',
-            'max:20',
-            'regex:/^\d{7,10}$/',
-            Rule::unique('medicos', 'cedula'),
-        ],
+            'cedula' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^\d{7,10}$/',
+                Rule::unique('medicos', 'cedula'),
+            ],
 
-        'universidad_id' => [
-            'required',
-            'integer',
+            'universidad_id' => [
+                'required',
+                'integer',
 
-            Rule::exists('universidades', 'id')->where(
-                fn ($query) =>
-                    $query->where('status', true)
-            ),
-        ],
+                Rule::exists('universidades', 'id')->where(
+                    fn ($query) => $query->where('status', true)
+                ),
+            ],
 
-        'consultorio' => [
-            'required',
-            'string',
-            'max:100',
-        ],
+            'consultorio' => [
+                'required',
+                'string',
+                'max:100',
+            ],
 
-        'direccion' => [
-            'nullable',
-            'string',
-            'max:500',
-        ],
+            'direccion' => [
+                'nullable',
+                'string',
+                'max:500',
+            ],
 
-        'telefono' => [
-            'required',
-            'string',
-            'max:20',
-        ],
+            'telefono' => [
+                'required',
+                'string',
+                'max:20',
+            ],
 
-        'status' => [
-            'nullable',
-            'boolean',
-        ],
-    ]);
+            'status' => [
+                'nullable',
+                'boolean',
+            ],
+        ]);
 
-    /*
+        /*
      * Obtenemos la cuenta seleccionada.
      * Nombre y correo tendrán una sola fuente:
      * la tabla users.
      */
-    $usuario = User::query()
-        ->whereKey($validated['user_id'])
-        ->where('role', 'medico')
-        ->where('status', true)
-        ->firstOrFail();
+        $usuario = User::query()
+            ->whereKey($validated['user_id'])
+            ->where('role', 'medico')
+            ->where('status', true)
+            ->firstOrFail();
 
-    /*
+        /*
      * Estos campos todavía existen en medicos,
      * pero sus valores provienen automáticamente
      * de la cuenta vinculada.
      */
-    $validated['nombre'] = $usuario->name;
-    $validated['apellido_paterno'] = null;
-    $validated['apellido_materno'] = null;
-    
+        $validated['nombre'] = $usuario->name;
+        $validated['apellido_paterno'] = null;
+        $validated['apellido_materno'] = null;
 
-    $validated['status'] =
-        $request->boolean('status');
+        $validated['status'] =
+            $request->boolean('status');
 
-    Medicos::create($validated);
+        Medicos::create($validated);
 
-    return redirect()
-        ->route('medicos.index')
-        ->with(
-            'success',
-            'Médico registrado y vinculado correctamente.'
-        );
-}
+        return redirect()
+            ->route('medicos.index')
+            ->with(
+                'success',
+                'Médico registrado y vinculado correctamente.'
+            );
+    }
 
     public function show(Medicos $medicos): View
     {
@@ -199,8 +198,7 @@ class MedicosController extends Controller
                 'integer',
                 Rule::exists('universidades', 'id')
                     ->where(
-                        fn($query) =>
-                        $query->where('status', true)
+                        fn ($query) => $query->where('status', true)
                     ),
             ],
 
@@ -228,9 +226,21 @@ class MedicosController extends Controller
             ],
         ]);
 
-        $validated['status'] = $request->boolean('status');
+        $estado = $request->boolean('status');
 
-        $medicos->update($validated);
+        $validated['status'] = $estado;
+
+        DB::transaction(function () use (
+            $medicos,
+            $validated,
+            $estado
+        ): void {
+            $medicos->update($validated);
+
+            $medicos->user()->update([
+                'status' => $estado,
+            ]);
+        });
 
         return redirect()
             ->route('medicos.index')
@@ -239,10 +249,40 @@ class MedicosController extends Controller
 
     public function destroy(Medicos $medicos): RedirectResponse
     {
-        $medicos->delete();
+        $tieneRegistrosRelacionados =
+            $medicos->citas()->exists()
+            || $medicos->exploracionesFisicas()->exists()
+            || $medicos->evolucionesClinicas()->exists()
+            || AgendaBloqueo::query()
+                ->where('medico_id', $medicos->id)
+                ->exists();
+
+        if ($tieneRegistrosRelacionados) {
+            return redirect()
+                ->route('medicos.index')
+                ->with(
+                    'error',
+                    'El médico tiene historial relacionado y '
+                        .'no puede eliminarse. Desactívalo para '
+                        .'conservar la trazabilidad clínica.'
+                );
+        }
+
+        DB::transaction(function () use ($medicos): void {
+            $usuario = $medicos->user;
+
+            $medicos->delete();
+
+            $usuario?->update([
+                'status' => false,
+            ]);
+        });
 
         return redirect()
             ->route('medicos.index')
-            ->with('success', 'Médico eliminado correctamente.');
+            ->with(
+                'success',
+                'Médico eliminado y cuenta desactivada correctamente.'
+            );
     }
 }
