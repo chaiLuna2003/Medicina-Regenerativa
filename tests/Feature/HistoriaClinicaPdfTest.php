@@ -77,12 +77,9 @@ class HistoriaClinicaPdfTest extends TestCase
 
         HistoriaClinica::query()->create([
             'paciente_id' => $this->paciente->id,
-            'padecimiento_actual' =>
-                'Dolor articular de evolución progresiva.',
-            'tratamientos_actuales' =>
-                'Tratamiento regenerativo de prueba.',
-            'prioridad_analisis_medico' =>
-                'Vigilar movilidad y respuesta clínica.',
+            'padecimiento_actual' => 'Dolor articular de evolución progresiva.',
+            'tratamientos_actuales' => 'Tratamiento regenerativo de prueba.',
+            'prioridad_analisis_medico' => 'Vigilar movilidad y respuesta clínica.',
         ]);
 
         Citas::query()->create([
@@ -138,7 +135,7 @@ class HistoriaClinicaPdfTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'historia-clinica-' . $this->paciente->id,
+            'historia-clinica-'.$this->paciente->id,
             $documento->archivo_nombre
         );
 
@@ -162,11 +159,11 @@ class HistoriaClinicaPdfTest extends TestCase
     {
         $rutaFoto = 'pacientes/fotografias/paciente.png';
 
-        Storage::disk('public')->put(
+        Storage::disk('local')->put(
             $rutaFoto,
             base64_decode(
                 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ'
-                . 'AAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9WQAAAABJRU5ErkJggg=='
+                .'AAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9WQAAAABJRU5ErkJggg=='
             )
         );
 
@@ -260,8 +257,8 @@ class HistoriaClinicaPdfTest extends TestCase
             ->assertHeader(
                 'content-disposition',
                 'inline; filename="'
-                    . $documento->archivo_nombre
-                    . '"'
+                    .$documento->archivo_nombre
+                    .'"'
             );
 
         $respuestaDescarga = $this
@@ -429,8 +426,8 @@ class HistoriaClinicaPdfTest extends TestCase
     private function crearDocumentoAlmacenado(): HistoriaClinicaDocumento
     {
         $ruta = 'historias-clinicas/'
-            . $this->paciente->id
-            . '/prueba.pdf';
+            .$this->paciente->id
+            .'/prueba.pdf';
 
         $contenido = "%PDF-1.4\nDocumento de prueba\n%%EOF";
 

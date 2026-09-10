@@ -35,8 +35,8 @@ class HistoriaClinicaPdfController extends Controller
         $nombrePaciente = Str::slug(
             trim(
                 ($paciente->nombre ?? '')
-                    . ' '
-                    . ($paciente->apellido ?? '')
+                    .' '
+                    .($paciente->apellido ?? '')
             )
         );
 
@@ -50,21 +50,21 @@ class HistoriaClinicaPdfController extends Controller
 
         $nombreArchivo =
             'historia-clinica-'
-            . $paciente->id
-            . '-'
-            . $nombrePaciente
-            . '-'
-            . $marcaTiempo
-            . '.pdf';
+            .$paciente->id
+            .'-'
+            .$nombrePaciente
+            .'-'
+            .$marcaTiempo
+            .'.pdf';
 
         $ruta =
             'historias-clinicas/'
-            . $paciente->id
-            . '/'
-            . now()->format('Y/m')
-            . '/'
-            . Str::uuid()
-            . '.pdf';
+            .$paciente->id
+            .'/'
+            .now()->format('Y/m')
+            .'/'
+            .Str::uuid()
+            .'.pdf';
 
         $fotoPaciente = $this->obtenerFotoPaciente(
             $paciente
@@ -89,7 +89,7 @@ class HistoriaClinicaPdfController extends Controller
                 $contenidoPdf
             );
 
-        if (!$guardado) {
+        if (! $guardado) {
             throw new RuntimeException(
                 'No se pudo almacenar el expediente clínico.'
             );
@@ -98,28 +98,21 @@ class HistoriaClinicaPdfController extends Controller
         try {
             $documento =
                 HistoriaClinicaDocumento::query()
-                ->create([
-                    'paciente_id' =>
-                    $paciente->id,
+                    ->create([
+                        'paciente_id' => $paciente->id,
 
-                    'generado_por' =>
-                    $request->user()->id,
+                        'generado_por' => $request->user()->id,
 
-                    'archivo_path' =>
-                    $ruta,
+                        'archivo_path' => $ruta,
 
-                    'archivo_nombre' =>
-                    $nombreArchivo,
+                        'archivo_nombre' => $nombreArchivo,
 
-                    'mime_type' =>
-                    'application/pdf',
+                        'mime_type' => 'application/pdf',
 
-                    'archivo_size' =>
-                    strlen($contenidoPdf),
+                        'archivo_size' => strlen($contenidoPdf),
 
-                    'generado_en' =>
-                    now(),
-                ]);
+                        'generado_en' => now(),
+                    ]);
         } catch (Throwable $exception) {
             Storage::disk('local')
                 ->delete($ruta);
@@ -155,15 +148,13 @@ class HistoriaClinicaPdfController extends Controller
                 $documento->archivo_path,
                 $documento->archivo_nombre,
                 [
-                    'Content-Type' =>
-                    'application/pdf',
+                    'Content-Type' => 'application/pdf',
 
-                    'Content-Disposition' =>
-                    'inline; filename="'
-                        . basename(
+                    'Content-Disposition' => 'inline; filename="'
+                        .basename(
                             $documento->archivo_nombre
                         )
-                        . '"',
+                        .'"',
                 ]
             );
     }
@@ -191,8 +182,7 @@ class HistoriaClinicaPdfController extends Controller
                     $documento->archivo_nombre
                 ),
                 [
-                    'Content-Type' =>
-                    'application/pdf',
+                    'Content-Type' => 'application/pdf',
                 ]
             );
     }
@@ -214,8 +204,7 @@ class HistoriaClinicaPdfController extends Controller
 
             'historiaClinica.antecedenteGinecoobstetrico',
 
-            'historiaClinica.exploracionesFisicas' =>
-            function ($query) {
+            'historiaClinica.exploracionesFisicas' => function ($query) {
                 $query
                     ->with([
                         'cita.signoVital',
@@ -233,13 +222,13 @@ class HistoriaClinicaPdfController extends Controller
     private function obtenerFotoPaciente(
         Pacientes $paciente
     ): ?string {
-        if (!$paciente->foto) {
+        if (! $paciente->foto) {
             return null;
         }
 
-        $disco = Storage::disk('public');
+        $disco = Storage::disk('local');
 
-        if (!$disco->exists($paciente->foto)) {
+        if (! $disco->exists($paciente->foto)) {
             return null;
         }
 
@@ -247,7 +236,7 @@ class HistoriaClinicaPdfController extends Controller
             $paciente->foto
         );
 
-        if (!in_array(
+        if (! in_array(
             $mimeType,
             [
                 'image/jpeg',
@@ -265,9 +254,9 @@ class HistoriaClinicaPdfController extends Controller
         );
 
         return 'data:'
-            . $mimeType
-            . ';base64,'
-            . base64_encode($contenido);
+            .$mimeType
+            .';base64,'
+            .base64_encode($contenido);
     }
 
     /**

@@ -245,7 +245,7 @@ class PacientesController extends Controller
                 ->file('foto')
                 ->store(
                     'pacientes',
-                    'public'
+                    'local'
                 );
         }
 
@@ -528,6 +528,39 @@ class PacientesController extends Controller
         );
     }
 
+    public function foto(Pacientes $pacientes)
+    {
+        Gate::authorize(
+            'view',
+            $pacientes
+        );
+
+        abort_unless(
+            $pacientes->foto
+                && str_starts_with(
+                    $pacientes->foto,
+                    'pacientes/'
+                )
+                && ! str_contains(
+                    $pacientes->foto,
+                    '..'
+                )
+                && Storage::disk('local')
+                    ->exists($pacientes->foto),
+            404,
+            'La fotografía del paciente no fue encontrada.'
+        );
+
+        return Storage::disk('local')->response(
+            $pacientes->foto,
+            basename($pacientes->foto),
+            [
+                'Cache-Control' => 'private, max-age=300',
+                'X-Content-Type-Options' => 'nosniff',
+            ]
+        );
+    }
+
     public function edit(Pacientes $pacientes)
     {
         Gate::authorize(
@@ -585,7 +618,7 @@ class PacientesController extends Controller
                 ->file('foto')
                 ->store(
                     'pacientes',
-                    'public'
+                    'local'
                 );
         }
 
@@ -611,7 +644,7 @@ class PacientesController extends Controller
             $fotoAnterior
             && isset($validated['foto'])
         ) {
-            Storage::disk('public')
+            Storage::disk('local')
                 ->delete($fotoAnterior);
         }
 

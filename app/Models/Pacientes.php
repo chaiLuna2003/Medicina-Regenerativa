@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pacientes extends Model
 {
-
     /**
      * Catálogo oficial de sexos.
      *
@@ -22,7 +21,6 @@ class Pacientes extends Model
         'masculino' => 'Masculino',
         'femenino' => 'Femenino',
     ];
-
 
     public const ESTADOS_CIVILES = [
         'soltero' => 'Soltero(a)',
@@ -56,6 +54,7 @@ class Pacientes extends Model
         'O-' => 'O-',
         'desconocido' => 'Desconocido',
     ];
+
     /**
      * Catálogo oficial de categorías de pacientes.
      */
@@ -192,8 +191,7 @@ class Pacientes extends Model
         return [
             'fecha_nacimiento' => 'date',
 
-            'costo_consulta_personalizado' =>
-            'decimal:2',
+            'costo_consulta_personalizado' => 'decimal:2',
 
             'finado' => 'boolean',
             'status' => 'boolean',
@@ -203,8 +201,7 @@ class Pacientes extends Model
     protected function sexoTexto(): Attribute
     {
         return Attribute::make(
-            get: fn(): string =>
-            self::SEXOS[$this->sexo]
+            get: fn (): string => self::SEXOS[$this->sexo]
                 ?? 'No especificado'
         );
     }
@@ -212,8 +209,7 @@ class Pacientes extends Model
     protected function categoriaTexto(): Attribute
     {
         return Attribute::make(
-            get: fn(): string =>
-            self::CATEGORIAS[$this->categoria
+            get: fn (): string => self::CATEGORIAS[$this->categoria
                 ?? 'sin_categoria']['etiqueta']
                 ?? 'Sin categoría'
         );
@@ -222,8 +218,7 @@ class Pacientes extends Model
     protected function categoriaEstilo(): Attribute
     {
         return Attribute::make(
-            get: fn(): array =>
-            self::CATEGORIAS[$this->categoria
+            get: fn (): array => self::CATEGORIAS[$this->categoria
                 ?? 'sin_categoria']
                 ?? self::CATEGORIAS['sin_categoria']
         );
@@ -232,7 +227,7 @@ class Pacientes extends Model
     public function fotoUrl(): string
     {
         return $this->foto
-            ? asset('storage/' . $this->foto)
+            ? route('pacientes.foto', $this)
             : asset('images/default.webp');
     }
 
@@ -304,7 +299,7 @@ class Pacientes extends Model
     {
         return Attribute::make(
             get: function (): ?string {
-                if (!$this->fecha_nacimiento) {
+                if (! $this->fecha_nacimiento) {
                     return null;
                 }
 

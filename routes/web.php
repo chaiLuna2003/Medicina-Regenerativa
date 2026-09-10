@@ -173,6 +173,11 @@ Route::middleware([
         'role:admin,medico,recepcionista,enfermero'
     )->group(function () {
         Route::get(
+            '/pacientes/{pacientes}/foto',
+            [PacientesController::class, 'foto']
+        )->name('pacientes.foto');
+
+        Route::get(
             '/pacientes/{pacientes}',
             [PacientesController::class, 'show']
         )->name('pacientes.show');

@@ -17,7 +17,7 @@ class PacienteRecepcionAuthorizationTest extends TestCase
 
     public function test_recepcion_actualiza_los_datos_administrativos_autorizados(): void
     {
-        Storage::fake('public');
+        Storage::fake('local');
 
         $recepcion = $this->usuario('recepcionista');
         $paciente = $this->paciente();
@@ -75,7 +75,7 @@ class PacienteRecepcionAuthorizationTest extends TestCase
         $this->assertTrue($paciente->finado);
         $this->assertSame('Nota administrativa de recepción.', $paciente->notas);
         $this->assertNotNull($paciente->foto);
-        Storage::disk('public')->assertExists($paciente->foto);
+        Storage::disk('local')->assertExists($paciente->foto);
     }
 
     public function test_recepcion_actualiza_identidad_del_paciente(): void
