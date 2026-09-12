@@ -1,0 +1,3 @@
+﻿legacy_id,nombre,apellido,fecha_nacimiento,sexo,categoria,telefono,telefono_fijo,telefono_secundario,email,domicilio,ciudad,estado,codigo_postal,lugar_nacimiento,ocupacion,religion,estado_civil,escolaridad,tipo_sangre,alergias,notas,finado,status,importar,incidencias
+TEST-001,Ana,Ejemplo,15/04/1990,FEMENINO,sin_categoria,5500000001,,,,,,,,,,,UNION LIBRE,CARRERA TECNICA,A+,,,0,1,SI,
+TEST-002,Bruno,Prueba,1985-06-20,MASCULINO,sin_categoria,5500000002,,,,,,,,,,,CASADO,LICENCIATURA,O-,,,0,1,REVISAR,revision ficticia

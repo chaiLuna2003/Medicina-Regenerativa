@@ -22,3 +22,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Archivos privados de importacion de pacientes
+/pacientes_importacion.csv
+/pacientes_limpios_y_revision.xlsx
+/medicinaregenerativa.sql
+/MAPEO_Y_CALIDAD.md
+/storage/app/importaciones/
