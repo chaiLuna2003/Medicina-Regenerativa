@@ -687,7 +687,7 @@
                             <div class="divide-y divide-gray-100">
                                 @forelse ($pendientesProximas as $cita)
                                 @include(
-                                'Dashboard.partials.fila-valoracion',
+                                'dashboard.partials.fila-valoracion',
                                 [
                                 'cita' => $cita,
                                 'tipoValoracion' => 'proxima',
@@ -768,7 +768,7 @@
                             <div class="divide-y divide-gray-100">
                                 @forelse ($pendientesAtrasadas as $cita)
                                 @include(
-                                'Dashboard.partials.fila-valoracion',
+                                'dashboard.partials.fila-valoracion',
                                 [
                                 'cita' => $cita,
                                 'tipoValoracion' => 'atrasada',
@@ -860,7 +860,7 @@
                             <div class="divide-y divide-gray-100">
                                 @forelse ($valoracionesRealizadasLista as $cita)
                                 @include(
-                                'Dashboard.partials.fila-valoracion',
+                                'dashboard.partials.fila-valoracion',
                                 [
                                 'cita' => $cita,
                                 'tipoValoracion' => 'realizada',
@@ -907,7 +907,7 @@
 
         </div>
     </div>
-    @include('Dashboard.modals.registrar-signos-vitales')
+    @include('dashboard.modals.registrar-signos-vitales')
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
