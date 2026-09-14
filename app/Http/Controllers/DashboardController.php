@@ -812,7 +812,7 @@ class DashboardController extends Controller
         }
 
         return view(
-            'Dashboard.medico',
+            'dashboard.medico',
             compact(
                 'medico',
                 'citas',
