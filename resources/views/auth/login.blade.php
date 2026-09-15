@@ -21,6 +21,7 @@ $horaActual >= 6 && $horaActual < 12=> 'Buenos días',
             <meta name="theme-color" content="#0f766e">
 
             <title>Iniciar sesión | {{ config('app.name', 'Medicina Regenerativa') }}</title>
+            <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}">
 
             <link rel="preconnect" href="https://fonts.bunny.net">
 

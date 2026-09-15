@@ -12,6 +12,7 @@
     <meta name="theme-color" content="#0f766e">
 
     <title>{{ config('app.name', 'Medicina Regenerativa') }}</title>
+    <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
 

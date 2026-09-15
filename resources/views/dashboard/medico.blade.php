@@ -976,7 +976,7 @@
                                     'Consulta próxima', {
                                         body: `${cita.paciente} tiene cita ` +
                                             `en cinco minutos.`,
-                                        icon: '/favicon.ico',
+                                        icon: '/favicon.png',
                                     }
                                 );
 
