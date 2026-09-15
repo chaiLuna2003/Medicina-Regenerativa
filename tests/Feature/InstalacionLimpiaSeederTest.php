@@ -19,7 +19,20 @@ class InstalacionLimpiaSeederTest extends TestCase
 
         $this->seed(DatabaseSeeder::class);
 
-        $this->assertDatabaseCount('universidades', 11);
+        $this->assertDatabaseCount('universidades', 12);
+
+        $this->assertDatabaseHas('universidades', [
+            'nombre' => 'Justo Sierra',
+            'abreviatura' => 'UJS',
+            'logo_path' => 'images/universidades/logo_justosierra.png',
+            'status' => true,
+        ]);
+
+        $this->assertFileExists(
+            public_path(
+                'images/universidades/logo_justosierra.png'
+            )
+        );
 
         $this->assertDatabaseMissing('users', [
             'email' => 'test@example.com',

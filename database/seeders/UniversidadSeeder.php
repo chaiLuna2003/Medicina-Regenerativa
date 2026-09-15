@@ -11,60 +11,54 @@ class UniversidadSeeder extends Seeder
     {
         $universidades = [
             [
-    'nombre' =>
-        'Universidad Nacional Autónoma de México',
-    'abreviatura' => 'UNAM',
-    'logo_path' => 'images/universidades/unam.png',
-],
-           [
-    'nombre' =>
-        'Instituto Politécnico Nacional',
-    'abreviatura' => 'IPN',
-    'logo_path' => 'images/universidades/ipn.png',
-],
+                'nombre' => 'Universidad Nacional Autónoma de México',
+                'abreviatura' => 'UNAM',
+                'logo_path' => 'images/universidades/unam.png',
+            ],
             [
-                'nombre' =>
-                    'Universidad Autónoma de Nuevo León',
+                'nombre' => 'Instituto Politécnico Nacional',
+                'abreviatura' => 'IPN',
+                'logo_path' => 'images/universidades/ipn.png',
+            ],
+            [
+                'nombre' => 'Universidad Autónoma de Nuevo León',
                 'abreviatura' => 'UANL',
             ],
             [
-                'nombre' =>
-                    'Universidad de Guadalajara',
+                'nombre' => 'Universidad de Guadalajara',
                 'abreviatura' => 'UDG',
             ],
             [
-                'nombre' =>
-                    'Tecnológico de Monterrey',
+                'nombre' => 'Tecnológico de Monterrey',
                 'abreviatura' => 'ITESM',
             ],
             [
-                'nombre' =>
-                    'Universidad Autónoma Metropolitana',
+                'nombre' => 'Universidad Autónoma Metropolitana',
                 'abreviatura' => 'UAM',
             ],
             [
-                'nombre' =>
-                    'Universidad Autónoma de San Luis Potosí',
+                'nombre' => 'Universidad Autónoma de San Luis Potosí',
                 'abreviatura' => 'UASLP',
             ],
             [
-                'nombre' =>
-                    'Benemérita Universidad Autónoma de Puebla',
+                'nombre' => 'Benemérita Universidad Autónoma de Puebla',
                 'abreviatura' => 'BUAP',
             ],
             [
-                'nombre' =>
-                    'Universidad Veracruzana',
+                'nombre' => 'Universidad Veracruzana',
                 'abreviatura' => 'UV',
             ],
             [
-                'nombre' =>
-                    'Universidad Autónoma de Yucatán',
+                'nombre' => 'Universidad Autónoma de Yucatán',
                 'abreviatura' => 'UADY',
             ],
             [
-                'nombre' =>
-                    'Otra universidad',
+                'nombre' => 'Justo Sierra',
+                'abreviatura' => 'UJS',
+                'logo_path' => 'images/universidades/logo_justosierra.png',
+            ],
+            [
+                'nombre' => 'Otra universidad',
                 'abreviatura' => 'OTRA',
             ],
         ];
@@ -75,12 +69,10 @@ class UniversidadSeeder extends Seeder
                     'nombre' => $universidad['nombre'],
                 ],
                 [
-                    'abreviatura' =>
-                        $universidad['abreviatura'],
+                    'abreviatura' => $universidad['abreviatura'],
 
-                'logo_path' =>
-    $universidad['logo_path']
-        ?? 'images/universidades/default.png',
+                    'logo_path' => $universidad['logo_path']
+                        ?? 'images/universidades/default.png',
                 ]
             );
         }
