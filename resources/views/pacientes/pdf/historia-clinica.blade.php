@@ -301,15 +301,6 @@
     $historia?->exploracionesFisicas
     ?? collect();
 
-    $domicilio = collect([
-    $paciente->domicilio,
-    $paciente->ciudad,
-    $paciente->estado,
-    $paciente->codigo_postal,
-    ])
-    ->filter()
-    ->implode(', ');
-
     $gruposAntecedentes = [
     [
     'titulo' =>
@@ -467,15 +458,6 @@
         @endif
 
         <table class="clinical-table">
-            <tr>
-                <td class="field-name">
-                    Paciente
-                </td>
-
-                <td class="field-value patient-name">
-                    {{ $nombreCompleto ?: 'No registrado' }}
-                </td>
-            </tr>
 
             <tr>
                 <td class="field-name">
@@ -576,20 +558,6 @@
                     {{
                         $paciente->religion
                         ?? 'No registrada'
-                    }}
-                </td>
-            </tr>
-
-            <tr>
-                <td class="field-name">
-                    Domicilio
-                </td>
-
-                <td class="field-value">
-                    {{
-                        $domicilio !== ''
-                            ? $domicilio
-                            : 'No registrado'
                     }}
                 </td>
             </tr>

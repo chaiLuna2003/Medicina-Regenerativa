@@ -22,6 +22,52 @@ class PdfSinLeyendaInstitucionalTest extends TestCase
         );
     }
 
+    #[DataProvider('camposPrivadosPdf')]
+    public function test_los_pdf_clinicos_no_exponen_datos_privados(
+        string $vista,
+        array $camposProhibidos
+    ): void {
+        $contenido = file_get_contents(
+            resource_path($vista)
+        );
+
+        $this->assertIsString($contenido);
+
+        foreach ($camposProhibidos as $campo) {
+            $this->assertStringNotContainsString(
+                $campo,
+                $contenido,
+                "El PDF todavía contiene el campo privado: {$campo}"
+            );
+        }
+    }
+
+    public static function camposPrivadosPdf(): array
+    {
+        return [
+            'historia clinica' => [
+                'views/pacientes/pdf/historia-clinica.blade.php',
+                [
+                    '$paciente->domicilio',
+                    '$paciente->ciudad',
+                    '$paciente->codigo_postal',
+                    'Domicilio',
+                ],
+            ],
+            'caso clinico' => [
+                'views/casos-clinicos/pdf.blade.php',
+                [
+                    '$paciente?->telefono',
+                    '$paciente?->domicilio',
+                    '$paciente?->ciudad',
+                    '$paciente?->codigo_postal',
+                    'Teléfono principal',
+                    'Dirección',
+                ],
+            ],
+        ];
+    }
+
     public static function vistasPdf(): array
     {
         return [

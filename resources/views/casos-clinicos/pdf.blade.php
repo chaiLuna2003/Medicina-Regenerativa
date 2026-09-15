@@ -243,17 +243,6 @@
     $paciente?->escolaridad
     ?? 'no_especificado'
     ] ?? 'No especificada';
-
-    $direccionPaciente = collect([
-    $paciente?->domicilio,
-    $paciente?->ciudad,
-    $paciente?->estado,
-    $paciente?->codigo_postal
-    ? 'C.P. ' . $paciente->codigo_postal
-    : null,
-    ])
-    ->filter()
-    ->implode(', ');
     @endphp
 
     {{-- Encabezado --}}
@@ -390,38 +379,14 @@
             </tr>
 
             <tr>
-                <td>
-                    <span class="label">
-                        Teléfono principal
-                    </span>
-
-                    <span class="value">
-                        {{ $paciente?->telefono
-                        ?: 'No registrado' }}
-                    </span>
-                </td>
-
-                <td colspan="2">
+                <td colspan="3">
                     <span class="label">
                         Correo electrónico
                     </span>
 
                     <span class="value">
                         {{ $paciente?->email
-                        ?: 'No registrado' }}
-                    </span>
-                </td>
-            </tr>
-
-            <tr>
-                <td colspan="3">
-                    <span class="label">
-                        Dirección
-                    </span>
-
-                    <span class="value">
-                        {{ $direccionPaciente
-                        ?: 'No registrada' }}
+            ?: 'No registrado' }}
                     </span>
                 </td>
             </tr>
@@ -969,76 +934,76 @@
             @endif
 
             @php
-    $valoracionesAparatos = $evolucion->aparatos ?? collect();
+            $valoracionesAparatos = $evolucion->aparatos ?? collect();
 
-    $estadosAparatos = [
-        'no_evaluado' => 'No evaluado',
-        'normal' => 'Normal',
-        'requiere_atencion' => 'Requiere atención',
-        'critico' => 'Crítico',
-    ];
-@endphp
+            $estadosAparatos = [
+            'no_evaluado' => 'No evaluado',
+            'normal' => 'Normal',
+            'requiere_atencion' => 'Requiere atención',
+            'critico' => 'Crítico',
+            ];
+            @endphp
 
-<div class="subsection-title">
-    Valoración de aparatos y sistemas
-</div>
+            <div class="subsection-title">
+                Valoración de aparatos y sistemas
+            </div>
 
-@if ($valoracionesAparatos->isNotEmpty())
-    <table class="information-table">
-        <thead>
-            <tr>
-                <th style="width: 30%; text-align: left;">
-                    Aparato o sistema
-                </th>
-                <th style="width: 20%; text-align: left;">
-                    Estado
-                </th>
-                <th style="text-align: left;">
-                    Observaciones
-                </th>
-            </tr>
-        </thead>
+            @if ($valoracionesAparatos->isNotEmpty())
+            <table class="information-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30%; text-align: left;">
+                            Aparato o sistema
+                        </th>
+                        <th style="width: 20%; text-align: left;">
+                            Estado
+                        </th>
+                        <th style="text-align: left;">
+                            Observaciones
+                        </th>
+                    </tr>
+                </thead>
 
-        <tbody>
-            @foreach ($valoracionesAparatos as $valoracion)
-                @php
-                   $definicionAparato =
-    \App\Models\EvolucionAparato::APARATOS[
-        $valoracion->aparato
-    ] ?? null;
+                <tbody>
+                    @foreach ($valoracionesAparatos as $valoracion)
+                    @php
+                    $definicionAparato =
+                    \App\Models\EvolucionAparato::APARATOS[
+                    $valoracion->aparato
+                    ] ?? null;
 
-if (is_array($definicionAparato)) {
-    $nombreAparato =
-        $definicionAparato['nombre']
-        ?? $definicionAparato['label']
-        ?? ucfirst(
-            str_replace('_', ' ', $valoracion->aparato)
-        );
-} else {
-    $nombreAparato =
-        $definicionAparato
-        ?? ucfirst(
-            str_replace('_', ' ', $valoracion->aparato)
-        );
-}
+                    if (is_array($definicionAparato)) {
+                    $nombreAparato =
+                    $definicionAparato['nombre']
+                    ?? $definicionAparato['label']
+                    ?? ucfirst(
+                    str_replace('_', ' ', $valoracion->aparato)
+                    );
+                    } else {
+                    $nombreAparato =
+                    $definicionAparato
+                    ?? ucfirst(
+                    str_replace('_', ' ', $valoracion->aparato)
+                    );
+                    }
 
                     $estadoAparato = $estadosAparatos[
-                        $valoracion->estado
+                    $valoracion->estado
                     ] ?? ucfirst(
-                        str_replace('_', ' ', $valoracion->estado)
+                    str_replace('_', ' ', $valoracion->estado)
                     );
-                @endphp
+                    @endphp
 
-                <tr>
-                    <td>
-                        <span class="value">
-                            {{ $nombreAparato }}
-                        </span>
-                    </td>
+                    <tr>
+                        <td>
+                            <span class="value">
+                                {{ $nombreAparato }}
+                            </span>
+                        </td>
 
-                    <td>
-                        <span
-                            class="status
+                        <td>
+                            <span
+                                class="status
                                 {{ $valoracion->estado === 'normal'
                                     ? 'status-active'
                                     : '' }}
@@ -1048,39 +1013,38 @@ if (is_array($definicionAparato)) {
                                     true
                                 )
                                     ? 'status-closed'
-                                    : '' }}"
-                        >
-                            {{ $estadoAparato }}
-                        </span>
-                    </td>
+                                    : '' }}">
+                                {{ $estadoAparato }}
+                            </span>
+                        </td>
 
-                    <td>
-                        <span class="value">
-                            {{ filled($valoracion->observaciones)
+                        <td>
+                            <span class="value">
+                                {{ filled($valoracion->observaciones)
                                 ? $valoracion->observaciones
                                 : 'Sin observaciones' }}
-                        </span>
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-@else
-    <div class="empty">
-        No se registró valoración de aparatos y sistemas
-        en esta evolución.
-    </div>
-@endif
+                            </span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div class="empty">
+                No se registró valoración de aparatos y sistemas
+                en esta evolución.
+            </div>
+            @endif
 
         </article>
         @empty
         <div class="empty">
             Este caso clínico todavía no tiene evoluciones registradas.
         </div>
-       @endforelse
-</section>
+        @endforelse
+    </section>
 
-@if (! empty($graficas))
+    @if (! empty($graficas))
     <section class="section page-break">
         <div class="section-title">
             Evolución gráfica del paciente
@@ -1092,31 +1056,29 @@ if (is_array($definicionAparato)) {
         </div>
 
         @foreach ($graficas as $grafica)
-            <div
-                style="
+        <div
+            style="
                     margin-top: 16px;
                     padding: 10px;
                     border: 1px solid #dbe4f0;
                     border-radius: 8px;
                     background: #ffffff;
                     page-break-inside: avoid;
-                "
-            >
-                <img
-                    src="{{ $grafica['imagen'] }}"
-                    alt="{{ $grafica['titulo'] }}"
-                    style="
+                ">
+            <img
+                src="{{ $grafica['imagen'] }}"
+                alt="{{ $grafica['titulo'] }}"
+                style="
                         display: block;
                         width: 100%;
                         height: auto;
-                    "
-                >
-            </div>
+                    ">
+        </div>
         @endforeach
     </section>
-@endif
+    @endif
 
-<div class="footer">
+    <div class="footer">
         Documento clínico confidencial ·
         Caso {{ $folio }} ·
         Paciente #{{ $paciente?->id ?? 'N/D' }}
