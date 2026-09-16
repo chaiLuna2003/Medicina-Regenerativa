@@ -7,13 +7,12 @@ use App\Models\Medicos;
 use App\Models\Pacientes;
 use App\Models\Receta;
 use App\Rules\MaxWords;
-use Illuminate\Http\JsonResponse;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class RecetasController extends Controller
 {
@@ -96,6 +95,7 @@ class RecetasController extends Controller
             'cita.paciente',
             'cita.medico.user',
             'cita.medico.universidad',
+            'cita.signoVital',
         ]);
 
         /*
@@ -123,8 +123,8 @@ class RecetasController extends Controller
         $nombrePaciente = Str::slug(
             trim(
                 ($paciente->nombre ?? '')
-                    . ' '
-                    . ($paciente->apellido ?? '')
+                    .' '
+                    .($paciente->apellido ?? '')
             )
         );
 
@@ -134,17 +134,17 @@ class RecetasController extends Controller
 
         $nombreArchivo =
             'receta-medica-'
-            . $receta->id
-            . '-'
-            . $nombrePaciente
-            . '.pdf';
+            .$receta->id
+            .'-'
+            .$nombrePaciente
+            .'.pdf';
 
         $pdf = Pdf::loadView(
             'recetas.pdf',
             compact('receta')
         )->setPaper(
             'letter',
-            'portrait'
+            'landscape'
         );
 
         return $pdf->download(

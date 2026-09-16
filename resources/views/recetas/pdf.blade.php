@@ -4,13 +4,11 @@
 <head>
     <meta charset="UTF-8">
 
-    <title>
-        Receta médica #{{ $receta->id }}
-    </title>
+    <title>Receta médica #{{ $receta->id }}</title>
 
     <style>
         @page {
-            margin: 38px 42px 55px;
+            margin: 10px 12px;
         }
 
         * {
@@ -19,178 +17,255 @@
 
         body {
             margin: 0;
-            color: #1f2937;
+            color: #172033;
             font-family: "DejaVu Sans", sans-serif;
-            font-size: 11px;
-            line-height: 1.5;
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        .sheet {
+            min-height: 720px;
+            padding: 14px 16px;
+            border: 2px solid #183f78;
+            border-radius: 18px;
+        }
+
+        .header,
+        .patient-table,
+        .content-table,
+        .vital-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
         .header {
-            width: 100%;
-            border-collapse: collapse;
-            border-bottom: 3px solid #0d3b7f;
+            border-bottom: 2px solid #183f78;
         }
 
         .header td {
-            padding-bottom: 18px;
-            vertical-align: middle;
+            padding: 0 0 12px;
+            vertical-align: top;
         }
 
-        .brand {
-            width: 58%;
+        .attention {
+            width: 48%;
         }
 
-        .brand-description {
-            margin: 6px 0 0;
-            color: #64748b;
-            font-size: 8px;
-            font-weight: bold;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-        }
-
-        .document-data {
-            width: 42%;
+        .doctor {
+            width: 52%;
             text-align: right;
         }
 
-        .document-title {
-            margin: 0;
-            color: #0d3b7f;
-            font-size: 17px;
+        .doctor-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .doctor-table td {
+            padding: 0;
+            vertical-align: middle;
+        }
+
+       .doctor-logo-cell {
+    width: 68px;
+    padding-right: 0 !important;
+    padding-left: 12px !important;
+    text-align: right;
+}
+
+        .doctor-copy {
+            text-align: right;
+        }
+
+        .logo {
+            display: block;
+            width: 58px;
+            max-height: 52px;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+
+        .attention-copy {
+            display: inline-block;
+            max-width: 315px;
+            vertical-align: middle;
+        }
+
+        .attention-title {
+            margin: 0 0 3px;
+            color: #183f78;
+            font-size: 9px;
             font-weight: bold;
             text-transform: uppercase;
         }
 
-        .folio {
-            margin-top: 4px;
-            color: #6b7280;
+        .attention-text {
+            margin: 1px 0;
+            color: #4b5563;
+            font-size: 8px;
+        }
+
+        .doctor-name {
+            margin: 0;
+            color: #183f78;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .doctor-detail {
+            margin: 2px 0 0;
+            color: #374151;
             font-size: 9px;
         }
 
-        .section {
-            margin-top: 22px;
-        }
-
-        .section-title {
-            margin: 0 0 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #dbe4f0;
-            color: #0d3b7f;
-            font-size: 10px;
+        .document-title {
+            margin: 7px 0 0;
+            color: #183f78;
+            font-size: 12px;
             font-weight: bold;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
-        .information-table {
-            width: 100%;
-            border-collapse: collapse;
+        .patient-table {
+            margin-top: 12px;
             table-layout: fixed;
         }
 
-        .information-table td {
+        .patient-table td {
             padding: 7px 8px;
-            border: 1px solid #dbe4f0;
+            border: 1px solid #cbd5e1;
+            vertical-align: middle;
+        }
+
+        .label {
+            display: block;
+            margin-bottom: 2px;
+            color: #64748b;
+            font-size: 7px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .value {
+            color: #111827;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .content-table {
+            margin-top: 12px;
+            table-layout: fixed;
+        }
+
+        .content-table>tbody>tr>td {
             vertical-align: top;
         }
 
-        .information-table .label {
-            display: block;
-            margin-bottom: 3px;
-            color: #6b7280;
-            font-size: 8px;
+        .prescription-column {
+            width: 72%;
+            padding-right: 12px;
+        }
+
+        .vitals-column {
+            width: 28%;
+        }
+
+        .panel {
+            height: 420px;
+            border: 1px solid #cbd5e1;
+        }
+
+        .panel-title {
+            margin: 0;
+            padding: 8px 10px;
+            border-bottom: 1px solid #cbd5e1;
+            background-color: #edf4fb;
+            color: #183f78;
+            font-size: 10px;
             font-weight: bold;
             letter-spacing: 0.6px;
             text-transform: uppercase;
         }
 
-        .information-table .value {
-            color: #111827;
-            font-size: 10px;
-            font-weight: bold;
-        }
-
-        .prescription {
-            min-height: 290px;
-            margin-top: 10px;
-            padding: 20px 22px;
-            border: 1px solid #dbe4f0;
-            border-left: 5px solid #0d3b7f;
-            background-color: #f8fafc;
-        }
-
-        .prescription-heading {
-            margin: 0 0 16px;
-            color: #0d3b7f;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
         .prescription-content {
+            padding: 14px 16px;
             color: #1f2937;
             font-size: 11px;
-            line-height: 1.75;
+            line-height: 1.65;
             overflow-wrap: break-word;
         }
 
-        .signature-wrapper {
-            margin-top: 46px;
-            page-break-inside: avoid;
+        .vital-table {
+            table-layout: fixed;
+        }
+
+        .vital-table td {
+            padding: 7px 9px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .vital-name {
+            width: 55%;
+            color: #475569;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .vital-value {
+            width: 45%;
+            color: #111827;
+            font-size: 9px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .empty-vitals {
+            padding: 18px 12px;
+            color: #64748b;
+            font-size: 9px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        .bottom-table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        .bottom-table td {
+            width: 50%;
+            vertical-align: bottom;
+        }
+
+        .folio {
+            color: #64748b;
+            font-size: 8px;
+        }
+
+        .signature {
             text-align: center;
         }
 
         .signature-line {
-            width: 260px;
-            margin: 0 auto;
-            border-top: 1px solid #374151;
+            width: 250px;
+            margin: 0 auto 6px;
+            border-top: 1px solid #334155;
         }
 
         .signature-name {
-            margin: 8px 0 0;
+            margin: 0;
             color: #111827;
-            font-size: 11px;
+            font-size: 9px;
             font-weight: bold;
         }
 
         .signature-detail {
             margin: 2px 0 0;
-            color: #6b7280;
-            font-size: 9px;
-        }
-
-        .contact-box {
-            margin-top: 25px;
-            padding: 11px 14px;
-            border-radius: 4px;
-            background-color: #edf5fc;
-            color: #374151;
-            font-size: 9px;
-            text-align: center;
-        }
-
-        .footer {
-            position: fixed;
-            right: 0;
-            bottom: -36px;
-            left: 0;
-            padding-top: 8px;
-            border-top: 1px solid #dbe4f0;
-            color: #6b7280;
+            color: #64748b;
             font-size: 8px;
-            text-align: center;
-        }
-
-        .muted {
-            color: #6b7280;
-            font-weight: normal;
-        }
-
-        .logo {
-            display: block;
-            width: 74px;
-            max-height: 64px;
-            object-fit: contain;
         }
     </style>
 </head>
@@ -200,6 +275,7 @@
     $cita = $receta->cita;
     $paciente = $cita->paciente;
     $medico = $cita->medico;
+    $signosVitales = $cita->signoVital;
 
     $nombrePaciente = trim(
     ($paciente?->nombre ?? '')
@@ -220,45 +296,15 @@
     );
 
     if ($nombreMedico === '') {
-    $nombreMedico =
-    $medico?->user?->name
+    $nombreMedico = $medico?->user?->name
     ?? 'Médico no disponible';
     }
 
     $fechaExpedicion = $receta->fecha_expedicion
     ? \Carbon\Carbon::parse(
     $receta->fecha_expedicion
-    )->locale('es')->translatedFormat(
-    'd \d\e F \d\e Y'
-    )
-    : 'No disponible';
-
-    $fechaConsulta = $cita->fecha
-    ? \Carbon\Carbon::parse(
-    $cita->fecha
     )->format('d/m/Y')
-    : 'No disponible';
-
-    $horaConsulta = $cita->hora
-    ? \Carbon\Carbon::parse(
-    $cita->hora
-    )->format('h:i A')
-    : 'No disponible';
-
-    $modalidad = match ($cita->modalidad) {
-    'videoconsulta' => 'Videoconsulta',
-    'presencial' => 'Presencial',
-    default => 'No especificada',
-    };
-
-    $motivo = match ($cita->motivo) {
-    'consulta_inicial' => 'Consulta inicial',
-    'consulta_subsecuente' => 'Consulta subsecuente',
-    'consulta_emergencia' => 'Consulta de emergencia',
-    default => $cita->motivo
-    ? ucfirst(str_replace('_', ' ', $cita->motivo))
-    : 'No especificado',
-    };
+    : now()->format('d/m/Y');
 
     $folio = 'REC-'
     . str_pad(
@@ -270,8 +316,7 @@
 
     $universidad = $medico?->universidad;
 
-    $universidadLogoRelativo =
-    $universidad?->logo_path
+    $universidadLogoRelativo = $universidad?->logo_path
     ?: 'images/universidades/default.png';
 
     $universidadLogoPath = public_path(
@@ -284,228 +329,291 @@
     );
     }
 
-    $universidadLogoBase64 =
-    file_exists($universidadLogoPath)
+    $universidadLogoBase64 = file_exists(
+    $universidadLogoPath
+    )
     ? 'data:image/png;base64,'
     . base64_encode(
     file_get_contents($universidadLogoPath)
     )
     : null;
+
+    $sexo = $paciente?->sexo_texto
+    ?? 'No especificado';
     @endphp
 
-    {{-- Encabezado --}}
-    <table class="header">
-        <tr>
-            <td class="brand">
-                @if ($universidadLogoBase64)
-                <img
-                    src="{{ $universidadLogoBase64 }}"
-                    alt="{{ $universidad?->nombre ?? 'Universidad' }}"
-                    class="logo">
-                @endif
-
-               <p class="brand-description">
-    Dr. {{ $nombreMedico }}
-</p>
-            </td>
-
-            <td class="document-data">
-                <p class="document-title">
-                    Receta médica
-                </p>
-
-                <p class="folio">
-                    Folio: {{ $folio }}
-                </p>
-
-                <p class="folio">
-                    Expedida: {{ $fechaExpedicion }}
-                </p>
-            </td>
-        </tr>
-    </table>
-
-    {{-- Datos del paciente --}}
-    <section class="section">
-        <h2 class="section-title">
-            Información del paciente
-        </h2>
-
-        <table class="information-table">
+    <main class="sheet">
+        <table class="header">
             <tr>
-                <td style="width: 55%;">
-                    <span class="label">
-                        Nombre completo
-                    </span>
+                <td class="attention">
 
+
+                    <div class="attention-copy">
+                        <p class="attention-title">
+                            Dirección de atención
+                        </p>
+
+                        <p class="attention-text">
+                            Av. León de los Aldama #3475,
+                            Col. San Felipe de Jesús,
+                            Alc. G.A.M., CDMX, C.P. 07510
+                        </p>
+
+                        <p class="attention-text">
+                            Horario de atención:
+                            lunes a viernes de 9:00 a 18:00 hrs.
+                        </p>
+                    </div>
+                </td>
+
+                <td class="doctor">
+                    <table class="doctor-table">
+                        <tr>
+                            <td class="doctor-copy">
+                                <p class="doctor-name">
+                                    Dr. {{ $nombreMedico }}
+                                </p>
+
+                                <p class="doctor-detail">
+                                    {{ $medico?->especialidad
+                        ?: 'Especialidad no registrada' }}
+                                </p>
+
+                                <p class="doctor-detail">
+                                    Cédula profesional:
+                                    {{ $medico?->cedula
+                        ?: 'No registrada' }}
+                                </p>
+
+                                <p class="document-title">
+                                    Receta médica
+                                </p>
+                            </td>
+
+                            <td class="doctor-logo-cell">
+                                @if ($universidadLogoBase64)
+                                <img
+                                    src="{{ $universidadLogoBase64 }}"
+                                    alt="Logotipo"
+                                    class="logo">
+                                @endif
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <table class="patient-table">
+            <tr>
+                <td style="width: 48%;">
+                    <span class="label">Nombre del paciente</span>
                     <span class="value">
                         {{ $nombrePaciente ?: 'No disponible' }}
                     </span>
                 </td>
 
-                <td style="width: 20%;">
-                    <span class="label">
-                        Edad
-                    </span>
-
+                <td style="width: 14%;">
+                    <span class="label">Edad</span>
                     <span class="value">
-                        {{ $paciente?->edad ?? 'No disponible' }}
+                        {{ $paciente?->edad ?? '—' }}
                     </span>
                 </td>
 
-                <td style="width: 25%;">
-                    <span class="label">
-                        ID del paciente
-                    </span>
+                <td style="width: 18%;">
+                    <span class="label">Sexo</span>
+                    <span class="value">{{ $sexo }}</span>
+                </td>
 
-                    <span class="value">
-                        #{{ $paciente?->id ?? 'N/D' }}
-                    </span>
+                <td style="width: 20%;">
+                    <span class="label">Fecha</span>
+                    <span class="value">{{ $fechaExpedicion }}</span>
                 </td>
             </tr>
         </table>
-    </section>
 
-    {{-- Datos de la consulta --}}
-    <section class="section">
-        <h2 class="section-title">
-            Información de la consulta
-        </h2>
-
-        <table class="information-table">
+        <table class="content-table">
             <tr>
-                <td style="width: 25%;">
-                    <span class="label">
-                        Fecha
-                    </span>
+                <td class="prescription-column">
+                    <div class="panel">
+                        <p class="panel-title">
+                            Indicaciones médicas
+                        </p>
 
-                    <span class="value">
-                        {{ $fechaConsulta }}
-                    </span>
+                        <div class="prescription-content">
+                            {!! nl2br(e($receta->contenido)) !!}
+                        </div>
+                    </div>
                 </td>
 
-                <td style="width: 20%;">
-                    <span class="label">
-                        Horario
-                    </span>
+                <td class="vitals-column">
+                    <div class="panel">
+                        <p class="panel-title">
+                            Signos vitales
+                        </p>
 
-                    <span class="value">
-                        {{ $horaConsulta }}
-                        -
-                        {{ $cita->hora_fin->format('h:i A') }}
-                    </span>
+                        @if ($signosVitales)
+                        <table class="vital-table">
+                            <tr>
+                                <td class="vital-name">Peso</td>
+                                <td class="vital-value">
+                                    {{ $signosVitales->peso ?? '—' }}
+                                    @if ($signosVitales->peso)
+                                    kg
+                                    @endif
+                                </td>
+                            </tr>
 
-                    <br>
+                            <tr>
+                                <td class="vital-name">Estatura</td>
+                                <td class="vital-value">
+                                    {{ $signosVitales->estatura ?? '—' }}
+                                    @if ($signosVitales->estatura)
+                                    cm
+                                    @endif
+                                </td>
+                            </tr>
 
-                    <span class="muted">
-                        {{ $cita->duracion_minutos ?? 15 }}
-                        minutos
-                    </span>
-                </td>
+                            <tr>
+                                <td class="vital-name">IMC</td>
+                                <td class="vital-value">
+                                    {{ $signosVitales->imc ?? '—' }}
+                                </td>
+                            </tr>
 
-                <td style="width: 25%;">
-                    <span class="label">
-                        Modalidad
-                    </span>
+                            <tr>
+                                <td class="vital-name">Temperatura</td>
+                                <td class="vital-value">
+                                    {{ $signosVitales->temperatura ?? '—' }}
+                                    @if ($signosVitales->temperatura)
+                                    °C
+                                    @endif
+                                </td>
+                            </tr>
 
-                    <span class="value">
-                        {{ $modalidad }}
-                    </span>
-                </td>
+                            <tr>
+                                <td class="vital-name">
+                                    Presión arterial
+                                </td>
+                                <td class="vital-value">
+                                    @if (
+                                    $signosVitales->presion_sistolica
+                                    && $signosVitales->presion_diastolica
+                                    )
+                                    {{
+                                                $signosVitales
+                                                    ->presion_sistolica
+                                            }}/{{ $signosVitales
+                                                ->presion_diastolica }}
+                                    mmHg
+                                    @else
+                                    —
+                                    @endif
+                                </td>
+                            </tr>
 
-                <td style="width: 30%;">
-                    <span class="label">
-                        Motivo
-                    </span>
+                            <tr>
+                                <td class="vital-name">
+                                    Frecuencia cardiaca
+                                </td>
+                                <td class="vital-value">
+                                    {{
+                                            $signosVitales
+                                                ->frecuencia_cardiaca
+                                            ?? '—'
+                                        }}
+                                    @if (
+                                    $signosVitales
+                                    ->frecuencia_cardiaca
+                                    )
+                                    lpm
+                                    @endif
+                                </td>
+                            </tr>
 
-                    <span class="value">
-                        {{ $motivo }}
-                    </span>
+                            <tr>
+                                <td class="vital-name">
+                                    Frecuencia respiratoria
+                                </td>
+                                <td class="vital-value">
+                                    {{
+                                            $signosVitales
+                                                ->frecuencia_respiratoria
+                                            ?? '—'
+                                        }}
+                                    @if (
+                                    $signosVitales
+                                    ->frecuencia_respiratoria
+                                    )
+                                    rpm
+                                    @endif
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="vital-name">SpO₂</td>
+                                <td class="vital-value">
+                                    {{
+                                            $signosVitales
+                                                ->saturacion_oxigeno
+                                            ?? '—'
+                                        }}
+                                    @if (
+                                    $signosVitales
+                                    ->saturacion_oxigeno
+                                    )
+                                    %
+                                    @endif
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td class="vital-name">Glucosa</td>
+                                <td class="vital-value">
+                                    {{ $signosVitales->glucosa ?? '—' }}
+                                    @if ($signosVitales->glucosa)
+                                    mg/dL
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                        @else
+                        <div class="empty-vitals">
+                            No se registraron signos vitales
+                            para esta consulta.
+                        </div>
+                        @endif
+                    </div>
                 </td>
             </tr>
         </table>
-    </section>
 
-    {{-- Contenido de la receta --}}
-    <section class="section">
-        <h2 class="section-title">
-            Tratamiento e indicaciones
-        </h2>
+        <table class="bottom-table">
+            <tr>
+                <td>
+                    <div class="folio">
+                        Folio: {{ $folio }}
+                    </div>
+                </td>
 
-        <div class="prescription">
-            <p class="prescription-heading">
-                Indicaciones médicas
-            </p>
+                <td class="signature">
+                    <div class="signature-line"></div>
 
-            <div class="prescription-content">
-                {!! nl2br(e($receta->contenido)) !!}
-            </div>
-        </div>
-    </section>
+                    <p class="signature-name">
+                        Dr. {{ $nombreMedico }}
+                    </p>
 
-    {{-- Firma del médico --}}
-    <div class="signature-wrapper">
-
-        <div class="signature-line"></div>
-
-        <p class="signature-name">
-            Dr. {{ $nombreMedico }}
-        </p>
-
-        <p class="signature-detail">
-            {{ $medico?->especialidad
-            ?: 'Especialidad no registrada' }}
-        </p>
-
-        <p class="signature-detail">
-            Cédula profesional:
-            {{ $medico?->cedula
-            ?: 'No registrada' }}
-        </p>
-
-        <p class="signature-detail">
-            {{ $universidad?->nombre
-            ?: 'Universidad no registrada' }}
-        </p>
-    </div>
-
-    {{-- Contacto --}}
-    <div class="contact-box">
-        @if ($medico?->consultorio)
-        Consultorio:
-        {{ $medico->consultorio }}
-        @endif
-
-        @if ($medico?->telefono)
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-        Teléfono:
-        {{ $medico->telefono }}
-        @endif
-
-        @if ($medico?->user?->email)
-        &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        Correo:
-
-        {{ $medico->user->email }}
-        @endif
-    </div>
-
-    {{-- Pie de página --}}
-    <div class="footer">
-        <strong>
-            Av. León de los Aldama #3475, Col. San Felipe de Jesús,
-            Alc. G.A.M., CDMX, C.P. 07510
-        </strong>
-
-        <br>
-
-        Tel. 55 6645 0302
-
-        <br>
-
-        Horario de atención de Lunes a Viernes de 9:00 a 18:00 hrs.
-    </div>
+                    <p class="signature-detail">
+                        {{ $medico?->especialidad
+                            ?: 'Especialidad no registrada' }}
+                        · Cédula:
+                        {{ $medico?->cedula
+                            ?: 'No registrada' }}
+                    </p>
+                </td>
+            </tr>
+        </table>
+    </main>
 </body>
 
 </html>
