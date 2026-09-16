@@ -213,9 +213,18 @@
                 . $horaAgenda
                 );
 
-                $puedeCrearCita =
-                $fechaHoraBloque
-                ->gt(now());
+                $puedeRegistrarCitasPasadas = in_array(
+    auth()->user()?->role,
+    [
+        'admin',
+        'recepcionista',
+    ],
+    true
+);
+
+$puedeCrearCita =
+    $puedeRegistrarCitasPasadas
+    || $fechaHoraBloque->gt(now());
                 @endphp
 
                 @if (

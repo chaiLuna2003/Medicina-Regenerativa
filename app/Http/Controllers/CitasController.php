@@ -180,6 +180,15 @@ class CitasController extends Controller
         $medicoAutenticado =
             $this->medicoAutenticado();
 
+        $puedeRegistrarCitasPasadas = in_array(
+            auth()->user()->role,
+            [
+                'admin',
+                'recepcionista',
+            ],
+            true
+        );
+
         $datos = $request->validateWithBag('crearCita', [
             'paciente_id' => [
                 'required',
@@ -209,7 +218,12 @@ class CitasController extends Controller
             'fecha' => [
                 'required',
                 'date',
-                'after_or_equal:today',
+
+                ...(
+                    $puedeRegistrarCitasPasadas
+                    ? []
+                    : ['after_or_equal:today']
+                ),
             ],
 
             'hora' => [
@@ -288,6 +302,29 @@ class CitasController extends Controller
                 ->withInput();
         }
 
+        $inicioSolicitado = Carbon::createFromFormat(
+            'Y-m-d H:i',
+            $datos['fecha'].' '.$datos['hora']
+        );
+
+        if (
+            $puedeRegistrarCitasPasadas
+            && $inicioSolicitado->lte(now())
+            && ! $request->boolean(
+                'confirmar_cita_pasada'
+            )
+        ) {
+            $exception =
+    ValidationException::withMessages([
+        'confirmar_cita_pasada' => 'Debes confirmar que la fecha y '
+               .'hora históricas son correctas.',
+    ]);
+
+            $exception->errorBag = 'crearCita';
+
+            throw $exception;
+        }
+
         /*
         * La modalidad no modifica la comprobación
         * de disponibilidad. Cualquier tipo de atención
@@ -300,7 +337,8 @@ class CitasController extends Controller
                 (int) $datos['paciente_id'],
                 $datos['fecha'],
                 $datos['hora'],
-                (int) $datos['duracion_minutos']
+                (int) $datos['duracion_minutos'],
+                permitirHorarioPasado: $puedeRegistrarCitasPasadas
             );
         } catch (ValidationException $exception) {
             $exception->errorBag = 'crearCita';
@@ -1500,6 +1538,15 @@ class CitasController extends Controller
 
         $ahora = now();
 
+        $puedeRegistrarCitasPasadas = in_array(
+            auth()->user()->role,
+            [
+                'admin',
+                'recepcionista',
+            ],
+            true
+        );
+
         /*
      * Obtenemos la hora y duración de todas
      * las citas activas del médico.
@@ -1652,11 +1699,13 @@ class CitasController extends Controller
                 );
 
             $yaPaso =
-                $fecha->isToday()
-                && $inicioBloque->lte($ahora);
+    ! $puedeRegistrarCitasPasadas
+    && $fecha->isToday()
+    && $inicioBloque->lte($ahora);
 
             $fechaPasada =
-                $fecha->isBefore(
+                ! $puedeRegistrarCitasPasadas
+                && $fecha->isBefore(
                     $ahora
                         ->copy()
                         ->startOfDay()
@@ -1701,7 +1750,8 @@ class CitasController extends Controller
         string $fecha,
         string $hora,
         int $duracionMinutos,
-        ?int $ignorarCitaId = null
+        ?int $ignorarCitaId = null,
+        bool $permitirHorarioPasado = false
     ): void {
         /*
      * Validación defensiva de duración.
@@ -1763,7 +1813,10 @@ class CitasController extends Controller
             ]);
         }
 
-        if ($inicio->lte(now())) {
+        if (
+            ! $permitirHorarioPasado
+            && $inicio->lte(now())
+        ) {
             throw ValidationException::withMessages([
                 'hora' => 'No puedes registrar una cita '
                     .'en un horario que ya pasó.',
@@ -1771,9 +1824,12 @@ class CitasController extends Controller
         }
 
         /*
-     * Detectamos cualquier traslape con las citas
-     * existentes del médico.
-     */
+         * Detectamos cualquier traslape con las citas
+
+                /*
+             * Detectamos cualquier traslape con las citas
+             * existentes del médico.
+             */
         $citasDelMedico = Citas::query()
             ->where('medico_id', $medicoId)
             ->whereDate('fecha', $fecha)

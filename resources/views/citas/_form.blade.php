@@ -295,7 +295,6 @@ $pacienteCitaAnterior ?? null;
                 id="fecha"
                 name="fecha"
                 type="date"
-                min="{{ now()->format('Y-m-d') }}"
                 value="{{ old('fecha', now()->format('Y-m-d')) }}"
                 required
                 class="block w-full rounded-xl border-gray-300 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500">
@@ -511,11 +510,60 @@ $pacienteCitaAnterior ?? null;
                 {{ $message }}
             </p>
             @enderror
-        </div>
+                </div>
 
     </div>
 
-    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
+    {{-- Advertencia para citas registradas en horarios pasados --}}
+    <div
+        id="aviso-cita-pasada"
+        class="mx-6 mb-5 hidden rounded-xl border
+               border-amber-300 bg-amber-50 p-4"
+        role="alert"
+        aria-live="polite">
+
+        <div class="flex items-start gap-3">
+            <div
+                class="flex h-9 w-9 shrink-0 items-center
+                       justify-center rounded-lg bg-amber-100
+                       text-amber-700"
+                aria-hidden="true">
+                !
+            </div>
+
+            <div class="min-w-0">
+                <p class="text-sm font-bold text-amber-900">
+                    Registro de cita en horario pasado
+                </p>
+
+                <p class="mt-1 text-sm leading-6 text-amber-800">
+                    La fecha y hora seleccionadas ya transcurrieron.
+                    Esta cita se guardará como un registro histórico
+                    y puede afectar reportes, estados y antecedentes
+                    del paciente.
+                </p>
+
+                <label
+                    class="mt-3 flex cursor-pointer items-start gap-2
+                           text-sm font-semibold text-amber-900">
+
+                    <input
+                        id="confirmar-cita-pasada"
+                        name="confirmar_cita_pasada"
+                        type="checkbox"
+                        value="1"
+                        class="mt-0.5 rounded border-amber-400
+                               text-amber-600 focus:ring-amber-500">
+
+                    <span>
+                        Confirmo que la fecha y hora son correctas.
+                    </span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 bg-gray-50 px-6 py-5 sm:flex-row sm:justify-end">
 
         <a
             href="{{ route('dashboard') }}"
@@ -547,6 +595,17 @@ $pacienteCitaAnterior ?? null;
         const medico = document.getElementById('medico_id');
         const fecha = document.getElementById('fecha');
         const hora = document.getElementById('hora');
+        const formulario = fecha.closest('form');
+
+const avisoCitaPasada =
+    document.getElementById(
+        'aviso-cita-pasada'
+    );
+
+const confirmarCitaPasada =
+    document.getElementById(
+        'confirmar-cita-pasada'
+    );
         const duracion =
             document.getElementById(
                 'duracion_minutos'
@@ -1055,10 +1114,97 @@ $pacienteCitaAnterior ?? null;
             }
         }
 
-        hora.addEventListener(
-            'change',
-            generarOpcionesDuracion
+        function esHorarioPasado() {
+    if (! fecha.value) {
+        return false;
+    }
+
+    const [anio, mes, dia] =
+        fecha.value
+            .split('-')
+            .map(Number);
+
+    const inicioDiaSeleccionado =
+        new Date(
+            anio,
+            mes - 1,
+            dia,
+            0,
+            0,
+            0,
+            0
         );
+
+    const ahora = new Date();
+
+    const inicioHoy =
+        new Date(
+            ahora.getFullYear(),
+            ahora.getMonth(),
+            ahora.getDate(),
+            0,
+            0,
+            0,
+            0
+        );
+
+    if (inicioDiaSeleccionado < inicioHoy) {
+        return true;
+    }
+
+    if (
+        inicioDiaSeleccionado > inicioHoy
+        || ! hora.value
+    ) {
+        return false;
+    }
+
+    const [horas, minutos] =
+        hora.value
+            .split(':')
+            .map(Number);
+
+    const fechaHoraSeleccionada =
+        new Date(
+            anio,
+            mes - 1,
+            dia,
+            horas,
+            minutos,
+            0,
+            0
+        );
+
+    return fechaHoraSeleccionada <= ahora;
+}
+
+function actualizarAvisoCitaPasada() {
+    const horarioPasado =
+        esHorarioPasado();
+
+    avisoCitaPasada.classList.toggle(
+        'hidden',
+        ! horarioPasado
+    );
+
+    confirmarCitaPasada.required =
+        horarioPasado;
+
+    if (! horarioPasado) {
+        confirmarCitaPasada.checked =
+            false;
+    }
+
+    return horarioPasado;
+}
+
+        hora.addEventListener(
+    'change',
+    () => {
+        generarOpcionesDuracion();
+        actualizarAvisoCitaPasada();
+    }
+);
 
         duracion.addEventListener(
             'change',
@@ -1084,10 +1230,31 @@ $pacienteCitaAnterior ?? null;
         });
 
         fecha.addEventListener('change', () => {
-            hora.dataset.valorAnterior = '';
-            cargarHorarios();
-        });
+    hora.dataset.valorAnterior = '';
 
+    actualizarAvisoCitaPasada();
+    cargarHorarios();
+});
+
+        formulario.addEventListener(
+    'submit',
+    (event) => {
+        const horarioPasado =
+            actualizarAvisoCitaPasada();
+
+        if (
+            horarioPasado
+            && ! confirmarCitaPasada.checked
+        ) {
+            event.preventDefault();
+
+            confirmarCitaPasada.focus();
+            confirmarCitaPasada.reportValidity();
+        }
+    }
+);
+
+actualizarAvisoCitaPasada();
         cargarHorarios();
 
         generarOpcionesDuracion();

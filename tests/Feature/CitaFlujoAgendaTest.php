@@ -565,6 +565,89 @@ class CitaFlujoAgendaTest extends TestCase
         $this->assertDatabaseCount('citas', 2);
     }
 
+    public function test_cita_pasada_requiere_confirmacion_explicita(): void
+    {
+        $datos = $this->escenario();
+
+        $fechaPasada = now()
+            ->subDay()
+            ->toDateString();
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->from(route('dashboard'))
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+
+                'medico_id' => $datos['medico']->id,
+
+                'fecha' => $fechaPasada,
+                'hora' => '10:00',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Registro histórico sin confirmar.',
+                'estado' => 'programada',
+            ]);
+
+        $respuesta
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasErrorsIn(
+                'crearCita',
+                'confirmar_cita_pasada'
+            );
+
+        $this->assertDatabaseCount(
+            'citas',
+            0
+        );
+    }
+
+    public function test_recepcion_puede_crear_cita_pasada_confirmada(): void
+    {
+        $datos = $this->escenario();
+
+        $fechaPasada = now()
+            ->subDay()
+            ->toDateString();
+
+        $respuesta = $this
+            ->actingAs($datos['recepcion'])
+            ->post(route('citas.store'), [
+                'paciente_id' => $datos['paciente']->id,
+
+                'medico_id' => $datos['medico']->id,
+
+                'fecha' => $fechaPasada,
+                'hora' => '10:00',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'direccion_cita' => null,
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Registro histórico confirmado.',
+                'estado' => 'programada',
+
+                'confirmar_cita_pasada' => '1',
+            ]);
+
+        $respuesta
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('citas', [
+            'paciente_id' => $datos['paciente']->id,
+
+            'medico_id' => $datos['medico']->id,
+
+            'fecha' => $fechaPasada.' 00:00:00',
+            'hora' => '10:00',
+            'duracion_minutos' => 30,
+            'modalidad' => 'presencial',
+            'motivo' => 'consulta_inicial',
+            'created_by' => $datos['recepcion']->id,
+        ]);
+    }
+
     /**
      * @return array<string, mixed>
      */

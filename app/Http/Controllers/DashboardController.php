@@ -529,7 +529,7 @@ class DashboardController extends Controller
         }
 
         $cumpleanosPacientes =
-            $this->obtenerCumpleanosPacientes(7);
+            $this->obtenerCumpleanosPacientes();
 
         $pacienteCitaAnterior = null;
 
@@ -1055,11 +1055,14 @@ class DashboardController extends Controller
     }
 
     /**
-     * Obtiene los pacientes que cumplen años
-     * desde hoy hasta los próximos N días.
+     * Obtiene los pacientes activos con fecha de nacimiento
+     * y calcula su siguiente cumpleaños.
+     *
+     * Cuando se proporciona un número de días, limita los
+     * resultados a ese periodo. Si es null, devuelve todos.
      */
     private function obtenerCumpleanosPacientes(
-        int $dias = 7
+        ?int $dias = null
     ) {
         $hoy = Carbon::today();
 
@@ -1073,18 +1076,19 @@ class DashboardController extends Controller
                 );
 
                 /*
-             * Calculamos el próximo cumpleaños.
-             *
-             * Para nacidos el 29 de febrero,
-             * en años no bisiestos usamos el 28.
-             */
+                 * Para pacientes nacidos el 29 de febrero,
+                 * usamos el día 28 en años no bisiestos.
+                 */
                 $diaCumple = $nacimiento->day;
 
                 if (
                     $nacimiento->month === 2
                     && $nacimiento->day === 29
-                    && ! Carbon::create($hoy->year, 1, 1)
-                        ->isLeapYear()
+                    && ! Carbon::create(
+                        $hoy->year,
+                        1,
+                        1
+                    )->isLeapYear()
                 ) {
                     $diaCumple = 28;
                 }
@@ -1096,9 +1100,9 @@ class DashboardController extends Controller
                 )->startOfDay();
 
                 /*
-             * Si ya pasó este año,
-             * calculamos el del siguiente año.
-             */
+                 * Si el cumpleaños ya pasó este año,
+                 * calculamos el del año siguiente.
+                 */
                 if ($proximoCumpleanos->lt($hoy)) {
                     $anioSiguiente = $hoy->year + 1;
 
@@ -1132,9 +1136,6 @@ class DashboardController extends Controller
                         false
                     );
 
-                /*
-             * Edad que cumplirá ese día.
-             */
                 $paciente->edad_cumpleanos =
                     $proximoCumpleanos->year
                     - $nacimiento->year;
@@ -1143,7 +1144,11 @@ class DashboardController extends Controller
             })
             ->filter(
                 fn (Pacientes $paciente) => $paciente->dias_para_cumpleanos >= 0
-                    && $paciente->dias_para_cumpleanos <= $dias
+                    && (
+                        $dias === null
+                        || $paciente->dias_para_cumpleanos
+                            <= $dias
+                    )
             )
             ->sortBy('proximo_cumpleanos')
             ->values();
