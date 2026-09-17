@@ -4,8 +4,15 @@
 <head>
     <meta charset="UTF-8">
 
+    @php
+        $periodo = $periodo ?? 'diario';
+        $desde = $desde ?? $fecha;
+        $hasta = $hasta ?? $fecha;
+    @endphp
+
     <title>
-        Hoja diaria {{ $fecha->format('d/m/Y') }}
+        {{ $periodo === 'diario' ? 'Hoja diaria' : 'Reporte de agenda '.$periodo }}
+        {{ $desde->format('d/m/Y') }}@if (! $desde->isSameDay($hasta)) al {{ $hasta->format('d/m/Y') }}@endif
     </title>
 
     <style>
@@ -38,9 +45,9 @@
 
 
         .document-data {
-    width: 100%;
-    text-align: right;
-}
+            width: 100%;
+            text-align: right;
+        }
 
         .document-title {
             margin: 0;
@@ -127,6 +134,10 @@
             font-size: 8px;
             vertical-align: middle;
             overflow-wrap: break-word;
+        }
+
+        .appointments-range td {
+            padding: 4px 5px;
         }
 
         .appointments tbody tr:nth-child(even) td {
@@ -265,6 +276,20 @@
     }
     }
 
+    $nombresPeriodo = [
+    'semanal' => 'semanal',
+    'quincenal' => 'quincenal',
+    'mensual' => 'mensual',
+    'personalizado' => 'personalizado',
+    ];
+
+    $inicioReporte = $desde ?? $fecha;
+    $finReporte = $hasta ?? $fecha;
+
+    $esRango = ! $inicioReporte->isSameDay(
+    $finReporte
+    );
+
     $fechaDocumento = $fecha
     ->copy()
     ->locale('es')
@@ -277,13 +302,15 @@
     {{-- Encabezado --}}
     <table class="header">
         <tr>
-           <td class="document-data">
+            <td class="document-data">
                 <p class="document-title">
-                    Hoja diaria
+                    {{ $periodo === 'diario' ? 'Hoja diaria' : 'Reporte de agenda '.($nombresPeriodo[$periodo] ?? $periodo) }}
                 </p>
 
                 <p class="document-detail">
-                    {{ ucfirst($fechaDocumento) }}
+                    {{ $esRango
+    ? $inicioReporte->format('d/m/Y').' al '.$finReporte->format('d/m/Y')
+    : ucfirst($fechaDocumento) }}
                 </p>
 
                 <p class="document-detail">
@@ -299,11 +326,13 @@
         <tr>
             <td style="width: 30%;">
                 <span class="summary-label">
-                    Fecha de agenda
+                    {{ $esRango ? 'Periodo de agenda' : 'Fecha de agenda' }}
                 </span>
 
                 <span class="summary-value">
-                    {{ $fecha->format('d/m/Y') }}
+                    {{ $esRango
+        ? $inicioReporte->format('d/m/Y').' — '.$finReporte->format('d/m/Y')
+        : $fecha->format('d/m/Y') }}
                 </span>
             </td>
 
@@ -336,17 +365,20 @@
     </h2>
 
     {{-- Tabla de citas --}}
-    <table class="appointments">
+    <table class="appointments {{ $esRango ? 'appointments-range' : '' }}">
         <thead>
             <tr>
                 <th style="width: 4%;" class="center">#</th>
+                @if ($esRango)
+                <th style="width: 9%;" class="center">Fecha</th>
+                @endif
                 <th style="width: 8%;" class="center">Hora</th>
-                <th style="width: 18%;">Paciente</th>
+                <th style="width: {{ $esRango ? 16 : 18 }}%;">Paciente</th>
                 <th style="width: 5%;" class="center">Edad</th>
                 <th style="width: 7%;" class="center">Sexo</th>
-                <th style="width: 16%;">Motivo</th>
+                <th style="width: {{ $esRango ? 14 : 16 }}%;">Motivo</th>
                 <th style="width: 10%;">Modalidad</th>
-                <th style="width: 19%;">Médico</th>
+                <th style="width: {{ $esRango ? 14 : 19 }}%;">Médico</th>
                 <th style="width: 13%;" class="center">Estado</th>
             </tr>
         </thead>
@@ -467,6 +499,12 @@
                     {{ $indice + 1 }}
                 </td>
 
+                @if ($esRango)
+                <td class="center">
+                    {{ $cita->fecha->format('d/m/Y') }}
+                </td>
+                @endif
+
                 <td class="center">
                     {{ $hora }}
                 </td>
@@ -507,7 +545,7 @@
             @empty
 
             <tr>
-                <td colspan="9" class="empty">
+                <td colspan="{{ $esRango ? 10 : 9 }}" class="empty">
                     No hay citas registradas para esta selección.
                 </td>
             </tr>
@@ -574,7 +612,7 @@
 
         &nbsp;&nbsp;|&nbsp;&nbsp;
 
-        Horario de atención de Lunes a Viernes de 9:00 a 18:00 hrs.
+        Horario de agenda: 09:00 a 21:00 h
     </div>
 </body>
 

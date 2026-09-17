@@ -130,9 +130,28 @@ class HojaDiariaController extends Controller
         */
 
         $datos = $request->validate([
+            'periodo' => [
+                'nullable',
+                'in:diario,semanal,quincenal,mensual,personalizado',
+            ],
+
             'fecha' => [
-                'required',
+                'required_unless:periodo,personalizado',
+                'nullable',
                 'date_format:Y-m-d',
+            ],
+
+            'desde' => [
+                'required_if:periodo,personalizado',
+                'nullable',
+                'date_format:Y-m-d',
+            ],
+
+            'hasta' => [
+                'required_if:periodo,personalizado',
+                'nullable',
+                'date_format:Y-m-d',
+                'after_or_equal:desde',
             ],
 
             'medico_id' => [
@@ -142,10 +161,46 @@ class HojaDiariaController extends Controller
             ],
         ]);
 
-        $fecha = Carbon::createFromFormat(
-            'Y-m-d',
-            $datos['fecha']
-        );
+        $periodo = $datos['periodo'] ?? 'diario';
+
+        $fecha = Carbon::parse(
+            $periodo === 'personalizado'
+                ? $datos['desde']
+                : $datos['fecha']
+        )->startOfDay();
+
+        [$desde, $hasta] = match ($periodo) {
+            'semanal' => [
+                $fecha->copy()->startOfWeek(Carbon::MONDAY),
+                $fecha->copy()->endOfWeek(Carbon::SUNDAY)->startOfDay(),
+            ],
+
+            'quincenal' => [
+                $fecha->copy()->day(
+                    $fecha->day <= 15 ? 1 : 16
+                ),
+                $fecha->copy()->day(
+                    $fecha->day <= 15
+                        ? 15
+                        : $fecha->daysInMonth
+                ),
+            ],
+
+            'mensual' => [
+                $fecha->copy()->startOfMonth(),
+                $fecha->copy()->endOfMonth()->startOfDay(),
+            ],
+
+            'personalizado' => [
+                Carbon::parse($datos['desde'])->startOfDay(),
+                Carbon::parse($datos['hasta'])->startOfDay(),
+            ],
+
+            default => [
+                $fecha->copy(),
+                $fecha->copy(),
+            ],
+        };
 
         /*
         |--------------------------------------------------------------------------
@@ -158,10 +213,10 @@ class HojaDiariaController extends Controller
                 'paciente',
                 'medico.user',
             ])
-            ->whereDate(
-                'fecha',
-                $fecha->toDateString()
-            );
+            ->whereBetween('fecha', [
+                $desde->copy()->startOfDay(),
+                $hasta->copy()->endOfDay(),
+            ]);
 
         /*
         |--------------------------------------------------------------------------
@@ -208,6 +263,7 @@ class HojaDiariaController extends Controller
         */
 
         $citas = $consulta
+            ->orderBy('fecha')
             ->orderBy('hora')
             ->orderBy('id')
             ->get();
@@ -235,9 +291,11 @@ class HojaDiariaController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $nombreArchivo =
-            'hoja-diaria-'
-            . $fecha->format('Y-m-d');
+        $nombreArchivo = match ($periodo) {
+            'diario' => 'hoja-diaria-'.$desde->format('Y-m-d'),
+            default => 'reporte-agenda-'.$periodo.'-'
+                .$desde->format('Y-m-d').'-'.$hasta->format('Y-m-d'),
+        };
 
         if ($medicoSeleccionado) {
             $nombreArchivo .=
@@ -258,6 +316,9 @@ class HojaDiariaController extends Controller
             compact(
                 'citas',
                 'fecha',
+                'desde',
+                'hasta',
+                'periodo',
                 'totalCitas',
                 'totalCitasActivas',
                 'totalCitasCanceladas',

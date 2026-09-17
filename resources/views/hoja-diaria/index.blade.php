@@ -27,7 +27,7 @@
 
             <div>
                 <h2 class="text-xl font-semibold text-slate-900">
-                    Hoja diaria
+                    Reportes de agenda
                 </h2>
 
                 <p class="mt-0.5 text-sm text-slate-500">
@@ -86,7 +86,7 @@
                             class="mt-1 text-sm leading-5
                                    text-slate-500">
                             Selecciona los datos que deseas incluir
-                            en la hoja diaria.
+                            en el reporte de agenda.
                         </p>
                     </div>
                 </div>
@@ -97,10 +97,24 @@
                     target="_blank"
                     class="p-5 sm:p-7">
 
+                    <div class="mb-5">
+                        <label for="periodo-hoja-diaria" class="block text-sm font-medium text-slate-700">
+                            Periodo
+                        </label>
+                        <select id="periodo-hoja-diaria" name="periodo"
+                            class="mt-2 block w-full rounded-xl border-slate-300 px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#0D3B7F] focus:ring-[#0D3B7F]">
+                            @foreach (['diario' => 'Diario', 'semanal' => 'Semanal', 'quincenal' => 'Quincenal', 'mensual' => 'Mensual', 'personalizado' => 'Personalizado'] as $valor => $etiqueta)
+                                <option value="{{ $valor }}" @selected(old('periodo', request('periodo', 'diario')) === $valor)>{{ $etiqueta }}</option>
+                            @endforeach
+                        </select>
+                        <p id="ayuda-periodo" class="mt-1 text-xs text-slate-500" aria-live="polite"></p>
+                        @error('periodo') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    </div>
+
                     <div class="grid gap-5 sm:grid-cols-2">
 
                         {{-- Fecha --}}
-                        <div>
+                        <div id="campo-fecha">
                             <label
                                 for="fecha-hoja-diaria"
                                 class="block text-sm font-medium
@@ -210,6 +224,23 @@
                         @endif
                     </div>
 
+                    <div id="campos-rango" class="hidden mt-5 grid gap-5 sm:grid-cols-2" hidden>
+                        <div>
+                            <label for="desde-hoja-diaria" class="block text-sm font-medium text-slate-700">Desde</label>
+                            <input id="desde-hoja-diaria" type="date" name="desde"
+                                value="{{ old('desde', request('desde', $fechaSeleccionada->format('Y-m-d'))) }}"
+                                class="mt-2 block w-full rounded-xl border-slate-300 px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#0D3B7F] focus:ring-[#0D3B7F]">
+                            @error('desde') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label for="hasta-hoja-diaria" class="block text-sm font-medium text-slate-700">Hasta</label>
+                            <input id="hasta-hoja-diaria" type="date" name="hasta"
+                                value="{{ old('hasta', request('hasta', $fechaSeleccionada->format('Y-m-d'))) }}"
+                                class="mt-2 block w-full rounded-xl border-slate-300 px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-[#0D3B7F] focus:ring-[#0D3B7F]">
+                            @error('hasta') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
                     {{-- Nota informativa --}}
                     <div
                         class="mt-6 flex items-start gap-3
@@ -232,7 +263,7 @@
                         </svg>
 
                         <p class="text-xs leading-5 text-slate-500">
-                            El PDF incluirá todas las citas ordenadas por hora.
+                            El PDF incluirá las citas del periodo ordenadas por fecha y hora.
                             Las canceladas aparecerán identificadas para conservar
                             el control completo de la agenda.
                         </p>
@@ -290,4 +321,39 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const periodo = document.getElementById('periodo-hoja-diaria');
+            const campoFecha = document.getElementById('campo-fecha');
+            const fecha = document.getElementById('fecha-hoja-diaria');
+            const camposRango = document.getElementById('campos-rango');
+            const desde = document.getElementById('desde-hoja-diaria');
+            const hasta = document.getElementById('hasta-hoja-diaria');
+            const ayuda = document.getElementById('ayuda-periodo');
+            const etiquetas = {
+                diario: 'Se incluirán las citas de la fecha seleccionada.',
+                semanal: 'Se incluirán de lunes a domingo de la semana seleccionada.',
+                quincenal: 'Se incluirán los días 1 al 15 o 16 al último del mes.',
+                mensual: 'Se incluirán del día 1 al último del mes seleccionado.',
+                personalizado: 'Selecciona el primer y último día del rango.'
+            };
+
+            function actualizarPeriodo() {
+                const personalizado = periodo.value === 'personalizado';
+                campoFecha.hidden = personalizado;
+                fecha.disabled = personalizado;
+                fecha.required = !personalizado;
+                camposRango.hidden = !personalizado;
+                camposRango.classList.toggle('hidden', !personalizado);
+                desde.disabled = !personalizado;
+                hasta.disabled = !personalizado;
+                desde.required = personalizado;
+                hasta.required = personalizado;
+                ayuda.textContent = etiquetas[periodo.value] ?? '';
+            }
+
+            periodo.addEventListener('change', actualizarPeriodo);
+            actualizarPeriodo();
+        });
+    </script>
 </x-app-layout>
