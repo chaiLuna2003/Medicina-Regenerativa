@@ -4,6 +4,7 @@ use App\Http\Controllers\AgendaBloqueoController;
 use App\Http\Controllers\CasoClinicoPdfController;
 use App\Http\Controllers\CasosClinicosController;
 use App\Http\Controllers\CitasController;
+use App\Http\Controllers\ControlPesoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstudiosController;
 use App\Http\Controllers\EvolucionesClinicasController;
@@ -156,6 +157,31 @@ Route::middleware([
             ->parameters([
                 'pacientes' => 'pacientes',
             ]);
+    });
+
+    Route::put(
+        '/pacientes/{pacientes}/clasificaciones',
+        [PacientesController::class, 'updateClasificaciones']
+    )
+        ->middleware('role:medico,enfermero')
+        ->name('pacientes.clasificaciones.update');
+
+    Route::get(
+        '/pacientes/{pacientes}/controles-peso/{controlPeso}/pdf',
+        [ControlPesoController::class, 'pdf']
+    )->middleware('role:admin,recepcionista,medico,enfermero')
+        ->name('pacientes.controles-peso.pdf');
+
+    Route::middleware('role:medico,enfermero')->group(function () {
+        Route::post(
+            '/pacientes/{pacientes}/controles-peso',
+            [ControlPesoController::class, 'store']
+        )->name('pacientes.controles-peso.store');
+
+        Route::put(
+            '/pacientes/{pacientes}/controles-peso/{controlPeso}',
+            [ControlPesoController::class, 'update']
+        )->name('pacientes.controles-peso.update');
     });
 
     /*

@@ -11,6 +11,51 @@ class PacienteEnfermeriaAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_enfermeria_guarda_varias_clasificaciones_y_puede_borrarlas(): void
+    {
+        $paciente = $this->paciente();
+        $enfermero = $this->usuarioEnfermeria();
+
+        $this->actingAs($enfermero)
+            ->put(route('pacientes.clasificaciones.update', $paciente), [
+                'clasificaciones' => ['diabeticos', 'epoc'],
+            ])
+            ->assertRedirect(route('pacientes.show', $paciente));
+
+        $this->assertSame(['diabeticos', 'epoc'], $paciente->fresh()->clasificaciones);
+
+        $this->actingAs($enfermero)
+            ->get(route('pacientes.show', $paciente))
+            ->assertOk()
+            ->assertSee('Diabéticos')
+            ->assertSee('EPOC')
+            ->assertSee('Editar clasificación');
+
+        $this->actingAs($enfermero)
+            ->put(route('pacientes.clasificaciones.update', $paciente), [])
+            ->assertRedirect(route('pacientes.show', $paciente));
+
+        $this->assertSame([], $paciente->fresh()->clasificaciones);
+    }
+
+    public function test_clasificaciones_ajenas_o_duplicadas_se_rechazan(): void
+    {
+        $paciente = $this->paciente();
+
+        foreach ([
+            [['otro'], 'clasificaciones.0'],
+            [['epoc', 'epoc'], 'clasificaciones.1'],
+        ] as [$valores, $error]) {
+            $this->actingAs($this->usuarioEnfermeria())
+                ->put(route('pacientes.clasificaciones.update', $paciente), [
+                    'clasificaciones' => $valores,
+                ])
+                ->assertSessionHasErrors($error);
+        }
+
+        $this->assertNull($paciente->fresh()->clasificaciones);
+    }
+
     public function test_enfermeria_consulta_listado_ficha_y_edicion_de_pacientes(): void
     {
         $enfermero = $this->usuarioEnfermeria();

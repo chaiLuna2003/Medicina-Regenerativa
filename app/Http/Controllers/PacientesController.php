@@ -17,6 +17,28 @@ use Illuminate\Validation\Rule;
 
 class PacientesController extends Controller
 {
+    public function updateClasificaciones(Request $request, Pacientes $pacientes)
+    {
+        Gate::authorize('updateClasificaciones', $pacientes);
+
+        $validated = $request->validate([
+            'clasificaciones' => ['sometimes', 'array', 'max:17'],
+            'clasificaciones.*' => [
+                'required',
+                'string',
+                'distinct',
+                Rule::in(array_keys(Pacientes::CLASIFICACIONES)),
+            ],
+        ]);
+
+        $pacientes->clasificaciones = $validated['clasificaciones'] ?? [];
+        $pacientes->save();
+
+        return redirect()
+            ->route('pacientes.show', $pacientes)
+            ->with('success', 'Clasificación del paciente actualizada.');
+    }
+
     public function index(Request $request)
     {
         $pacientes = Pacientes::query()
@@ -375,6 +397,12 @@ class PacientesController extends Controller
                         'cita.medico.user',
                     ])
                     ->orderByDesc('created_at');
+            },
+
+            'controlesPeso' => function ($query) {
+                $query->with('cita.medico.user')
+                    ->orderByDesc('created_at')
+                    ->orderByDesc('id');
             },
         ]);
 

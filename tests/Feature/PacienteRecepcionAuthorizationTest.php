@@ -15,6 +15,47 @@ class PacienteRecepcionAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_solo_medico_vinculado_y_enfermeria_pueden_editar_clasificaciones(): void
+    {
+        $paciente = $this->paciente();
+        $paciente->clasificaciones = ['diabeticos'];
+        $paciente->save();
+
+        foreach (['admin', 'recepcionista'] as $rol) {
+            $usuario = $this->usuario($rol);
+
+            $this->actingAs($usuario)
+                ->get(route('pacientes.show', $paciente))
+                ->assertOk()
+                ->assertDontSee('Editar clasificación')
+                ->assertSee('Clasificación del paciente')
+                ->assertSee('Diabéticos');
+
+            $this->actingAs($usuario)
+                ->put(route('pacientes.clasificaciones.update', $paciente), [
+                    'clasificaciones' => ['epoc'],
+                ])
+                ->assertForbidden();
+        }
+
+        $medico = $this->medicoConPerfil();
+        $this->actingAs($medico)
+            ->put(route('pacientes.clasificaciones.update', $paciente), [
+                'clasificaciones' => ['epoc'],
+            ])
+            ->assertForbidden();
+
+        $this->vincularMedicoConPaciente($medico, $paciente);
+
+        $this->actingAs($medico)
+            ->put(route('pacientes.clasificaciones.update', $paciente), [
+                'clasificaciones' => ['epoc', 'rodillas'],
+            ])
+            ->assertRedirect(route('pacientes.show', $paciente));
+
+        $this->assertSame(['epoc', 'rodillas'], $paciente->fresh()->clasificaciones);
+    }
+
     public function test_recepcion_actualiza_los_datos_administrativos_autorizados(): void
     {
         Storage::fake('local');

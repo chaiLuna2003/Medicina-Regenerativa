@@ -11,6 +11,26 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pacientes extends Model
 {
+    public const CLASIFICACIONES = [
+        'diabeticos' => 'Diabéticos',
+        'hipertensos' => 'Hipertensos',
+        'enfermedades_renales' => 'Enfermedades Renales',
+        'enfermedades_cardiacas' => 'Enfermedades Cardiacas',
+        'gastrointestinales' => 'Gastrointestinales',
+        'articulares' => 'Articulares',
+        'rodillas' => 'Rodillas',
+        'cadera' => 'Cadera',
+        'hombro' => 'Hombro',
+        'columna' => 'Columna',
+        'paralisis_faciales' => 'Parálisis Faciales',
+        'infecciones_virales' => 'Infecciones Virales',
+        'oncologicas' => 'Oncológicas',
+        'artritis_reumatoide' => 'Artritis Reumatoide',
+        'neurologicas' => 'Neurológicas',
+        'respiratorias' => 'Respiratorias',
+        'epoc' => 'EPOC',
+    ];
+
     /**
      * Catálogo oficial de sexos.
      *
@@ -189,6 +209,7 @@ class Pacientes extends Model
     protected function casts(): array
     {
         return [
+            'clasificaciones' => 'array',
             'fecha_nacimiento' => 'date',
 
             'costo_consulta_personalizado' => 'decimal:2',
@@ -234,6 +255,11 @@ class Pacientes extends Model
     public function citas(): HasMany
     {
         return $this->hasMany(Citas::class, 'paciente_id');
+    }
+
+    public function controlesPeso(): HasMany
+    {
+        return $this->hasMany(ControlPeso::class, 'paciente_id');
     }
 
     /**

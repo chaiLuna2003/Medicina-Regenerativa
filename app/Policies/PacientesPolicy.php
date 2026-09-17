@@ -60,6 +60,12 @@ class PacientesPolicy
         );
     }
 
+    public function updateClasificaciones(User $user, Pacientes $pacientes): bool
+    {
+        return $user->isEnfermero()
+            || $this->medicoTieneRelacionClinica($user, $pacientes);
+    }
+
     public function delete(
         User $user,
         Pacientes $pacientes

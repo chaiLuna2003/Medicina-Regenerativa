@@ -132,6 +132,8 @@
                     @endif
                     @endunless
 
+                    @include('pacientes.sections.control-peso')
+
                     @include(
                     'pacientes.sections.signos-vitales'
                     )
@@ -154,6 +156,10 @@
     @include(
     'pacientes.modals.notas'
     )
+
+    @include('pacientes.modals.clasificaciones')
+
+    @include('pacientes.modals.control-peso')
 
     @unless ($esEnfermeria)
     @include(
