@@ -11,7 +11,7 @@
 
     <meta name="theme-color" content="#0f766e">
 
-    <title>{{ config('app.name', 'Medicina Regenerativa') }}</title>
+    <title>SW Clínico | Medicina Regenerativa</title>
     <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -74,11 +74,11 @@
 
                     <span>
                         <strong class="block text-sm font-bold tracking-tight text-slate-900 sm:text-base">
-                            Medicina Regenerativa
+                            SW Clínico
                         </strong>
 
                         <span class="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:block">
-                            Gestión clínica
+                            Medicina Regenerativa · Gestión clínica
                         </span>
                     </span>
                 </a>
@@ -488,12 +488,14 @@
                 class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-2 border-t border-slate-200/80 px-5 py-6 text-center text-xs text-slate-500 sm:flex-row sm:px-8 sm:text-left lg:px-10"
             >
                 <p>
-                    © {{ date('Y') }} Medicina Regenerativa
+                    © {{ date('Y') }} SW Clínico
                 </p>
 
-                <p>
-                    Uso exclusivo de personal autorizado
-                </p>
+                <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 sm:justify-end" aria-label="Información legal">
+                    <a class="underline-offset-4 hover:text-teal-800 hover:underline" href="{{ route('legal.privacidad') }}">Privacidad</a>
+                    <a class="underline-offset-4 hover:text-teal-800 hover:underline" href="{{ route('legal.terminos') }}">Condiciones del servicio</a>
+                    <span>Uso exclusivo de personal autorizado</span>
+                </nav>
             </div>
         </footer>
 

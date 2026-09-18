@@ -31,6 +31,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::view('/privacidad', 'legal.privacidad')->name('legal.privacidad');
+Route::view('/terminos', 'legal.terminos')->name('legal.terminos');
+
 /*
 |--------------------------------------------------------------------------
 | Dashboard
