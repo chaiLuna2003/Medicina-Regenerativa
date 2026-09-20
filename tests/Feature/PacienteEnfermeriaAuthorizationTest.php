@@ -119,7 +119,8 @@ class PacienteEnfermeriaAuthorizationTest extends TestCase
     public function test_vista_de_clasificaciones_cuenta_y_filtra_pacientes(): void
     {
         $paciente = $this->paciente();
-        $paciente->update(['clasificaciones' => ['diabeticos', 'epoc']]);
+        $paciente->clasificaciones = ['diabeticos', 'epoc'];
+        $paciente->save();
 
         $this->actingAs($this->usuarioEnfermeria())
             ->get(route('clasificaciones.index', ['clasificacion' => 'epoc']))

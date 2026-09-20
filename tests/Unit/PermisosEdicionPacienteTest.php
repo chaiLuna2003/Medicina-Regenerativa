@@ -103,21 +103,12 @@ class PermisosEdicionPacienteTest extends TestCase
         );
     }
 
-    public function test_enfermeria_edita_los_mismos_campos_que_recepcion(): void
+    public function test_enfermeria_edita_datos_permitidos_sin_contacto(): void
     {
         $permisos = new PermisosEdicionPaciente;
 
-        $camposRecepcion = $permisos->camposPara(
-            $this->usuario('recepcionista')
-        );
-
         $camposEnfermeria = $permisos->camposPara(
             $this->usuario('enfermero')
-        );
-
-        $this->assertSame(
-            $camposRecepcion,
-            $camposEnfermeria
         );
 
         $this->assertContains(
@@ -125,10 +116,12 @@ class PermisosEdicionPacienteTest extends TestCase
             $camposEnfermeria
         );
 
-        $this->assertContains(
-            'telefono',
-            $camposEnfermeria
-        );
+        foreach ([
+            'telefono', 'telefono_fijo', 'telefono_secundario',
+            'email', 'domicilio', 'ciudad', 'estado', 'codigo_postal',
+        ] as $campo) {
+            $this->assertNotContains($campo, $camposEnfermeria);
+        }
 
         $this->assertContains(
             'tipo_sangre',
