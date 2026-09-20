@@ -125,6 +125,8 @@ class PacienteEnfermeriaAuthorizationTest extends TestCase
         $this->actingAs($this->usuarioEnfermeria())
             ->get(route('clasificaciones.index', ['clasificacion' => 'epoc']))
             ->assertOk()
+            ->assertSee('name="clasificacion"', false)
+            ->assertSee('EPOC (1)')
             ->assertSee('EPOC: 1 paciente')
             ->assertSee('Paciente Prueba');
 
