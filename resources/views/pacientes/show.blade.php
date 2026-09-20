@@ -34,9 +34,9 @@
                     'pacientes.sections.datos-generales'
                     )
 
-                    @include(
-                    'pacientes.sections.contacto'
-                    )
+                    @unless ($esEnfermeria)
+                    @include('pacientes.sections.contacto')
+                    @endunless
 
                     @include(
                     'pacientes.sections.notas'
@@ -144,9 +144,9 @@
 
 
 
-    @include(
-    'pacientes.modals.contacto'
-    )
+    @unless ($esEnfermeria)
+    @include('pacientes.modals.contacto')
+    @endunless
 
     @include(
     'pacientes.modals.datos-generales'

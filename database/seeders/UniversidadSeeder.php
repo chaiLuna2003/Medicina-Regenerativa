@@ -58,6 +58,11 @@ class UniversidadSeeder extends Seeder
                 'logo_path' => 'images/universidades/logo_justosierra.png',
             ],
             [
+                'nombre' => 'Universidad Estatal del Valle de Ecatepec',
+                'abreviatura' => 'UNEVE',
+                'logo_path' => 'images/universidades/uneve.png',
+            ],
+            [
                 'nombre' => 'Otra universidad',
                 'abreviatura' => 'OTRA',
             ],

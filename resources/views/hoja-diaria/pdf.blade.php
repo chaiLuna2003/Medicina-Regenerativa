@@ -373,13 +373,14 @@
                 <th style="width: 9%;" class="center">Fecha</th>
                 @endif
                 <th style="width: 8%;" class="center">Hora</th>
-                <th style="width: {{ $esRango ? 16 : 18 }}%;">Paciente</th>
+                <th style="width: {{ $esRango ? 13 : 15 }}%;">Paciente</th>
+                <th style="width: 13%;">Clasificación</th>
                 <th style="width: 5%;" class="center">Edad</th>
                 <th style="width: 7%;" class="center">Sexo</th>
-                <th style="width: {{ $esRango ? 14 : 16 }}%;">Motivo</th>
+                <th style="width: {{ $esRango ? 10 : 13 }}%;">Motivo</th>
                 <th style="width: 10%;">Modalidad</th>
-                <th style="width: {{ $esRango ? 14 : 19 }}%;">Médico</th>
-                <th style="width: 13%;" class="center">Estado</th>
+                <th style="width: {{ $esRango ? 10 : 14 }}%;">Médico</th>
+                <th style="width: 11%;" class="center">Estado</th>
             </tr>
         </thead>
 
@@ -515,6 +516,13 @@
                     </span>
                 </td>
 
+                <td>
+                    {{ collect($paciente?->clasificaciones ?? [])
+                        ->map(fn ($clave) => \App\Models\Pacientes::CLASIFICACIONES[$clave] ?? null)
+                        ->filter()
+                        ->implode(', ') ?: '—' }}
+                </td>
+
                 <td class="center">
                     {{ $paciente?->edad ?? 'N/D' }}
                 </td>
@@ -545,7 +553,7 @@
             @empty
 
             <tr>
-                <td colspan="{{ $esRango ? 10 : 9 }}" class="empty">
+                <td colspan="{{ $esRango ? 11 : 10 }}" class="empty">
                     No hay citas registradas para esta selección.
                 </td>
             </tr>

@@ -48,12 +48,12 @@
         }
 
         .attention {
-            width: 48%;
+            width: 30%;
         }
 
         .doctor {
-            width: 52%;
-            text-align: right;
+            width: 70%;
+            text-align: center;
         }
 
         .doctor-table {
@@ -66,15 +66,8 @@
             vertical-align: middle;
         }
 
-       .doctor-logo-cell {
-    width: 68px;
-    padding-right: 0 !important;
-    padding-left: 12px !important;
-    text-align: right;
-}
-
         .doctor-copy {
-            text-align: right;
+            text-align: center;
         }
 
         .logo {
@@ -346,24 +339,9 @@
         <table class="header">
             <tr>
                 <td class="attention">
-
-
-                    <div class="attention-copy">
-                        <p class="attention-title">
-                            Dirección de atención
-                        </p>
-
-                        <p class="attention-text">
-                            Av. León de los Aldama #3475,
-                            Col. San Felipe de Jesús,
-                            Alc. G.A.M., CDMX, C.P. 07510
-                        </p>
-
-                        <p class="attention-text">
-                            Horario de atención:
-                            lunes a viernes de 9:00 a 18:00 hrs.
-                        </p>
-                    </div>
+                    @if ($universidadLogoBase64)
+                        <img src="{{ $universidadLogoBase64 }}" alt="Logotipo" class="logo" style="margin-left: 0;">
+                    @endif
                 </td>
 
                 <td class="doctor">
@@ -385,19 +363,20 @@
                         ?: 'No registrada' }}
                                 </p>
 
+                                @if (config('clinic.telefono_fijo'))
+                                <p class="doctor-detail">Teléfono fijo: {{ config('clinic.telefono_fijo') }}</p>
+                                @endif
+
+                                <p class="doctor-detail">
+                                    Av. León de los Aldama #3475, Col. San Felipe de Jesús,
+                                    Alc. G.A.M., CDMX, C.P. 07510
+                                </p>
+
                                 <p class="document-title">
                                     Receta médica
                                 </p>
                             </td>
 
-                            <td class="doctor-logo-cell">
-                                @if ($universidadLogoBase64)
-                                <img
-                                    src="{{ $universidadLogoBase64 }}"
-                                    alt="Logotipo"
-                                    class="logo">
-                                @endif
-                            </td>
                         </tr>
                     </table>
                 </td>
@@ -591,6 +570,7 @@
         <table class="bottom-table">
             <tr>
                 <td>
+                    <p class="attention-text">Horario de atención: lunes a viernes de 9:00 a 18:00 hrs.</p>
                     <div class="folio">
                         Folio: {{ $folio }}
                     </div>

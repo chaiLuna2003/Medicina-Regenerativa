@@ -4,6 +4,7 @@ use App\Http\Controllers\AgendaBloqueoController;
 use App\Http\Controllers\CasoClinicoPdfController;
 use App\Http\Controllers\CasosClinicosController;
 use App\Http\Controllers\CitasController;
+use App\Http\Controllers\ClasificacionesController;
 use App\Http\Controllers\ControlPesoController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EstudiosController;
@@ -134,6 +135,9 @@ Route::middleware([
     Route::middleware(
         'role:admin,recepcionista,enfermero'
     )->group(function () {
+        Route::get('/clasificaciones', [ClasificacionesController::class, 'index'])
+            ->name('clasificaciones.index');
+
         Route::resource(
             'pacientes',
             PacientesController::class

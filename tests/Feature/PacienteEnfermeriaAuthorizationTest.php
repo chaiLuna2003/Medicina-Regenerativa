@@ -83,6 +83,54 @@ class PacienteEnfermeriaAuthorizationTest extends TestCase
             ->assertSee('Prueba');
     }
 
+    public function test_enfermeria_no_ve_ni_modifica_datos_de_contacto(): void
+    {
+        $enfermero = $this->usuarioEnfermeria();
+        $paciente = $this->paciente();
+        $paciente->update([
+            'telefono' => '5551234567',
+            'email' => 'privado@example.test',
+            'domicilio' => 'Calle confidencial 42',
+        ]);
+
+        foreach (['pacientes.index', 'pacientes.show', 'pacientes.edit'] as $ruta) {
+            $respuesta = $this->actingAs($enfermero)->get(
+                $ruta === 'pacientes.index'
+                    ? route($ruta)
+                    : route($ruta, $paciente)
+            );
+
+            $respuesta->assertOk()
+                ->assertDontSee('5551234567')
+                ->assertDontSee('privado@example.test')
+                ->assertDontSee('Calle confidencial 42');
+        }
+
+        $this->actingAs($enfermero)
+            ->put(route('pacientes.update', $paciente), [
+                'seccion' => 'contacto',
+                'telefono' => '5550000000',
+            ])
+            ->assertForbidden();
+
+        $this->assertSame('5551234567', $paciente->fresh()->telefono);
+    }
+
+    public function test_vista_de_clasificaciones_cuenta_y_filtra_pacientes(): void
+    {
+        $paciente = $this->paciente();
+        $paciente->update(['clasificaciones' => ['diabeticos', 'epoc']]);
+
+        $this->actingAs($this->usuarioEnfermeria())
+            ->get(route('clasificaciones.index', ['clasificacion' => 'epoc']))
+            ->assertOk()
+            ->assertSee('EPOC: 1 paciente')
+            ->assertSee('Paciente Prueba');
+
+        $this->get(route('clasificaciones.index', ['clasificacion' => 'invalida']))
+            ->assertSessionHasErrors('clasificacion');
+    }
+
     public function test_enfermeria_actualiza_los_datos_permitidos_del_paciente(): void
     {
         $enfermero = $this->usuarioEnfermeria();

@@ -71,6 +71,14 @@ class PermisosEdicionPaciente
         ...self::CAMPOS_ADMINISTRATIVOS,
     ];
 
+    private const CAMPOS_ENFERMERIA = [
+        ...self::CAMPOS_IDENTIDAD,
+        ...self::CAMPOS_CLASIFICACION,
+        'lugar_nacimiento',
+        ...self::CAMPOS_COMPLEMENTARIOS,
+        ...self::CAMPOS_ADMINISTRATIVOS,
+    ];
+
     /**
      * @var array<string, list<string>>
      */
@@ -79,7 +87,7 @@ class PermisosEdicionPaciente
         'recepcionista' => self::CAMPOS_COMPLETOS,
         'medico' => self::CAMPOS_MEDICO,
 
-        'enfermero' => self::CAMPOS_COMPLETOS,
+        'enfermero' => self::CAMPOS_ENFERMERIA,
     ];
 
     /**
