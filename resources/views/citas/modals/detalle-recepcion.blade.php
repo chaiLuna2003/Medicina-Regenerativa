@@ -825,12 +825,34 @@ route('citas.index', [
                 `52${telefonoLimpio}` :
                 telefonoLimpio;
 
-            const mensajeWhatsApp =
-                encodeURIComponent(
-                    `Hola ${cita.paciente}, ` +
-                    `le recordamos su cita del ` +
-                    `${cita.fecha} a las ${cita.hora}.`
-                );
+            const direccionClinica = @json(config('clinic.direccion'));
+            const modalidad = cita.modalidad;
+            const mensajeBase =
+                `Buen día, Sr(a). ${cita.paciente}. ` +
+                `Le escribimos con la intención de recordarle su cita ` +
+                `agendada para el ${cita.fecha} a las ${cita.hora} ` +
+                `con el Dr. ${cita.medico}. ` +
+                `Esperamos recibir su confirmación`;
+
+            let mensaje = mensajeBase + '.';
+
+            if (modalidad === 'presencial') {
+                const direccionCodificada = encodeURIComponent(direccionClinica);
+                const googleMaps =
+                    `https://www.google.com/maps/dir/?api=1&destination=${direccionCodificada}`;
+                const waze =
+                    `https://waze.com/ul?q=${direccionCodificada}&navigate=yes`;
+
+                mensaje = mensajeBase +
+                    ` y recibirlo próximamente en nuestras instalaciones ` +
+                    `ubicadas en ${direccionClinica}.\n\n` +
+                    `Cómo llegar:\nGoogle Maps: ${googleMaps}\nWaze: ${waze}`;
+            } else if (modalidad === 'fuera_instalaciones' && cita.direccion) {
+                mensaje = mensajeBase +
+                    `. Dirección de la cita: ${cita.direccion}.`;
+            }
+
+            const mensajeWhatsApp = encodeURIComponent(mensaje);
 
             const mostrarWhatsApp =
                 telefonoWhatsApp.length > 0;

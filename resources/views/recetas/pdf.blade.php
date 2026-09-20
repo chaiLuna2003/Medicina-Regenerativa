@@ -56,6 +56,11 @@
             text-align: center;
         }
 
+        .second-logo {
+            width: 20%;
+            text-align: right;
+        }
+
         .doctor-table {
             width: 100%;
             border-collapse: collapse;
@@ -331,6 +336,19 @@
     )
     : null;
 
+    // La segunda acreditación de la referencia corresponde únicamente
+    // al médico con cédula profesional 12756819.
+    $mostrarDosLogos = preg_replace('/\D+/', '', (string) $medico?->cedula) === '12756819';
+    $logoJustoSierra = public_path('images/universidades/logo_justosierra.png');
+    $logoUneve = public_path('images/universidades/uneve.png');
+
+    if ($mostrarDosLogos && file_exists($logoJustoSierra) && file_exists($logoUneve)) {
+        $universidadLogoBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoJustoSierra));
+        $logoUneveBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoUneve));
+    } else {
+        $logoUneveBase64 = null;
+    }
+
     $sexo = $paciente?->sexo_texto
     ?? 'No especificado';
     @endphp
@@ -338,13 +356,13 @@
     <main class="sheet">
         <table class="header">
             <tr>
-                <td class="attention">
+                <td class="attention" style="width: {{ $logoUneveBase64 ? '20%' : '30%' }};">
                     @if ($universidadLogoBase64)
                         <img src="{{ $universidadLogoBase64 }}" alt="Logotipo" class="logo" style="margin-left: 0;">
                     @endif
                 </td>
 
-                <td class="doctor">
+                <td class="doctor" style="width: {{ $logoUneveBase64 ? '60%' : '70%' }};">
                     <table class="doctor-table">
                         <tr>
                             <td class="doctor-copy">
@@ -363,13 +381,16 @@
                         ?: 'No registrada' }}
                                 </p>
 
-                                @if (config('clinic.telefono_fijo'))
-                                <p class="doctor-detail">Teléfono fijo: {{ config('clinic.telefono_fijo') }}</p>
+                                @if ($mostrarDosLogos)
+                                <p class="doctor-detail">
+                                    Acupuntura · Cédula 9937876 · Universidad Estatal del Valle de Ecatepec
+                                </p>
                                 @endif
 
+                                <p class="doctor-detail">Teléfono fijo: {{ config('clinic.telefono_fijo') }}</p>
+
                                 <p class="doctor-detail">
-                                    Av. León de los Aldama #3475, Col. San Felipe de Jesús,
-                                    Alc. G.A.M., CDMX, C.P. 07510
+                                    {{ config('clinic.direccion') }}
                                 </p>
 
                                 <p class="document-title">
@@ -380,6 +401,12 @@
                         </tr>
                     </table>
                 </td>
+
+                @if ($logoUneveBase64)
+                <td class="second-logo">
+                        <img src="{{ $logoUneveBase64 }}" alt="Logo UNEVE" class="logo" style="margin-right: 0;">
+                </td>
+                @endif
             </tr>
         </table>
 

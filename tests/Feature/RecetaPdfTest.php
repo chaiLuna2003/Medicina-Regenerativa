@@ -146,6 +146,53 @@ class RecetaPdfTest extends TestCase
         );
     }
 
+    public function test_receta_de_raul_rivera_padilla_incluye_ambas_universidades(): void
+    {
+        $datos = $this->crearRecetaConCita();
+        $datos['medico']->update([
+            'nombre' => 'Joahnni Raúl',
+            'apellido_paterno' => 'Rivera',
+            'apellido_materno' => 'Padilla',
+            'cedula' => '12756819',
+        ]);
+
+        $receta = $datos['receta']->fresh()->load([
+            'cita.paciente',
+            'cita.medico.user',
+            'cita.medico.universidad',
+            'cita.signoVital',
+        ]);
+
+        $html = view('recetas.pdf', compact('receta'))->render();
+
+        foreach (['logo_justosierra.png', 'uneve.png'] as $nombreLogo) {
+            $logo = 'data:image/png;base64,'.base64_encode(
+                file_get_contents(public_path('images/universidades/'.$nombreLogo))
+            );
+
+            $this->assertSame(1, substr_count($html, $logo));
+        }
+
+        $this->assertStringContainsString('9937876', $html);
+        $this->assertStringContainsString('5566450302', $html);
+    }
+
+    public function test_receta_de_otro_medico_no_muestra_segunda_universidad(): void
+    {
+        $datos = $this->crearRecetaConCita();
+        $receta = $datos['receta']->fresh()->load([
+            'cita.paciente',
+            'cita.medico.user',
+            'cita.medico.universidad',
+            'cita.signoVital',
+        ]);
+
+        $html = view('recetas.pdf', compact('receta'))->render();
+
+        $this->assertStringNotContainsString('9937876', $html);
+        $this->assertStringNotContainsString('Logo UNEVE', $html);
+    }
+
     public function test_configuracion_de_receta_conserva_privacidad_y_orientacion(): void
     {
         $controlador = file_get_contents(
@@ -172,8 +219,6 @@ class RecetaPdfTest extends TestCase
         foreach (
             [
                 'consultorio',
-                'telefono',
-                'teléfono',
                 'user->email',
                 'Correo:',
             ] as $campoProhibido
@@ -185,7 +230,7 @@ class RecetaPdfTest extends TestCase
         }
 
         $this->assertStringContainsString(
-            'Dirección de atención',
+            "config('clinic.direccion')",
             $plantilla
         );
 

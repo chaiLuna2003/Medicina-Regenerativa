@@ -45,7 +45,7 @@
             $refs.superior.scrollLeft =
                 $el.scrollLeft
         "
-        class="max-h-[690px] overflow-auto overscroll-contain touch-pan-x touch-pan-y"
+        class="max-h-[690px] overflow-auto overscroll-contain"
         role="region"
         aria-label="Agenda médica: desliza horizontalmente para ver más médicos"
         tabindex="0">
