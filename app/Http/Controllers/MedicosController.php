@@ -14,12 +14,30 @@ use Illuminate\View\View;
 
 class MedicosController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $filtros = $request->validate([
+            'buscar' => ['nullable', 'string', 'max:100'],
+            'estado' => ['nullable', Rule::in(['activo', 'inactivo'])],
+        ]);
+
         $medicos = Medicos::query()
-            ->with('user')
+            ->with(['user', 'universidad'])
+            ->when($filtros['buscar'] ?? null, function ($query, $buscar) {
+                $query->where(function ($query) use ($buscar) {
+                    $query->where('nombre', 'like', "%{$buscar}%")
+                        ->orWhere('especialidad', 'like', "%{$buscar}%")
+                        ->orWhere('cedula', 'like', "%{$buscar}%")
+                        ->orWhereHas('user', fn ($usuario) => $usuario
+                            ->where('name', 'like', "%{$buscar}%")
+                            ->orWhere('email', 'like', "%{$buscar}%"));
+                });
+            })
+            ->when($filtros['estado'] ?? null, fn ($query, $estado) => $query
+                ->where('status', $estado === 'activo'))
             ->latest()
-            ->paginate(10);
+            ->paginate(10)
+            ->withQueryString();
 
         return view('medicos.index', compact('medicos'));
     }
@@ -141,7 +159,7 @@ class MedicosController extends Controller
 
     public function show(Medicos $medicos): View
     {
-        $medicos->load('user');
+        $medicos->load(['user', 'universidad']);
 
         return view('medicos.show', compact('medicos'));
     }

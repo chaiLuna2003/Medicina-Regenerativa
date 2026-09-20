@@ -1,135 +1,94 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Médicos</h2>
+        <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-xl font-semibold text-slate-900">Médicos</h1>
+                <p class="mt-1 text-sm text-slate-500">Consulta los perfiles profesionales vinculados a cuentas médicas.</p>
+            </div>
+            <a href="{{ route('medicos.create') }}" class="mt-3 inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:mt-0">+ Nuevo médico</a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
-
+    <div class="min-h-screen bg-slate-50 py-8">
+        <div class="mx-auto max-w-7xl space-y-5 px-4 sm:px-6 lg:px-8">
             @if (session('success'))
-                <div class="mb-4 bg-emerald-100 text-emerald-800 px-4 py-3 rounded-lg flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {{ session('success') }}
-                </div>
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>
+            @endif
+            @if (session('error'))
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
             @endif
 
-            <div class="flex justify-between items-center mb-6">
-                <a href="{{ route('medicos.create') }}"
-                   class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Nuevo médico
-                </a>
-            </div>
+            <form method="GET" action="{{ route('medicos.index') }}" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[1fr_220px_auto]">
+                <input type="search" name="buscar" value="{{ request('buscar') }}" aria-label="Buscar médicos" placeholder="Buscar por nombre, correo, especialidad o cédula..." class="rounded-lg border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500">
+                <select name="estado" aria-label="Filtrar por estado" class="rounded-lg border-slate-300 text-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Todos los estados</option>
+                    <option value="activo" @selected(request('estado') === 'activo')>Activos</option>
+                    <option value="inactivo" @selected(request('estado') === 'inactivo')>Inactivos</option>
+                </select>
+                <button type="submit" class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Filtrar</button>
+            </form>
 
-            {{-- Tabla: escritorio --}}
-            <div class="hidden md:block bg-white rounded-xl shadow-sm overflow-hidden">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
-                        <tr>
-                            <th class="px-4 py-3">Médico</th>
-                            <th class="px-4 py-3">Especialidad</th>
-                            <th class="px-4 py-3">Cédula</th>
-                            <th class="px-4 py-3">Consultorio</th>
-                            <th class="px-4 py-3">Estatus</th>
-                            <th class="px-4 py-3 text-right">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @forelse ($medicos as $medico)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-semibold shrink-0">
-                                            {{ strtoupper(substr($medico->nombre, 0, 1) . substr($medico->apellido_paterno, 0, 1)) }}
-                                        </div>
-                                        <span class="font-medium text-gray-800">Dr(a). {{ $medico->nombre }} {{ $medico->apellido_paterno }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-gray-600">{{ $medico->especialidad }}</td>
-                                <td class="px-4 py-3 text-gray-600">{{ $medico->cedula }}</td>
-                                <td class="px-4 py-3 text-gray-600">{{ $medico->consultorio }}</td>
-                                <td class="px-4 py-3">
-                                    @if ($medico->status)
-                                        <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2 py-1 rounded-full">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs font-medium px-2 py-1 rounded-full">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Inactivo
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-4 py-3 text-right space-x-3">
-                                    <a href="{{ route('medicos.show', $medico) }}" class="text-blue-600 hover:underline">Ver</a>
-                                    <a href="{{ route('medicos.edit', $medico) }}" class="text-amber-600 hover:underline">Editar</a>
-                                    <form action="{{ route('medicos.destroy', $medico) }}" method="POST" class="inline"
-                                          onsubmit="return confirm('¿Eliminar este médico?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:underline">Eliminar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
+            <div class="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[850px] text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-gray-400">No hay médicos registrados.</td>
+                                <th class="px-5 py-3">Médico</th>
+                                <th class="px-5 py-3">Especialidad</th>
+                                <th class="px-5 py-3">Universidad</th>
+                                <th class="px-5 py-3">Estado</th>
+                                <th class="px-5 py-3">Registro</th>
+                                <th class="px-5 py-3 text-right">Acción</th>
                             </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($medicos as $medico)
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-5 py-4">
+                                        <p class="font-medium text-slate-900">{{ $medico->user?->name ?? trim($medico->nombre.' '.$medico->apellido_paterno.' '.$medico->apellido_materno) }}</p>
+                                        <p class="text-xs text-slate-500">{{ $medico->user?->email ?? 'Sin cuenta vinculada' }}</p>
+                                    </td>
+                                    <td class="px-5 py-4 text-slate-600">{{ $medico->especialidad }}</td>
+                                    <td class="px-5 py-4 text-slate-600">{{ $medico->universidad?->abreviatura ?? 'Sin universidad' }}</td>
+                                    <td class="px-5 py-4">
+                                        <span class="inline-flex items-center gap-1.5 text-xs font-medium {{ $medico->status ? 'text-emerald-700' : 'text-red-700' }}">
+                                            <span class="h-2 w-2 rounded-full {{ $medico->status ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
+                                            {{ $medico->status ? 'Activo' : 'Inactivo' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-slate-500">{{ $medico->created_at?->format('d/m/Y') ?? '—' }}</td>
+                                    <td class="px-5 py-4 text-right"><a href="{{ route('medicos.show', $medico) }}" class="font-medium text-blue-600 hover:underline">Ver ficha</a></td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="px-5 py-10 text-center text-slate-400">No se encontraron médicos.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
-            {{-- Tarjetas: móvil --}}
-            <div class="md:hidden space-y-3">
+            <div class="space-y-3 md:hidden">
                 @forelse ($medicos as $medico)
-                    <div class="bg-white rounded-xl shadow-sm p-4">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-11 h-11 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold shrink-0">
-                                {{ strtoupper(substr($medico->nombre, 0, 1) . substr($medico->apellido_paterno, 0, 1)) }}
+                    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-semibold text-slate-900">{{ $medico->user?->name ?? trim($medico->nombre.' '.$medico->apellido_paterno.' '.$medico->apellido_materno) }}</p>
+                                <p class="mt-0.5 break-all text-xs text-slate-500">{{ $medico->user?->email ?? 'Sin cuenta vinculada' }}</p>
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="font-medium text-gray-800 truncate">Dr(a). {{ $medico->nombre }} {{ $medico->apellido_paterno }}</p>
-                                <p class="text-xs text-gray-400">{{ $medico->especialidad }}</p>
-                            </div>
-                            @if ($medico->status)
-                                <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-xs font-medium px-2 py-1 rounded-full shrink-0">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo
-                                </span>
-                            @else
-                                <span class="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs font-medium px-2 py-1 rounded-full shrink-0">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Inactivo
-                                </span>
-                            @endif
+                            <span title="{{ $medico->status ? 'Activo' : 'Inactivo' }}" class="h-2.5 w-2.5 shrink-0 rounded-full {{ $medico->status ? 'bg-emerald-500' : 'bg-red-500' }}"></span>
                         </div>
-                        <dl class="text-sm text-gray-600 space-y-1 mb-3">
-                            <div class="flex justify-between"><dt class="text-gray-400">Cédula</dt><dd>{{ $medico->cedula }}</dd></div>
-                            <div class="flex justify-between"><dt class="text-gray-400">Consultorio</dt><dd>{{ $medico->consultorio }}</dd></div>
-                        </dl>
-                        <div class="flex items-center gap-4 text-sm pt-3 border-t border-gray-100">
-                            <a href="{{ route('medicos.show', $medico) }}" class="text-blue-600">Ver</a>
-                            <a href="{{ route('medicos.edit', $medico) }}" class="text-amber-600">Editar</a>
-                            <form action="{{ route('medicos.destroy', $medico) }}" method="POST"
-                                  onsubmit="return confirm('¿Eliminar este médico?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600">Eliminar</button>
-                            </form>
+                        <p class="mt-3 text-sm text-slate-600">{{ $medico->especialidad }} · {{ $medico->universidad?->abreviatura ?? 'Sin universidad' }}</p>
+                        <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+                            <span class="text-xs text-slate-500">Cédula {{ $medico->cedula }}</span>
+                            <a href="{{ route('medicos.show', $medico) }}" class="text-sm font-medium text-blue-600">Ver ficha</a>
                         </div>
-                    </div>
+                    </article>
                 @empty
-                    <div class="bg-white rounded-xl shadow-sm p-6 text-center text-gray-400">
-                        No hay médicos registrados.
-                    </div>
+                    <div class="rounded-xl bg-white p-8 text-center text-slate-400">No se encontraron médicos.</div>
                 @endforelse
             </div>
 
-            <div class="mt-4">
-                {{ $medicos->links() }}
-            </div>
+            {{ $medicos->links() }}
         </div>
     </div>
 </x-app-layout>
