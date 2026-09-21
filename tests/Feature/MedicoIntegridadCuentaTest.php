@@ -14,6 +14,36 @@ class MedicoIntegridadCuentaTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_listado_filtra_medicos_y_ficha_muestra_universidad(): void
+    {
+        $administrador = User::factory()->create(['role' => 'admin']);
+        [$usuario, $medico] = $this->crearMedico();
+
+        $universidad = Universidad::query()->create([
+            'nombre' => 'Universidad Estatal del Valle de Ecatepec',
+            'abreviatura' => 'UNEVE',
+            'logo_path' => 'images/universidades/uneve.png',
+            'status' => true,
+        ]);
+        $medico->update(['universidad_id' => $universidad->id]);
+
+        $this->actingAs($administrador)
+            ->get(route('medicos.index', ['buscar' => $usuario->email, 'estado' => 'activo']))
+            ->assertOk()
+            ->assertSee($usuario->name)
+            ->assertSee('UNEVE')
+            ->assertDontSee('Eliminar este médico');
+
+        $this->get(route('medicos.index', ['estado' => 'inactivo']))
+            ->assertOk()
+            ->assertDontSee($usuario->name);
+
+        $this->get(route('medicos.show', $medico))
+            ->assertOk()
+            ->assertSee('Universidad Estatal del Valle de Ecatepec')
+            ->assertSee('images/universidades/uneve.png');
+    }
+
     public function test_desactivar_medico_desactiva_su_cuenta_de_usuario(): void
     {
         $administrador = User::factory()->create([

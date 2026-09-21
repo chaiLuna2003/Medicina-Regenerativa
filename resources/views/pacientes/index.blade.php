@@ -78,7 +78,9 @@
                             <tr>
                                 <th class="px-5 py-4">Paciente</th>
                                 <th class="px-5 py-4">Información</th>
-                                <th class="px-5 py-4">Contacto</th>
+                                @unless(auth()->user()->isEnfermero())
+                                    <th class="px-5 py-4">Contacto</th>
+                                @endunless
                                 <th class="px-5 py-4">Estado</th>
                                 <th class="px-5 py-4 text-right">Acciones</th>
                             </tr>
@@ -126,6 +128,7 @@
                                         </p>
                                     </td>
 
+                                    @unless(auth()->user()->isEnfermero())
                                     <td class="px-5 py-4">
                                         <p class="text-slate-700">
                                             {{ $paciente->telefono ?: 'Sin teléfono' }}
@@ -134,6 +137,7 @@
                                             {{ $paciente->email ?: 'Sin correo electrónico' }}
                                         </p>
                                     </td>
+                                    @endunless
 
                                     <td class="px-5 py-4">
                                         <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold {{ $paciente->status ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
@@ -160,7 +164,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-6 py-16 text-center">
+                                    <td colspan="{{ auth()->user()->isEnfermero() ? 4 : 5 }}" class="px-6 py-16 text-center">
                                         <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
@@ -212,6 +216,7 @@
                                 </div>
                             </div>
 
+                            @unless(auth()->user()->isEnfermero())
                             <dl class="mt-4 grid grid-cols-1 gap-3 rounded-xl bg-slate-50 p-3 text-sm">
                                 <div>
                                     <dt class="text-xs text-slate-400">Teléfono</dt>
@@ -222,6 +227,7 @@
                                     <dd class="mt-0.5 truncate font-medium text-slate-700">{{ $paciente->email ?: 'No registrado' }}</dd>
                                 </div>
                             </dl>
+                            @endunless
                         </div>
 
                         <div class="flex border-t border-slate-100 bg-slate-50/60">

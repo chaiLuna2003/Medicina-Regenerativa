@@ -444,6 +444,7 @@ $tiposSangrePaciente =
 {{-- CONTACTO --}}
 {{-- ===================================================== --}}
 
+@unless(auth()->user()->isEnfermero())
 <section class="mb-8">
     <div class="mb-4">
         <h3 class="text-base font-semibold text-slate-900">
@@ -598,6 +599,7 @@ $tiposSangrePaciente =
     </div>
 </div>
 </section>
+@endunless
 
 {{-- ===================================================== --}}
 {{-- DOMICILIO --}}
@@ -616,6 +618,7 @@ $tiposSangrePaciente =
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
+        @unless(auth()->user()->isEnfermero())
         <div class="sm:col-span-2">
             <label
                 for="domicilio"
@@ -644,6 +647,7 @@ $tiposSangrePaciente =
             </p>
             @enderror
         </div>
+        @endunless
 
         @foreach ([
         'ciudad' => 'Ciudad',
@@ -651,6 +655,10 @@ $tiposSangrePaciente =
         'codigo_postal' => 'Código postal',
         'lugar_nacimiento' => 'Lugar de nacimiento',
         ] as $campo => $etiqueta)
+
+        @if(auth()->user()->isEnfermero() && $campo !== 'lugar_nacimiento')
+            @continue
+        @endif
 
         <div>
             <label

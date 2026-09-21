@@ -63,6 +63,14 @@
                             ])>
                             Pacientes
                         </a>
+                        <a href="{{ route('clasificaciones.index') }}"
+                           @class([
+                               'rounded-xl px-4 py-2 text-sm font-semibold transition',
+                               'bg-emerald-50 text-emerald-700' => request()->routeIs('clasificaciones.*'),
+                               'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('clasificaciones.*'),
+                           ])>
+                            Clasificaciones
+                        </a>
                     @endif
 
                     @if (auth()->user()->isAdmin())
@@ -256,6 +264,14 @@
                             ! request()->routeIs('pacientes.*'),
                     ])>
                     Pacientes
+                </a>
+                <a href="{{ route('clasificaciones.index') }}"
+                   @class([
+                       'block rounded-xl px-4 py-3 text-sm font-semibold transition',
+                       'bg-emerald-50 text-emerald-700' => request()->routeIs('clasificaciones.*'),
+                       'text-slate-600 hover:bg-slate-100 hover:text-slate-900' => ! request()->routeIs('clasificaciones.*'),
+                   ])>
+                    Clasificaciones
                 </a>
             @endif
 

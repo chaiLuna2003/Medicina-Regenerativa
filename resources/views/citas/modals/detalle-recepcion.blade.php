@@ -825,12 +825,40 @@ route('citas.index', [
                 `52${telefonoLimpio}` :
                 telefonoLimpio;
 
-            const mensajeWhatsApp =
-                encodeURIComponent(
-                    `Hola ${cita.paciente}, ` +
-                    `le recordamos su cita del ` +
-                    `${cita.fecha} a las ${cita.hora}.`
-                );
+            const direccionClinica = @json(config('clinic.direccion'));
+            const modalidad = cita.modalidad;
+            const mensajeBase =
+                `Buen día, Sr(a). ${cita.paciente}. ` +
+                `Le escribimos con la intención de recordarle su cita ` +
+                `agendada para el ${cita.fecha} a las ${cita.hora} ` +
+                `con el Dr. ${cita.medico}. ` +
+                `Esperamos recibir su confirmación`;
+
+            let mensaje = mensajeBase + '.';
+            const direccionCita = modalidad === 'presencial' ?
+                direccionClinica :
+                (modalidad === 'fuera_instalaciones' ? cita.direccion : null);
+
+            if (direccionCita) {
+                const destino = encodeURIComponent(direccionCita);
+                const googleMaps =
+                    `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
+                const waze =
+                    `https://waze.com/ul?q=${destino}&navigate=yes`;
+                const indicaciones =
+                    `\n\nUbicación de la cita:\nGoogle Maps: ${googleMaps}` +
+                    `\nWaze: ${waze}\n` +
+                    `Para Uber o DiDi, copia la dirección y úsala como destino.`;
+
+                mensaje = modalidad === 'presencial' ?
+                    mensajeBase +
+                    ` y recibirlo próximamente en nuestras instalaciones ` +
+                    `ubicadas en ${direccionCita}.` + indicaciones :
+                    mensajeBase +
+                    `. Dirección de la cita: ${direccionCita}.` + indicaciones;
+            }
+
+            const mensajeWhatsApp = encodeURIComponent(mensaje);
 
             const mostrarWhatsApp =
                 telefonoWhatsApp.length > 0;

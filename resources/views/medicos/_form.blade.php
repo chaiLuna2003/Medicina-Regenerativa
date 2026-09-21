@@ -1,7 +1,7 @@
 {{-- Datos personales --}}
 <h3
     class="mb-3 text-sm font-semibold uppercase
-           tracking-wide text-gray-500"
+           tracking-wide text-slate-500"
 >
     Datos personales
 </h3>
@@ -12,7 +12,7 @@
         <div>
             <label
                 class="mb-1 block text-sm font-medium
-                       text-gray-700"
+                       text-slate-700"
             >
                 Nombre completo
             </label>
@@ -23,15 +23,15 @@
                     ?? 'Nombre no disponible' }}"
                 readonly
                 class="w-full cursor-not-allowed rounded-lg
-                       border-gray-300 bg-gray-100
-                       text-gray-700 shadow-sm"
+                       border-slate-300 bg-slate-100
+                       text-slate-700 shadow-sm"
             >
         </div>
 
         <div>
             <label
                 class="mb-1 block text-sm font-medium
-                       text-gray-700"
+                       text-slate-700"
             >
                 Correo de acceso
             </label>
@@ -42,8 +42,8 @@
                     ?? 'Correo no disponible' }}"
                 readonly
                 class="w-full cursor-not-allowed rounded-lg
-                       border-gray-300 bg-gray-100
-                       text-gray-700 shadow-sm"
+                       border-slate-300 bg-slate-100
+                       text-slate-700 shadow-sm"
             >
         </div>
     @else
@@ -52,7 +52,7 @@
             <label
                 for="user_id"
                 class="mb-2 block text-sm font-semibold
-                       text-gray-700"
+                       text-slate-700"
             >
                 Cuenta de acceso
             </label>
@@ -62,9 +62,9 @@
                 name="user_id"
                 required
                 class="block w-full rounded-xl
-                       border-gray-300 shadow-sm
-                       focus:border-[#0D3B7F]
-                       focus:ring-[#0D3B7F]"
+                       border-slate-300 shadow-sm
+                       focus:border-blue-500
+                       focus:ring-blue-500"
             >
                 <option
                     value=""
@@ -124,7 +124,7 @@
 
                     <p
                         id="nombre-cuenta-medica"
-                        class="mt-1 font-semibold text-gray-900"
+                        class="mt-1 font-semibold text-slate-900"
                     ></p>
                 </div>
 
@@ -139,7 +139,7 @@
                     <p
                         id="correo-cuenta-medica"
                         class="mt-1 break-all font-semibold
-                               text-gray-900"
+                               text-slate-900"
                     ></p>
                 </div>
             </div>
@@ -150,7 +150,7 @@
 {{-- Datos profesionales --}}
 <h3
     class="mb-3 text-sm font-semibold uppercase
-           tracking-wide text-gray-500"
+           tracking-wide text-slate-500"
 >
     Datos profesionales
 </h3>
@@ -161,7 +161,7 @@
         <label
             for="especialidad"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Especialidad
         </label>
@@ -175,9 +175,9 @@
                 $medicos->especialidad ?? ''
             ) }}"
             required
-            class="w-full rounded-lg border-gray-300
-                   shadow-sm focus:border-emerald-500
-                   focus:ring-emerald-500"
+            class="w-full rounded-lg border-slate-300
+                   shadow-sm focus:border-blue-500
+                   focus:ring-blue-500"
         >
 
         @error('especialidad')
@@ -192,7 +192,7 @@
         <label
             for="cedula"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Cédula profesional
         </label>
@@ -208,9 +208,9 @@
             required
             inputmode="numeric"
             autocomplete="off"
-            class="w-full rounded-lg border-gray-300
-                   shadow-sm focus:border-emerald-500
-                   focus:ring-emerald-500"
+            class="w-full rounded-lg border-slate-300
+                   shadow-sm focus:border-blue-500
+                   focus:ring-blue-500"
         >
 
         @error('cedula')
@@ -225,7 +225,7 @@
         <label
             for="universidad_id"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Universidad de procedencia
         </label>
@@ -234,9 +234,9 @@
             id="universidad_id"
             name="universidad_id"
             required
-            class="w-full rounded-lg border-gray-300
-                   shadow-sm focus:border-emerald-500
-                   focus:ring-emerald-500"
+            class="w-full rounded-lg border-slate-300
+                   shadow-sm focus:border-blue-500
+                   focus:ring-blue-500"
         >
             <option value="">
                 Selecciona una universidad
@@ -279,7 +279,7 @@
         <label
             for="consultorio"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Consultorio
         </label>
@@ -293,9 +293,9 @@
                 $medicos->consultorio ?? ''
             ) }}"
             required
-            class="w-full rounded-lg border-gray-300
-                   shadow-sm focus:border-emerald-500
-                   focus:ring-emerald-500"
+            class="w-full rounded-lg border-slate-300
+                   shadow-sm focus:border-blue-500
+                   focus:ring-blue-500"
         >
 
         @error('consultorio')
@@ -310,7 +310,7 @@
         <label
             for="direccion"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Dirección profesional
         </label>
@@ -320,9 +320,9 @@
             name="direccion"
             rows="3"
             class="w-full resize-y rounded-lg
-                   border-gray-300 shadow-sm
-                   focus:border-emerald-500
-                   focus:ring-emerald-500"
+                   border-slate-300 shadow-sm
+                   focus:border-blue-500
+                   focus:ring-blue-500"
             placeholder="Calle, número, colonia, municipio y estado"
         >{{ old(
             'direccion',
@@ -340,7 +340,7 @@
 {{-- Contacto --}}
 <h3
     class="mb-3 text-sm font-semibold uppercase
-           tracking-wide text-gray-500"
+           tracking-wide text-slate-500"
 >
     Contacto
 </h3>
@@ -350,7 +350,7 @@
         <label
             for="telefono"
             class="mb-1 block text-sm font-medium
-                   text-gray-700"
+                   text-slate-700"
         >
             Teléfono profesional
         </label>
@@ -366,9 +366,9 @@
             required
             inputmode="tel"
             autocomplete="tel"
-            class="w-full rounded-lg border-gray-300
-                   shadow-sm focus:border-emerald-500
-                   focus:ring-emerald-500"
+            class="w-full rounded-lg border-slate-300
+                   shadow-sm focus:border-blue-500
+                   focus:ring-blue-500"
         >
 
         @error('telefono')
@@ -382,7 +382,7 @@
 {{-- Estado --}}
 <div
     class="mb-6 flex items-center gap-3 rounded-lg
-           bg-gray-50 px-4 py-3"
+           bg-slate-50 px-4 py-3"
 >
     <input
         type="hidden"
@@ -401,14 +401,14 @@
                 $medicos->status ?? true
             )
         )
-        class="rounded border-gray-300
-               text-emerald-600
-               focus:ring-emerald-500"
+        class="rounded border-slate-300
+               text-blue-600
+               focus:ring-blue-500"
     >
 
     <label
         for="status"
-        class="text-sm font-medium text-gray-700"
+        class="text-sm font-medium text-slate-700"
     >
         Médico activo
     </label>

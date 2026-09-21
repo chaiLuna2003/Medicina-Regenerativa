@@ -45,7 +45,10 @@
             $refs.superior.scrollLeft =
                 $el.scrollLeft
         "
-        class="max-h-[690px] overflow-x-hidden overflow-y-auto">
+        class="max-h-[690px] overflow-auto overscroll-contain"
+        role="region"
+        aria-label="Agenda médica: desliza horizontalmente para ver más médicos"
+        tabindex="0">
         @if ($medicosAgenda->isEmpty())
         <div class="px-6 py-16 text-center">
             <p class="font-semibold text-gray-900">

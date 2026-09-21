@@ -24,7 +24,7 @@
         }
 
         .sheet {
-            min-height: 720px;
+            min-height: 750px;
             padding: 14px 16px;
             border: 2px solid #183f78;
             border-radius: 18px;
@@ -48,11 +48,16 @@
         }
 
         .attention {
-            width: 48%;
+            width: 30%;
         }
 
         .doctor {
-            width: 52%;
+            width: 70%;
+            text-align: center;
+        }
+
+        .second-logo {
+            width: 20%;
             text-align: right;
         }
 
@@ -66,21 +71,16 @@
             vertical-align: middle;
         }
 
-       .doctor-logo-cell {
-    width: 68px;
-    padding-right: 0 !important;
-    padding-left: 12px !important;
-    text-align: right;
-}
-
         .doctor-copy {
-            text-align: right;
+            text-align: center;
         }
 
         .logo {
             display: block;
-            width: 58px;
-            max-height: 52px;
+            width: 150px;
+            /* antes: 58px */
+            max-height: 120px;
+            /* antes: 52px */
             margin: 0 auto;
             object-fit: contain;
         }
@@ -338,6 +338,19 @@
     )
     : null;
 
+    // La segunda acreditación de la referencia corresponde únicamente
+    // al médico con cédula profesional 12756819.
+    $mostrarDosLogos = preg_replace('/\D+/', '', (string) $medico?->cedula) === '12756819';
+    $logoJustoSierra = public_path('images/universidades/logo_justosierra.png');
+    $logoUneve = public_path('images/universidades/uneve.png');
+
+    if ($mostrarDosLogos && file_exists($logoJustoSierra) && file_exists($logoUneve)) {
+    $universidadLogoBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoJustoSierra));
+    $logoUneveBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoUneve));
+    } else {
+    $logoUneveBase64 = null;
+    }
+
     $sexo = $paciente?->sexo_texto
     ?? 'No especificado';
     @endphp
@@ -345,28 +358,13 @@
     <main class="sheet">
         <table class="header">
             <tr>
-                <td class="attention">
-
-
-                    <div class="attention-copy">
-                        <p class="attention-title">
-                            Dirección de atención
-                        </p>
-
-                        <p class="attention-text">
-                            Av. León de los Aldama #3475,
-                            Col. San Felipe de Jesús,
-                            Alc. G.A.M., CDMX, C.P. 07510
-                        </p>
-
-                        <p class="attention-text">
-                            Horario de atención:
-                            lunes a viernes de 9:00 a 18:00 hrs.
-                        </p>
-                    </div>
+                <td class="attention" style="width: {{ $logoUneveBase64 ? '20%' : '30%' }};">
+                    @if ($universidadLogoBase64)
+                    <img src="{{ $universidadLogoBase64 }}" alt="Logotipo" class="logo" style="margin-left: 0;">
+                    @endif
                 </td>
 
-                <td class="doctor">
+                <td class="doctor" style="width: {{ $logoUneveBase64 ? '60%' : '70%' }};">
                     <table class="doctor-table">
                         <tr>
                             <td class="doctor-copy">
@@ -385,22 +383,32 @@
                         ?: 'No registrada' }}
                                 </p>
 
+                                @if ($mostrarDosLogos)
+                                <p class="doctor-detail">
+                                    Acupuntura · Cédula 9937876 · Universidad Estatal del Valle de Ecatepec
+                                </p>
+                                @endif
+
+                                <p class="doctor-detail">Teléfono fijo: {{ config('clinic.telefono_fijo') }}</p>
+
+                                <p class="doctor-detail">
+                                    {{ config('clinic.direccion') }}
+                                </p>
+
                                 <p class="document-title">
                                     Receta médica
                                 </p>
                             </td>
 
-                            <td class="doctor-logo-cell">
-                                @if ($universidadLogoBase64)
-                                <img
-                                    src="{{ $universidadLogoBase64 }}"
-                                    alt="Logotipo"
-                                    class="logo">
-                                @endif
-                            </td>
                         </tr>
                     </table>
                 </td>
+
+                @if ($logoUneveBase64)
+                <td class="second-logo">
+                    <img src="{{ $logoUneveBase64 }}" alt="Logo UNEVE" class="logo" style="margin-right: 0;">
+                </td>
+                @endif
             </tr>
         </table>
 
@@ -591,6 +599,7 @@
         <table class="bottom-table">
             <tr>
                 <td>
+                    <p class="attention-text">Horario de atención: lunes a viernes de 9:00 a 18:00 hrs.</p>
                     <div class="folio">
                         Folio: {{ $folio }}
                     </div>
