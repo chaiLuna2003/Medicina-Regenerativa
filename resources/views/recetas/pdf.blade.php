@@ -24,7 +24,7 @@
         }
 
         .sheet {
-            min-height: 720px;
+            min-height: 750px;
             padding: 14px 16px;
             border: 2px solid #183f78;
             border-radius: 18px;
@@ -77,8 +77,10 @@
 
         .logo {
             display: block;
-            width: 58px;
-            max-height: 52px;
+            width: 150px;
+            /* antes: 58px */
+            max-height: 120px;
+            /* antes: 52px */
             margin: 0 auto;
             object-fit: contain;
         }
@@ -343,10 +345,10 @@
     $logoUneve = public_path('images/universidades/uneve.png');
 
     if ($mostrarDosLogos && file_exists($logoJustoSierra) && file_exists($logoUneve)) {
-        $universidadLogoBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoJustoSierra));
-        $logoUneveBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoUneve));
+    $universidadLogoBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoJustoSierra));
+    $logoUneveBase64 = 'data:image/png;base64,'.base64_encode(file_get_contents($logoUneve));
     } else {
-        $logoUneveBase64 = null;
+    $logoUneveBase64 = null;
     }
 
     $sexo = $paciente?->sexo_texto
@@ -358,7 +360,7 @@
             <tr>
                 <td class="attention" style="width: {{ $logoUneveBase64 ? '20%' : '30%' }};">
                     @if ($universidadLogoBase64)
-                        <img src="{{ $universidadLogoBase64 }}" alt="Logotipo" class="logo" style="margin-left: 0;">
+                    <img src="{{ $universidadLogoBase64 }}" alt="Logotipo" class="logo" style="margin-left: 0;">
                     @endif
                 </td>
 
@@ -404,7 +406,7 @@
 
                 @if ($logoUneveBase64)
                 <td class="second-logo">
-                        <img src="{{ $logoUneveBase64 }}" alt="Logo UNEVE" class="logo" style="margin-right: 0;">
+                    <img src="{{ $logoUneveBase64 }}" alt="Logo UNEVE" class="logo" style="margin-right: 0;">
                 </td>
                 @endif
             </tr>

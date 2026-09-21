@@ -835,21 +835,27 @@ route('citas.index', [
                 `Esperamos recibir su confirmación`;
 
             let mensaje = mensajeBase + '.';
+            const direccionCita = modalidad === 'presencial' ?
+                direccionClinica :
+                (modalidad === 'fuera_instalaciones' ? cita.direccion : null);
 
-            if (modalidad === 'presencial') {
-                const direccionCodificada = encodeURIComponent(direccionClinica);
+            if (direccionCita) {
+                const destino = encodeURIComponent(direccionCita);
                 const googleMaps =
-                    `https://www.google.com/maps/dir/?api=1&destination=${direccionCodificada}`;
+                    `https://www.google.com/maps/dir/?api=1&destination=${destino}`;
                 const waze =
-                    `https://waze.com/ul?q=${direccionCodificada}&navigate=yes`;
+                    `https://waze.com/ul?q=${destino}&navigate=yes`;
+                const indicaciones =
+                    `\n\nUbicación de la cita:\nGoogle Maps: ${googleMaps}` +
+                    `\nWaze: ${waze}\n` +
+                    `Para Uber o DiDi, copia la dirección y úsala como destino.`;
 
-                mensaje = mensajeBase +
+                mensaje = modalidad === 'presencial' ?
+                    mensajeBase +
                     ` y recibirlo próximamente en nuestras instalaciones ` +
-                    `ubicadas en ${direccionClinica}.\n\n` +
-                    `Cómo llegar:\nGoogle Maps: ${googleMaps}\nWaze: ${waze}`;
-            } else if (modalidad === 'fuera_instalaciones' && cita.direccion) {
-                mensaje = mensajeBase +
-                    `. Dirección de la cita: ${cita.direccion}.`;
+                    `ubicadas en ${direccionCita}.` + indicaciones :
+                    mensajeBase +
+                    `. Dirección de la cita: ${direccionCita}.` + indicaciones;
             }
 
             const mensajeWhatsApp = encodeURIComponent(mensaje);
