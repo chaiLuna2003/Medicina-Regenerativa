@@ -66,14 +66,20 @@ class PacienteEnfermeriaAuthorizationTest extends TestCase
             ->get(route('pacientes.index'))
             ->assertOk()
             ->assertSee('Paciente')
-            ->assertSee('Prueba');
+            ->assertSee('Prueba')
+            ->assertSee('Ver ficha')
+            ->assertDontSee(route('pacientes.edit', $paciente), false);
 
         $this
             ->actingAs($enfermero)
             ->get(route('pacientes.show', $paciente))
             ->assertOk()
             ->assertSee('Paciente')
-            ->assertSee('Prueba');
+            ->assertSee('Prueba')
+            ->assertSee('onclick="abrirModalDatosGenerales()"', false)
+            ->assertSee('onclick="abrirModalNotas()"', false)
+            ->assertSee('id="modal-datos-generales"', false)
+            ->assertSee('id="modal-notas"', false);
 
         $this
             ->actingAs($enfermero)

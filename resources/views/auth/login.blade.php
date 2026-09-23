@@ -16,11 +16,11 @@ $horaActual >= 6 && $horaActual < 12=> 'Buenos días',
 
             <meta
                 name="description"
-                content="Acceso al sistema de gestión clínica de Medicina Regenerativa.">
+                content="Acceso al sistema de gestión clínica SW Clínico.">
 
             <meta name="theme-color" content="#0f766e">
 
-            <title>Iniciar sesión | {{ config('app.name', 'Medicina Regenerativa') }}</title>
+            <title>Iniciar sesión | SW Clínico</title>
             <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}">
 
             <link rel="preconnect" href="https://fonts.bunny.net">
@@ -309,7 +309,7 @@ $horaActual >= 6 && $horaActual < 12=> 'Buenos días',
                     {{-- Pie del panel --}}
                     <div
                         class="relative z-10 flex items-center justify-between border-t border-white/10 px-10 py-6 text-xs text-teal-100/50 xl:px-14">
-                        <span>Medicina Regenerativa</span>
+                        <span>SW Clínico</span>
                         <span>Uso autorizado</span>
                     </div>
                 </section>
@@ -345,7 +345,7 @@ $horaActual >= 6 && $horaActual < 12=> 'Buenos días',
 
                             <span>
                                 <strong class="block text-sm font-bold text-slate-900">
-                                    Medicina Regenerativa
+                                    SW Clínico
                                 </strong>
 
                                 <span class="block text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">

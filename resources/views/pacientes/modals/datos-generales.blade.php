@@ -1,4 +1,4 @@
-  @if (request()->user()->isAdmin())
+  @if (request()->user()->isAdmin() || request()->user()->isEnfermero())
 
     {{-- ===================================================== --}}
     {{-- MODAL: DATOS GENERALES --}}

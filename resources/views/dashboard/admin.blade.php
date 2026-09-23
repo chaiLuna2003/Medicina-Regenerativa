@@ -11,7 +11,7 @@
                 </h2>
 
                 <p class="mt-1 text-sm text-slate-500">
-                    Resumen general de Medicina Regenerativa
+                    Resumen general de SW Clínico
                 </p>
             </div>
 

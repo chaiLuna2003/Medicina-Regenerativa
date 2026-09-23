@@ -831,7 +831,7 @@ route('citas.index', [
                 `Buen día, Sr(a). ${cita.paciente}. ` +
                 `Le escribimos con la intención de recordarle su cita ` +
                 `agendada para el ${cita.fecha} a las ${cita.hora} ` +
-                `con el Dr. ${cita.medico}. ` +
+                `con el o la Dr. ${cita.medico}. ` +
                 `Esperamos recibir su confirmación`;
 
             let mensaje = mensajeBase + '.';

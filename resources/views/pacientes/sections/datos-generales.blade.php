@@ -37,7 +37,7 @@
     </summary>
 
     <div class="border-t border-slate-100">
-       @if (request()->user()->isAdmin())
+       @if (request()->user()->isAdmin() || request()->user()->isEnfermero())
     <div class="flex justify-end px-5 pt-4">
         <button
             type="button"
