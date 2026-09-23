@@ -302,6 +302,7 @@ class CitaFlujoAgendaTest extends TestCase
             ->assertSeeText(
                 'Recordar cita por WhatsApp'
             )
+            ->assertSee('con el o la Dr. ${cita.medico}', false)
             ->assertSee('Paciente Agenda')
             ->assertSee('Dextrometorfano')
             ->assertSee('Control de tratamiento.')

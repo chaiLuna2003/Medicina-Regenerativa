@@ -32,7 +32,7 @@
                         <h3 class="text-2xl font-bold mt-1">{{ explode(' ', auth()->user()->name)[0] }} 👋</h3>
                     </div>
                     <p class="relative z-10 text-emerald-50 text-sm mt-6">
-                        Panel de <span class="font-semibold text-white">Medicina Regenerativa</span>
+                        Panel de <span class="font-semibold text-white">SW Clínico</span>
                     </p>
                 </div>
 

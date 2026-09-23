@@ -68,7 +68,7 @@ class GoogleCalendarService
 
                 'description' =>
                 'Videoconsulta programada desde '
-                    . 'Medicina Regenerativa.',
+                    . 'SW Clínico.',
 
                 'start' => [
                     'dateTime' =>
@@ -268,7 +268,7 @@ class GoogleCalendarService
 
                     'description' =>
                     'Videoconsulta programada '
-                        . 'desde Medicina Regenerativa.',
+                        . 'desde SW Clínico.',
 
                     'start' => [
                         'dateTime' =>

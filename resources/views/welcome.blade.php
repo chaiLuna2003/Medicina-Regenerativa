@@ -11,7 +11,7 @@
 
     <meta name="theme-color" content="#0f766e">
 
-    <title>SW Clínico | Medicina Regenerativa</title>
+    <title>SW Clínico</title>
     <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('favicon.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -78,7 +78,7 @@
                         </strong>
 
                         <span class="hidden text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 sm:block">
-                            Medicina Regenerativa · Gestión clínica
+                            SW Clínico · Gestión clínica
                         </span>
                     </span>
                 </a>
