@@ -154,6 +154,19 @@ class GoogleCalendarService
             }
         }
 
+        if ($meetUrl !== null) {
+            try {
+                $this->abrirSalaMeet($cliente, $meetUrl);
+            } catch (RuntimeException $exception) {
+                // No entregar una sala que todavía pide admisión.
+                $cliente->delete(
+                    $this->eventoUrl($evento['id']) . '?sendUpdates=all'
+                );
+
+                throw $exception;
+            }
+        }
+
         return [
             'event_id' => $evento['id'],
             'meet_url' => $meetUrl,
@@ -199,9 +212,14 @@ class GoogleCalendarService
 
         $evento = $respuesta->json();
 
+        $meetUrl = $this->extraerMeetUrl($evento);
+
+        if ($meetUrl !== null) {
+            $this->abrirSalaMeet($this->cliente(), $meetUrl);
+        }
+
         return [
-            'meet_url' =>
-            $this->extraerMeetUrl($evento),
+            'meet_url' => $meetUrl,
 
             'calendar_url' =>
             $evento['htmlLink'] ?? null,
@@ -463,6 +481,53 @@ class GoogleCalendarService
                 $puntoVideo,
                 'uri'
             );
+    }
+
+    /**
+     * Calendar crea la sala; la API de Meet configura quién puede entrar.
+     * El token debe incluir meetings.space.settings.
+     */
+    private function abrirSalaMeet(PendingRequest $cliente, string $meetUrl): void
+    {
+        $codigo = basename((string) parse_url($meetUrl, PHP_URL_PATH));
+
+        if (!preg_match('/^[a-z]+-[a-z]+-[a-z]+$/', $codigo)) {
+            throw new RuntimeException('Google devolvió un enlace de Meet inválido.');
+        }
+
+        $respuesta = null;
+
+        for ($intento = 0; $intento < 3; $intento++) {
+            if ($intento > 0) {
+                usleep(400000);
+            }
+
+            $respuesta = $cliente->get(
+                'https://meet.googleapis.com/v2/spaces/' . $codigo
+            );
+
+            if ($respuesta->successful() || $respuesta->status() !== 404) {
+                break;
+            }
+        }
+
+        $nombre = $respuesta?->json('name');
+
+        if (!$respuesta?->successful() || !is_string($nombre)
+            || !preg_match('~^spaces/[A-Za-z0-9_-]+$~', $nombre)) {
+            throw new RuntimeException('No fue posible consultar la sala de Google Meet.');
+        }
+
+        $actualizacion = $cliente->patch(
+            'https://meet.googleapis.com/v2/' . $nombre
+                . '?updateMask=config.accessType',
+            ['config' => ['accessType' => 'OPEN']]
+        );
+
+        if ($actualizacion->failed()
+            || $actualizacion->json('config.accessType') !== 'OPEN') {
+            throw new RuntimeException('No fue posible abrir el acceso de Google Meet.');
+        }
     }
 
     private function timezone(): string
