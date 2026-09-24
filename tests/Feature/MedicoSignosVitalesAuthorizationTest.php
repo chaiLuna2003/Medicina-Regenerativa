@@ -93,6 +93,8 @@ class MedicoSignosVitalesAuthorizationTest extends TestCase
                 'enfermero_id' => $usuarioMedico->id,
                 'peso' => 72.5,
                 'estatura' => 175,
+                'temperatura' => 36.29,
+                'presion_diastolica' => 350,
             ]
         );
 
@@ -304,9 +306,9 @@ class MedicoSignosVitalesAuthorizationTest extends TestCase
         return [
             'peso' => 72.5,
             'estatura' => 175,
-            'temperatura' => 36.5,
+            'temperatura' => 36.29,
             'presion_sistolica' => 120,
-            'presion_diastolica' => 80,
+            'presion_diastolica' => 350,
             'frecuencia_cardiaca' => 75,
             'frecuencia_respiratoria' => 18,
             'saturacion_oxigeno' => 98,

@@ -178,7 +178,7 @@
 
                                 <p class="mt-1 font-bold text-blue-950">
                                     {{ $signoVital->temperatura !== null
-                                            ? number_format((float) $signoVital->temperatura, 1).' °C'
+                                            ? number_format((float) $signoVital->temperatura, 2).' °C'
                                             : 'No registrada' }}
                                 </p>
                             </div>

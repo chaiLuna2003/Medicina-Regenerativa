@@ -291,7 +291,7 @@
 
                         <dd class="mt-2 text-xl font-bold text-gray-900">
                             {{ $signoVital->temperatura !== null
-                                ? number_format((float) $signoVital->temperatura, 1) . ' °C'
+                                ? number_format((float) $signoVital->temperatura, 2) . ' °C'
                                 : 'No registrada' }}
                         </dd>
                     </div>

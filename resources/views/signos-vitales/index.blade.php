@@ -235,7 +235,7 @@
 
                                                 @if ($signoVital->temperatura !== null)
                                                     <span class="rounded-full bg-orange-50 px-2.5 py-1 text-orange-700">
-                                                        {{ number_format((float) $signoVital->temperatura, 1) }} °C
+                                                        {{ number_format((float) $signoVital->temperatura, 2) }} °C
                                                     </span>
                                                 @endif
 

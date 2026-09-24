@@ -11,7 +11,9 @@
         h2 { margin: 0 0 5px; color: #183f78; font-size: 9px; text-transform: uppercase; }
         p { margin: 3px 0; }
         table { width: 100%; border-collapse: collapse; }
-        .sheet { border: 1.5px solid #183f78; padding: 16px 18px; }
+        /* El marco cubre cada hoja; el contenido conserva su flujo natural. */
+        .page-frame { position: fixed; top: 0; right: 0; bottom: 0; left: 0; border: 1.5px solid #183f78; }
+        .sheet { padding: 16px 18px; }
         .header { border-bottom: 2px solid #183f78; padding-bottom: 11px; }
         .eyebrow { color: #526480; font-size: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: .7px; }
         .subtitle { color: #566478; font-size: 9px; }
@@ -20,19 +22,23 @@
         .info { margin-top: 11px; table-layout: fixed; }
         .info td, .measure td, .peptides th, .peptides td { border: 1px solid #cbd5e1; padding: 5px 7px; vertical-align: top; }
         .label { display: block; margin-bottom: 2px; color: #64748b; font-size: 7px; font-weight: bold; text-transform: uppercase; }
-        .value { font-weight: bold; overflow-wrap: break-word; }
+        .value { font-weight: bold; word-wrap: break-word; }
         .measure { margin-top: 9px; table-layout: fixed; }
         .measure td { width: 25%; text-align: center; }
         .section { margin-top: 10px; }
-        .panel { border: 1px solid #cbd5e1; padding: 6px 8px; overflow-wrap: break-word; }
-        .numbered { margin: 2px 0; }
+        .section h2 { page-break-after: avoid; }
+        .panel { border: 1px solid #cbd5e1; padding: 6px 8px; word-wrap: break-word; }
+        .numbered { margin: 2px 0; word-wrap: break-word; }
         .peptides { table-layout: fixed; }
         .peptides th { background: #edf4fb; color: #183f78; text-align: left; }
+        .peptides td { word-wrap: break-word; }
+        .peptides tr, .info tr, .measure tr { page-break-inside: avoid; }
         .footer { border-top: 1px solid #cbd5e1; margin-top: 12px; padding-top: 6px; color: #566478; font-size: 8px; }
     </style>
 </head>
 <body>
 @php $cita = $control->cita; @endphp
+<div class="page-frame"></div>
 <main class="sheet">
     <div class="header">
         <div class="meta">

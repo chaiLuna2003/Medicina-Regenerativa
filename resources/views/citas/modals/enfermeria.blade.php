@@ -36,7 +36,7 @@
                     'valor' => $valoracionEnfermeria->temperatura !== null
                         ? number_format(
                             (float) $valoracionEnfermeria->temperatura,
-                            1
+                            2
                         ) . ' °C'
                         : 'No disponible',
                 ],

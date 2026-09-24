@@ -663,7 +663,7 @@
                             {{ $signos->temperatura !== null
                             ? number_format(
                                 (float) $signos->temperatura,
-                                1
+                                2
                             ) . ' °C'
                             : 'N/D' }}
                         </span>

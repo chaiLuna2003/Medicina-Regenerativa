@@ -166,8 +166,7 @@ class SignosVitalesController extends Controller
                 'nullable',
                 'required_with:presion_sistolica',
                 'integer',
-                'min:20',
-                'max:200',
+                'min:0',
 
             ],
 

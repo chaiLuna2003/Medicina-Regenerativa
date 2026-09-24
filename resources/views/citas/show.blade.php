@@ -701,7 +701,7 @@
                         ['Peso', number_format((float) $signoVital->peso, 2) . ' kg'],
                         ['Estatura', number_format((float) $signoVital->estatura, 2) . ' cm'],
                         ['IMC', $signoVital->imc !== null ? number_format($signoVital->imc, 2) : 'No disponible'],
-                        ['Temperatura', $signoVital->temperatura !== null ? number_format((float) $signoVital->temperatura, 1) . ' °C' : 'No disponible'],
+                        ['Temperatura', $signoVital->temperatura !== null ? number_format((float) $signoVital->temperatura, 2) . ' °C' : 'No disponible'],
                         ['Presión arterial', $signoVital->presion_sistolica !== null && $signoVital->presion_diastolica !== null ? $signoVital->presion_sistolica . '/' . $signoVital->presion_diastolica . ' mmHg' : 'No disponible'],
                         ['Frecuencia cardiaca', $signoVital->frecuencia_cardiaca !== null ? $signoVital->frecuencia_cardiaca . ' lpm' : 'No disponible'],
                         ['Frecuencia respiratoria', $signoVital->frecuencia_respiratoria !== null ? $signoVital->frecuencia_respiratoria . ' rpm' : 'No disponible'],

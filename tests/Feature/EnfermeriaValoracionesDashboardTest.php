@@ -330,7 +330,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
 
                     'peso' => 72.5,
                     'estatura' => 175,
-                    'temperatura' => 36.5,
+                    'temperatura' => 37.89,
                     'presion_sistolica' => 120,
                     'presion_diastolica' => 80,
                     'frecuencia_cardiaca' => 75,
@@ -354,12 +354,13 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
             'enfermero_id' => $this->enfermero->id,
             'peso' => 72.5,
             'estatura' => 175,
+            'temperatura' => 37.89,
             'presion_sistolica' => 120,
             'presion_diastolica' => 80,
         ]);
     }
 
-    public function test_presion_diastolica_puede_ser_mayor_que_sistolica(): void
+    public function test_presion_diastolica_puede_superar_sistolica_y_200(): void
     {
         $cita = $this->crearCita(
             paciente: 'Paciente Presion',
@@ -379,7 +380,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
                     'peso' => 70,
                     'estatura' => 170,
                     'presion_sistolica' => 80,
-                    'presion_diastolica' => 120,
+                    'presion_diastolica' => 350,
                 ]
             );
 
@@ -392,7 +393,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
             [
                 'cita_id' => $cita->id,
                 'presion_sistolica' => 80,
-                'presion_diastolica' => 120,
+                'presion_diastolica' => 350,
             ]
         );
     }
@@ -417,7 +418,7 @@ class EnfermeriaValoracionesDashboardTest extends TestCase
                     'peso' => 70,
                     'estatura' => 170,
                     'presion_sistolica' => 120,
-                    'presion_diastolica' => 201,
+                    'presion_diastolica' => -1,
                     'observaciones' => 'Datos que deben conservarse.',
                 ]
             );

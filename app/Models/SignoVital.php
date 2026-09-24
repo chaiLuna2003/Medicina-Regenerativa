@@ -30,7 +30,7 @@ class SignoVital extends Model
         return [
             'peso' => 'decimal:2',
             'estatura' => 'decimal:2',
-            'temperatura' => 'decimal:1',
+            'temperatura' => 'decimal:2',
             'presion_sistolica' => 'integer',
             'presion_diastolica' => 'integer',
             'frecuencia_cardiaca' => 'integer',

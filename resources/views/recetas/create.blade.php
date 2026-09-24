@@ -376,7 +376,7 @@ Indicaciones adicionales:"
                                         $signoVital->temperatura !== null
                                             ? number_format(
                                                 (float) $signoVital->temperatura,
-                                                1
+                                                2
                                             ).' °C'
                                             : 'No registrada'
                                     ],

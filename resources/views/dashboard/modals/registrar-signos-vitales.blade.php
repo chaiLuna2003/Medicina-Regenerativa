@@ -363,7 +363,7 @@
                             'etiqueta' => 'Temperatura',
                             'min' => '30',
                             'max' => '45',
-                            'step' => '0.1',
+                            'step' => '0.01',
                             'unidad' => '°C',
                             'ejemplo' => '36.5',
                             ],
@@ -476,8 +476,8 @@
                             [
                             'nombre' => 'presion_diastolica',
                             'etiqueta' => 'Presión diastólica',
-                            'min' => 20,
-                            'max' => 200,
+                            'min' => 0,
+                            'max' => null,
                             'ejemplo' => 80,
                             ],
                             ] as $presion)
@@ -496,7 +496,7 @@
                                         type="number"
                                         inputmode="numeric"
                                         min="{{ $presion['min'] }}"
-                                        max="{{ $presion['max'] }}"
+                                        @if ($presion['max'] !== null) max="{{ $presion['max'] }}" @endif
                                         step="1"
                                         value="{{
                                                 old($presion['nombre'])
