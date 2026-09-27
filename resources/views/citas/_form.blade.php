@@ -123,6 +123,15 @@ $pacienteCitaAnterior ?? null;
         : 'Escribe al menos 2 caracteres para buscar.' }}
             </p>
 
+            @if (auth()->user()->isRecepcionista())
+            <a href="{{ route('pacientes.create') }}"
+                target="_blank" rel="noopener noreferrer"
+                class="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:text-blue-900 hover:underline">
+                + Crear paciente
+                <span class="sr-only">(se abre en otra pestaña)</span>
+            </a>
+            @endif
+
             @error('paciente_id', 'crearCita')
             <p class="mt-2 text-sm text-red-600">
                 {{ $message }}
@@ -727,6 +736,17 @@ const confirmarCitaPasada =
 
                 if (pacientes.length === 0) {
                     mostrarMensaje('No se encontraron pacientes.');
+                    @if (auth()->user()->isRecepcionista())
+                    const crearPaciente = document.createElement('a');
+                    crearPaciente.href = "{{ route('pacientes.create') }}";
+                    crearPaciente.target = '_blank';
+                    crearPaciente.rel = 'noopener noreferrer';
+                    crearPaciente.className =
+                        'block border-t border-gray-100 px-4 py-3 ' +
+                        'text-sm font-semibold text-blue-700 hover:bg-blue-50';
+                    crearPaciente.textContent = '+ Crear paciente';
+                    resultados.appendChild(crearPaciente);
+                    @endif
                     return;
                 }
 

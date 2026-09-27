@@ -15,6 +15,45 @@ class PacienteRecepcionAuthorizationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_recepcion_crea_paciente_con_tipo_de_sangre_desconocido_y_telefono_normalizado(): void
+    {
+        $this->actingAs($this->usuario('recepcionista'))
+            ->post(route('pacientes.store'), [
+                'nombre' => 'Ana',
+                'apellido' => 'Prueba',
+                'fecha_nacimiento' => '1990-01-01',
+                'sexo' => 'femenino',
+                'categoria' => 'sin_categoria',
+                'status' => '1',
+                'tipo_sangre' => 'desconocido',
+                'telefono' => '+52 55 1234 5678',
+            ])
+            ->assertRedirect(route('pacientes.index'));
+
+        $this->assertDatabaseHas('pacientes', [
+            'nombre' => 'Ana',
+            'tipo_sangre' => 'desconocido',
+            'telefono' => '5512345678',
+        ]);
+    }
+
+    public function test_recepcion_rechaza_telefono_no_numerico_en_alta(): void
+    {
+        $this->actingAs($this->usuario('recepcionista'))
+            ->post(route('pacientes.store'), [
+                'nombre' => 'Ana',
+                'apellido' => 'Prueba',
+                'fecha_nacimiento' => '1990-01-01',
+                'sexo' => 'femenino',
+                'categoria' => 'sin_categoria',
+                'status' => '1',
+                'telefono' => 'abcdef',
+            ])
+            ->assertSessionHasErrors('telefono');
+
+        $this->assertDatabaseCount('pacientes', 0);
+    }
+
     public function test_solo_medico_vinculado_y_enfermeria_pueden_editar_clasificaciones(): void
     {
         $paciente = $this->paciente();
@@ -123,6 +162,14 @@ class PacienteRecepcionAuthorizationTest extends TestCase
     {
         $recepcion = $this->usuario('recepcionista');
         $paciente = $this->paciente();
+
+        $this->actingAs($recepcion)
+            ->get(route('pacientes.edit', $paciente))
+            ->assertOk()
+            ->assertSee('name="nombre"', false)
+            ->assertSee('name="apellido"', false)
+            ->assertSee('name="fecha_nacimiento"', false)
+            ->assertSee('name="sexo"', false);
 
         $this
             ->actingAs($recepcion)

@@ -37,6 +37,7 @@
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
 
             <form
+                id="form-crear-paciente"
                 action="{{ route('pacientes.store') }}"
                 method="POST"
                 enctype="multipart/form-data"
@@ -70,6 +71,7 @@
                     </a>
 
                     <button
+                        id="guardar-paciente"
                         type="submit"
                         class="inline-flex items-center
                                justify-center gap-2
@@ -103,6 +105,19 @@
                     </button>
                 </div>
             </form>
+            <script>
+                document.getElementById('form-crear-paciente').addEventListener('submit', function (event) {
+                    if (this.dataset.enviando === '1') {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    this.dataset.enviando = '1';
+                    const boton = document.getElementById('guardar-paciente');
+                    boton.disabled = true;
+                    boton.classList.add('opacity-60', 'cursor-wait');
+                });
+            </script>
 
         </div>
     </div>

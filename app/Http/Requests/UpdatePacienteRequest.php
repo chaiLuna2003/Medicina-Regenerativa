@@ -4,12 +4,26 @@ namespace App\Http\Requests;
 
 use App\Models\Pacientes;
 use App\Support\Pacientes\PermisosEdicionPaciente;
+use App\Support\Pacientes\TelefonosPaciente;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\Rule;
 
 class UpdatePacienteRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $telefonos = [];
+
+        foreach (['telefono', 'telefono_fijo', 'telefono_secundario'] as $campo) {
+            if ($this->exists($campo)) {
+                $telefonos[$campo] = TelefonosPaciente::normalizar($this->input($campo));
+            }
+        }
+
+        $this->merge($telefonos);
+    }
+
     /**
      * Comprueba el acceso al paciente y valida que el usuario
      * solamente envíe campos permitidos para su rol.
@@ -111,19 +125,19 @@ class UpdatePacienteRequest extends FormRequest
             'telefono' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'telefono_fijo' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'telefono_secundario' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'email' => [

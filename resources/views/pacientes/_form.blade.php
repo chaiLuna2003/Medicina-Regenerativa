@@ -1,8 +1,4 @@
 @php
-$edicionLimitadaRecepcion =
-isset($pacientes)
-&& auth()->user()->isRecepcionista();
-
 $esEdicion = isset($pacientes);
 $sexosPaciente =
 \App\Models\Pacientes::SEXOS;
@@ -104,82 +100,6 @@ $tiposSangrePaciente =
             Información personal del paciente.
         </p>
     </div>
-
-    @if ($edicionLimitadaRecepcion)
-
-    <div
-        class="rounded-2xl border
-                   border-slate-200
-                   bg-slate-50 p-5">
-        <div class="flex items-center gap-4">
-
-            <img
-                src="{{ $pacientes->fotoUrl() }}"
-                alt="Foto de {{ $pacientes->nombre }}"
-                class="h-16 w-16 shrink-0
-                           rounded-xl border
-                           border-slate-200 object-cover">
-
-            <div>
-                <p
-                    class="text-xs font-semibold
-                               uppercase tracking-wide
-                               text-slate-400">
-                    Paciente
-                </p>
-
-                <p
-                    class="mt-1 text-lg font-semibold
-                               text-slate-900">
-                    {{ $pacientes->nombre }}
-                    {{ $pacientes->apellido }}
-                </p>
-
-                <p class="mt-1 text-sm text-slate-500">
-                    {{ $pacientes->edad ?? 'Edad no disponible' }}
-                </p>
-            </div>
-        </div>
-
-        <p class="mt-4 text-sm text-slate-500">
-            Recepción puede actualizar los datos administrativos.
-        </p>
-
-        <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <div>
-                <label for="categoria" class="mb-1.5 block text-sm font-medium text-slate-700">
-                    Categoría
-                </label>
-                <select id="categoria" name="categoria" required
-                    class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    @foreach ($categoriasPaciente as $valor => $configuracion)
-                        <option value="{{ $valor }}" @selected(old('categoria', $pacientes->categoria ?? 'sin_categoria') === $valor)>
-                            {{ $configuracion['etiqueta'] }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('categoria')
-                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div>
-                <label for="status" class="mb-1.5 block text-sm font-medium text-slate-700">
-                    Estado del paciente
-                </label>
-                <select id="status" name="status" required
-                    class="block w-full rounded-xl border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="1" @selected(old('status', $pacientes->status ?? 1) == 1)>Activo</option>
-                    <option value="0" @selected(old('status', $pacientes->status ?? 1) == 0)>Inactivo</option>
-                </select>
-                @error('status')
-                    <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-        </div>
-    </div>
-
-    @else
 
     <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
@@ -436,7 +356,6 @@ $tiposSangrePaciente =
 
     </div>
 
-    @endif
 </section>
 
 
@@ -678,7 +597,7 @@ $tiposSangrePaciente =
                     ) }}"
                 maxlength="{{ $campo === 'codigo_postal'
                         ? 10
-                        : 200 }}"
+                        : (in_array($campo, ['ciudad', 'estado']) ? 150 : 200) }}"
                 class="block w-full rounded-xl
                            border-slate-300 text-sm shadow-sm
                            focus:border-blue-500
@@ -728,7 +647,7 @@ $tiposSangrePaciente =
                         $campo,
                         $pacientes->{$campo} ?? ''
                     ) }}"
-                maxlength="200"
+                maxlength="{{ $campo === 'religion' ? 150 : 200 }}"
                 class="block w-full rounded-xl
                            border-slate-300 text-sm shadow-sm
                            focus:border-blue-500

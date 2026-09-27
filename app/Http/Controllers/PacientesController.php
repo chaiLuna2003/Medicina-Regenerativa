@@ -9,6 +9,7 @@ use App\Models\AntecedentePersonalPatologico;
 use App\Models\ExploracionFisica;
 use App\Models\HabitoAlimenticio;
 use App\Models\Pacientes;
+use App\Support\Pacientes\TelefonosPaciente;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -63,6 +64,12 @@ class PacientesController extends Controller
 
     public function store(Request $request)
     {
+        $request->merge(collect([
+            'telefono', 'telefono_fijo', 'telefono_secundario',
+        ])->mapWithKeys(fn ($campo) => [
+            $campo => TelefonosPaciente::normalizar($request->input($campo)),
+        ])->all());
+
         /*
     |--------------------------------------------------------------------------
     | Validación
@@ -111,19 +118,19 @@ class PacientesController extends Controller
             'telefono' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'telefono_fijo' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'telefono_secundario' => [
                 'nullable',
                 'string',
-                'max:20',
+                'regex:/^[0-9]{10}$/',
             ],
 
             'email' => [
