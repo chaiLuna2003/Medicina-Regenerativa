@@ -212,7 +212,7 @@ class CitaAccionesRecepcionTest extends TestCase
         ]);
     }
 
-    public function test_cita_finalizada_no_puede_cancelarse(): void
+    public function test_cita_finalizada_puede_cancelarse(): void
     {
         $datos = $this->escenario('confirmada');
 
@@ -226,11 +226,12 @@ class CitaAccionesRecepcionTest extends TestCase
                 route('citas.cancelar', $datos['cita'])
             );
 
-        $respuesta->assertSessionHasErrors('estado');
+        $respuesta->assertRedirect(route('dashboard'))
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('citas', [
             'id' => $datos['cita']->id,
-            'estado' => 'confirmada',
+            'estado' => 'cancelada',
         ]);
     }
 

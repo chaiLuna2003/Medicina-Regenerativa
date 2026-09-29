@@ -808,7 +808,7 @@ class CitasController extends Controller
                 ->route('citas.show', $cita)
                 ->with(
                     'error',
-                    'Esta cita ya comenzó, finalizó o fue cancelada '
+                    'Esta cita está en curso o fue cancelada '
                         .'y no puede editarse.'
                 );
         }
@@ -856,8 +856,8 @@ class CitasController extends Controller
             return redirect()
                 ->route('citas.show', $cita)
                 ->withErrors([
-                    'cita' => 'Esta cita ya comenzó, finalizó '
-                        .'o fue cancelada y no puede modificarse.',
+                    'cita' => 'Esta cita está en curso o fue cancelada '
+                        .'y no puede modificarse.',
                 ]);
         }
 
@@ -1120,7 +1120,8 @@ class CitasController extends Controller
                 $datos['fecha'],
                 $datos['hora'],
                 (int) $datos['duracion_minutos'],
-                $cita->id
+                $cita->id,
+                permitirHorarioPasado: $cita->estadoEfectivo() === 'finalizada'
             );
         }
 
@@ -1317,19 +1318,10 @@ class CitasController extends Controller
         Citas $cita,
         GoogleCalendarService $googleCalendar
     ): RedirectResponse {
-        if (
-            ! in_array(
-                $cita->estado_actual,
-                [
-                    'programada',
-                    'confirmada',
-                ],
-                true
-            )
-        ) {
+        if (! $cita->puedeCancelarAdministrativamente()) {
             throw ValidationException::withMessages([
-                'estado' => 'Solamente se puede cancelar una cita '
-                    .'programada o confirmada.',
+                'estado' => 'Esta cita no puede cancelarse porque está '
+                    .'en curso, ya fue cancelada o tiene evolución clínica.',
             ]);
         }
 

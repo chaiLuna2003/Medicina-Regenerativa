@@ -33,10 +33,8 @@ class CitaConsistenciaEstadoTest extends TestCase
             ->assertOk()
             ->assertSeeText('Finalizada')
             ->assertDontSeeText('En espera')
-            ->assertDontSee(
-                route('citas.edit', $datos['cita']),
-                false
-            )
+            ->assertSee('data-abrir-modal-edicion-cita', false)
+            ->assertSee('data-formulario-edicion-cita', false)
             ->assertSeeText('Regresar al listado de citas')
             ->assertSee(
                 'href="'.route('dashboard').'"',
@@ -70,7 +68,7 @@ class CitaConsistenciaEstadoTest extends TestCase
             ->assertDontSeeText('En espera');
     }
 
-    public function test_recepcion_no_puede_abrir_edicion_de_cita_finalizada(): void
+    public function test_recepcion_puede_abrir_edicion_de_cita_finalizada(): void
     {
         $datos = $this->crearEscenarioFinalizado();
 
@@ -78,30 +76,111 @@ class CitaConsistenciaEstadoTest extends TestCase
             ->actingAs($datos['recepcion'])
             ->get(route('citas.edit', $datos['cita']));
 
-        $respuesta
-            ->assertRedirect(route('citas.show', $datos['cita']))
-            ->assertSessionHas('error');
+        $respuesta->assertOk()
+            ->assertSee('name="estado"', false);
     }
 
-    public function test_recepcion_no_puede_actualizar_cita_finalizada_directamente(): void
+    public function test_agenda_de_recepcion_ofrece_modificar_y_cancelar_cita_finalizada(): void
+    {
+        $datos = $this->crearEscenarioFinalizado();
+
+        $this->actingAs($datos['recepcion'])
+            ->get(route('dashboard', ['fecha' => '2026-09-10']))
+            ->assertOk()
+            ->assertSee('"puede_modificar":true', false)
+            ->assertSee('"puede_cancelar":true', false);
+    }
+
+    public function test_recepcion_puede_reprogramar_cita_finalizada(): void
     {
         $datos = $this->crearEscenarioFinalizado();
 
         $respuesta = $this
             ->actingAs($datos['recepcion'])
             ->from(route('citas.show', $datos['cita']))
-            ->put(route('citas.update', $datos['cita']), []);
+            ->put(route('citas.update', $datos['cita']), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => '2026-09-11',
+                'hora' => '11:00',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Cita reprogramada.',
+                'estado' => 'confirmada',
+            ]);
 
         $respuesta
             ->assertRedirect(route('citas.show', $datos['cita']))
-            ->assertSessionHasErrors('cita');
+            ->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('citas', [
             'id' => $datos['cita']->id,
-            'estado' => 'en_espera',
-            'hora' => '10:00',
+            'estado' => 'confirmada',
+            'hora' => '11:00',
             'duracion_minutos' => 30,
         ]);
+
+        $this->assertSame('confirmada', $datos['cita']->refresh()->estado_actual);
+    }
+
+    public function test_recepcion_puede_corregir_hora_pasada_de_cita_finalizada(): void
+    {
+        $datos = $this->crearEscenarioFinalizado();
+
+        $this->actingAs($datos['recepcion'])
+            ->put(route('citas.update', $datos['cita']), [
+                'paciente_id' => $datos['paciente']->id,
+                'medico_id' => $datos['medico']->id,
+                'fecha' => '2026-09-10',
+                'hora' => '11:00',
+                'duracion_minutos' => 30,
+                'modalidad' => 'presencial',
+                'motivo' => 'consulta_inicial',
+                'notas' => 'Hora corregida después de finalizar.',
+                'estado' => 'en_espera',
+            ])
+            ->assertRedirect(route('citas.show', $datos['cita']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('11:00', $datos['cita']->refresh()->hora);
+        $this->assertSame('finalizada', $datos['cita']->estado_actual);
+    }
+
+    public function test_recepcion_puede_cancelar_cita_finalizada_y_conservarla_en_hoja_diaria(): void
+    {
+        $datos = $this->crearEscenarioFinalizado();
+
+        $this->actingAs($datos['recepcion'])
+            ->patch(route('citas.cancelar', $datos['cita']))
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('cancelada', $datos['cita']->refresh()->estado_actual);
+
+        $this->actingAs($datos['recepcion'])
+            ->view('hoja-diaria.pdf', [
+                'citas' => collect([$datos['cita']->load(['paciente', 'medico.user'])]),
+                'fecha' => Carbon::parse('2026-09-10'),
+                'totalCitas' => 1,
+                'totalCitasActivas' => 0,
+                'totalCitasCanceladas' => 1,
+                'totalPacientes' => 0,
+                'medicoSeleccionado' => null,
+            ])
+            ->assertSeeText('Cancelada')
+            ->assertSeeText('Paciente Finalizado');
+
+        $this->assertDatabaseHas('citas', [
+            'id' => $datos['cita']->id,
+            'estado' => 'cancelada',
+            'hora' => '10:00',
+        ]);
+
+        $this->assertSame(
+            '2026-09-10',
+            $datos['cita']->refresh()->fecha->format('Y-m-d')
+        );
     }
 
     public function test_detalle_de_cita_editable_muestra_modal_con_formulario_precargado(): void

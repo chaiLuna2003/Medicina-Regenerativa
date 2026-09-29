@@ -137,6 +137,35 @@ class CitaDireccionTest extends TestCase
             );
     }
 
+    public function test_cita_telefonica_muestra_recordatorio_por_llamada_a_recepcion(): void
+    {
+        $datos = $this->escenario();
+        $datos['paciente']->update(['telefono' => '5512345678']);
+
+        $cita = Citas::query()->create([
+            ...$this->datosCita($datos),
+            'modalidad' => 'telefonica',
+            'created_by' => $datos['recepcion']->id,
+        ]);
+
+        $this->actingAs($datos['recepcion'])
+            ->get(route('citas.show', $cita))
+            ->assertOk()
+            ->assertSeeText('Recordar cita por llamada telefónica')
+            ->assertSee('href="tel:+525512345678"', false)
+            ->assertDontSeeText('Abrir en Google Maps');
+
+        $this->actingAs($datos['recepcion'])
+            ->get(route('dashboard', ['fecha' => $cita->fecha->format('Y-m-d')]))
+            ->assertOk()
+            ->assertSee('detalle-cita-llamar', false)
+            ->assertSee('La cita se realizará por llamada telefónica', false);
+
+        $this->actingAs($datos['usuario_medico'])
+            ->get(route('citas.show', $cita))
+            ->assertDontSeeText('Recordar cita por llamada telefónica');
+    }
+
     /**
      * @return array<string, mixed>
      */

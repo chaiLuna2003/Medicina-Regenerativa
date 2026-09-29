@@ -123,24 +123,10 @@ $cita->estado_actual === 'programada',
 $cita->estado_actual === 'confirmada',
 
 'puede_modificar' =>
-in_array(
-$cita->estado_actual,
-[
-'programada',
-'confirmada',
-],
-true
-),
+$cita->puedeEditarAdministrativamente(),
 
 'puede_cancelar' =>
-in_array(
-$cita->estado_actual,
-[
-'programada',
-'confirmada',
-],
-true
-),
+$cita->puedeCancelarAdministrativamente(),
 
 'detalle_url' =>
 route('citas.show', $cita),
@@ -556,6 +542,15 @@ route('citas.index', [
                     class="ml-1">
                 </span>
             </a>
+
+            <a
+                id="detalle-cita-llamar"
+                href="#"
+                class="mt-3 hidden w-full items-center justify-center rounded-xl
+                       border border-blue-200 bg-blue-50 px-4 py-3
+                       text-sm font-bold text-blue-800 transition hover:bg-blue-100">
+                Recordar cita por llamada telefónica
+            </a>
         </div>
     </div>
 </div>
@@ -835,6 +830,11 @@ route('citas.index', [
                 `Esperamos recibir su confirmación`;
 
             let mensaje = mensajeBase + '.';
+            if (modalidad === 'telefonica') {
+                mensaje = mensajeBase +
+                    '. La cita se realizará por llamada telefónica; ' +
+                    'por favor esté pendiente de su teléfono.';
+            }
             const direccionCita = modalidad === 'presencial' ?
                 direccionClinica :
                 (modalidad === 'fuera_instalaciones' ? cita.direccion : null);
@@ -878,6 +878,14 @@ route('citas.index', [
                 `https://wa.me/${telefonoWhatsApp}` +
                 `?text=${mensajeWhatsApp}` :
                 '#';
+
+            const botonLlamar = document.getElementById('detalle-cita-llamar');
+            const mostrarLlamada = modalidad === 'telefonica' &&
+                mostrarWhatsApp && cita.estado !== 'cancelada';
+            botonLlamar.classList.toggle('hidden', !mostrarLlamada);
+            botonLlamar.classList.toggle('flex', mostrarLlamada);
+            botonLlamar.href = mostrarLlamada ?
+                `tel:+${telefonoWhatsApp}` : '#';
 
             document.getElementById(
                     'detalle-cita-telefono'

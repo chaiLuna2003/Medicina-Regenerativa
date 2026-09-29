@@ -409,6 +409,41 @@
             </section>
             @endif
             @if (
+            $cita->modalidad === 'telefonica'
+            && in_array(auth()->user()->role, ['admin', 'recepcionista'], true)
+            && $cita->estado !== 'cancelada'
+            )
+            @php
+            $telefonoLlamada = preg_replace('/\D+/', '', (string) $cita->paciente?->telefono);
+            if (strlen($telefonoLlamada) === 10) {
+                $telefonoLlamada = '52'.$telefonoLlamada;
+            }
+            @endphp
+            <section class="mb-6 rounded-2xl border border-blue-200 bg-blue-50 p-6 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">
+                    Consulta telefónica
+                </p>
+                <h3 class="mt-2 text-lg font-bold text-blue-950">
+                    Recordar cita por llamada telefónica
+                </h3>
+                <p class="mt-2 text-sm text-blue-900">
+                    La cita se atenderá por teléfono. Comunícate con el paciente para recordarle
+                    la fecha y hora programadas.
+                </p>
+                @if ($telefonoLlamada !== '')
+                <a href="tel:+{{ $telefonoLlamada }}"
+                   class="mt-4 inline-flex items-center justify-center rounded-xl bg-[#0D3B7F]
+                          px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#082a5d]">
+                    Llamar al paciente
+                </a>
+                @else
+                <p class="mt-4 text-sm font-medium text-blue-800">
+                    El paciente no tiene un teléfono registrado.
+                </p>
+                @endif
+            </section>
+            @endif
+            @if (
             $cita->modalidad === 'fuera_instalaciones'
             && $cita->direccion_cita
             )

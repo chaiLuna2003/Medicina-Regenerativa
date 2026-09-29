@@ -118,15 +118,18 @@ class Citas extends Model
      */
     public function puedeEditarAdministrativamente(): bool
     {
-        if (! now()->lt($this->fechaHoraInicio())) {
-            return false;
-        }
+        $estado = $this->estadoEfectivo();
 
-        return in_array(
-            $this->estadoEfectivo(),
-            ['programada', 'confirmada'],
-            true
-        );
+        return (
+            in_array($estado, ['programada', 'confirmada'], true)
+            && now()->lt($this->fechaHoraInicio())
+        ) || $estado === 'finalizada';
+    }
+
+    public function puedeCancelarAdministrativamente(): bool
+    {
+        return $this->puedeEditarAdministrativamente()
+            && ! $this->evolucionClinica()->exists();
     }
 
     protected function estadoActual(): Attribute

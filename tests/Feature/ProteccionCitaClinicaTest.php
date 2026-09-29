@@ -16,6 +16,20 @@ class ProteccionCitaClinicaTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_cancelacion_directa_no_borra_cita_con_evolucion_clinica(): void
+    {
+        $datos = $this->crearEscenario();
+
+        $this->actingAs($datos['recepcion'])
+            ->patch(route('citas.cancelar', $datos['cita']))
+            ->assertSessionHasErrors('estado');
+
+        $this->assertDatabaseHas('citas', [
+            'id' => $datos['cita']->id,
+            'estado' => $datos['cita']->estado,
+        ]);
+    }
+
     public function test_cita_con_evolucion_no_puede_eliminarse(): void
     {
         $datos = $this->crearEscenario();
